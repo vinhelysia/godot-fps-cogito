@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="BoltAction_Resource" format=3 uid="uid://dexbuqmkgsldx"]
+
+[ext_resource type="Script" uid="uid://cbuwlci27f7a2" path="res://Scripts/Weapons/Types/BoltAction_Resource.gd" id="1_qrmst"]
+
+[resource]
+script = ExtResource("1_qrmst")
+Type = 2
+weaponVelocity = 950
+metadata/_custom_type_script = "uid://cbuwlci27f7a2"

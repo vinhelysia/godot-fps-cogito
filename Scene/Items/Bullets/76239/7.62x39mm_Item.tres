@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="AmmoItemPD" format=3 uid="uid://hv4kejkdqbr7"]
 
-[ext_resource type="Texture2D" uid="uid://bikkon4fayr1g" path="res://Scene/Items/Bullets/7.62x39mm_Item.png" id="1_5hj6e"]
+[ext_resource type="Texture2D" uid="uid://bikkon4fayr1g" path="res://Scene/Items/Bullets/76239/7.62x39mm_Item.png" id="1_5hj6e"]
 [ext_resource type="Script" uid="uid://6vgnb68cqtwh" path="res://addons/cogito/InventoryPD/CustomResources/AmmoItemPD.gd" id="1_wvllo"]
 
 [resource]

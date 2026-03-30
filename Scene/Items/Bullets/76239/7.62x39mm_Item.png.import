@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bikkon4fayr1g"
-path="res://.godot/imported/7.62x39mm_Item.png-69beeac86f729a29c92d88b2b2c43b6f.ctex"
+path="res://.godot/imported/7.62x39mm_Item.png-eaa27a99d8a650d2b64df7137246ac49.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Scene/Items/Bullets/7.62x39mm_Item.png"
-dest_files=["res://.godot/imported/7.62x39mm_Item.png-69beeac86f729a29c92d88b2b2c43b6f.ctex"]
+source_file="res://Scene/Items/Bullets/76239/7.62x39mm_Item.png"
+dest_files=["res://.godot/imported/7.62x39mm_Item.png-eaa27a99d8a650d2b64df7137246ac49.ctex"]
 
 [params]
 

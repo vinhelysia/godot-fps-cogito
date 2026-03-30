@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://u7tvrbwfpvb2"]
+
+[ext_resource type="PackedScene" uid="uid://dh2kyasyxn7ms" path="res://Assets/7.62x51mm_Item.glb" id="1_b8itn"]
+[ext_resource type="PackedScene" uid="uid://1xq4y42qkcur" path="res://addons/cogito/Components/Interactions/PickupComponent.tscn" id="2_17qlu"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_b8itn"]
+height = 0.22045326
+radius = 0.017578125
+
+[node name="7_62x51mm_Item" unique_id=1276708987 instance=ExtResource("1_b8itn")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." index="1" unique_id=2082777454]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0006511342, 0)
+shape = SubResource("CylinderShape3D_b8itn")
+
+[node name="PickupComponent" parent="." index="2" unique_id=58604231 instance=ExtResource("2_17qlu")]
