@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WieldableItemPD" format=3 uid="uid://yv04ygxufxb1"]
+
+[ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="1_33dit"]
+[ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.png" id="1_ik1uf"]
+[ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tscn" id="3_0md2p"]
+
+[resource]
+resource_local_to_scene = true
+script = ExtResource("1_33dit")
+wieldable_scene = ExtResource("3_0md2p")
+charge_max = 30.0
+ammo_item_name = "7.62x39mm"
+charge_current = 30.0
+name = "AK-47"
+description = "Scavenged from an abandoned military cache, this rifle has seen better days, but it still spits lead without hesitation. It's loud, it's messy, and it's exactly what you need to survive the next wave. Just watch your ammo counter—7.62 rounds go fast when you're holding down the trigger"
+icon = ExtResource("1_ik1uf")
+drop_scene = "uid://cpoyxgguqsn3m"
+item_size = Vector2(4, 2)
+can_auto_slot = true
+metadata/_custom_type_script = "uid://bkxgkf3pj8kb8"
