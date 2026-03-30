@@ -5,9 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://ba8gpptnnapyh" path="res://addons/cogito/Assets/Audio/Kenney/cloth2.ogg" id="3_7ds3n"]
 [ext_resource type="AudioStream" uid="uid://b7wmxwvtbpfu1" path="res://addons/cogito/Assets/Audio/537275__laughingfish78__dirt-sliding.ogg" id="4_1i2kv"]
 [ext_resource type="PackedScene" uid="uid://n1doui0jpn1v" path="res://addons/cogito/InventoryPD/CustomResources/CogtoTestCurrency.tscn" id="5_opu5d"]
-[ext_resource type="PackedScene" uid="uid://dorp3auw3s65q" path="res://addons/cogito/Components/Attributes/LightMeterAttribute.tscn" id="5_v3qv3"]
 [ext_resource type="Script" uid="uid://b6l8lsrktfd4b" path="res://addons/cogito/Components/Attributes/cogito_attribute.gd" id="6_xg64i"]
-[ext_resource type="PackedScene" uid="uid://cetc123v5gnff" path="res://addons/cogito/Components/Attributes/SanityAttribute.tscn" id="7_27cpi"]
 [ext_resource type="Texture2D" uid="uid://d0so3oo1yk4kh" path="res://addons/cogito/Assets/Graphics/HintIcons/Hint_Heart.png" id="7_ekjhh"]
 [ext_resource type="PackedScene" uid="uid://ce7bjv28uakxl" path="res://addons/cogito/Components/Attributes/StaminaAttribute.tscn" id="8_kodbk"]
 [ext_resource type="PackedScene" uid="uid://cqgg1nng0vvbh" path="res://addons/cogito/Components/Attributes/HealthAttribute.tscn" id="9_ky5mf"]
@@ -80,11 +78,6 @@ value_max = 10.0
 value_start = 8.0
 attribute_visibility = 2
 metadata/_custom_type_script = "uid://b6l8lsrktfd4b"
-
-[node name="LightMeterAttribute" parent="." unique_id=429470422 instance=ExtResource("5_v3qv3")]
-
-[node name="SanityAttribute" parent="." unique_id=701685775 instance=ExtResource("7_27cpi")]
-decay_in_darkness = false
 
 [node name="StaminaAttribute" parent="." unique_id=1726381400 instance=ExtResource("8_kodbk")]
 

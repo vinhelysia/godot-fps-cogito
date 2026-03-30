@@ -190,7 +190,7 @@ libraries/ = SubResource("AnimationLibrary_kl144")
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, -3.4967785, -4.7683717e-08, 1.3982166)
 
 [node name="KSI_table_long2" parent="." unique_id=2027607774 instance=ExtResource("12_sp2ue")]
-transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, -3.4967785, -4.7683717e-08, 1.3982166)
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, -3.4967785, -4.7683717e-08, -1.5011262)
 
 [node name="KSI_table_long3" parent="." unique_id=133783606 instance=ExtResource("12_sp2ue")]
 transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, -3.4967785, -4.7683717e-08, -0.06395326)
