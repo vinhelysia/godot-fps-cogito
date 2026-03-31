@@ -5,7 +5,7 @@ const vec3 BLACK = vec3(0.0);
 
 // -- Textures -----------------------------------------------------------------
 /** Viewport texture from a 3D Camera - the scope's world view */
-uniform sampler2D scope_texture : repeat_disable;
+uniform sampler2D scope_texture : source_color, repeat_disable;
 
 // -- Scope Geometry ------------------------------------------------------------
 uniform float scope_radius = 0.025;
