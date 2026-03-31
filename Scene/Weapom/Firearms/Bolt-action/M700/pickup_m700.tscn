@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://bebw6gvua3ljl"]
+
+[ext_resource type="Script" uid="uid://dmeh01c5ccjqc" path="res://addons/cogito/CogitoObjects/cogito_object.gd" id="1_jipfb"]
+[ext_resource type="PackedScene" uid="uid://hb6a2o6ljd5q" path="res://addons/cogito/Components/Interactions/ExtendedPickupInteraction.tscn" id="3_6xgbl"]
+[ext_resource type="Resource" uid="uid://dyplgl2lq4m3i" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres" id="4_08a6w"]
+[ext_resource type="Script" uid="uid://b0a3vpjf8hylo" path="res://addons/cogito/Components/Interactions/PickupComponent.gd" id="4_k683o"]
+[ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="6_plndm"]
+[ext_resource type="PackedScene" uid="uid://cio4x05ipvslu" path="res://addons/cogito/Components/Interactions/CarryableComponent.tscn" id="7_4qcgh"]
+[ext_resource type="PackedScene" uid="uid://38efjuqypg1q" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn" id="7_08a6w"]
+
+[sub_resource type="Resource" id="Resource_65xvt"]
+script = ExtResource("6_plndm")
+inventory_item = ExtResource("4_08a6w")
+metadata/_custom_type_script = "uid://di15gqemrkk0x"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ak47col"]
+size = Vector3(2.5169234, 0.5590393, 0.20627746)
+
+[node name="Pickup_m700" type="RigidBody3D" unique_id=1016856659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0021060705, 0, 0)
+collision_layer = 3
+mass = 3.5
+script = ExtResource("1_jipfb")
+cogito_name = "M700"
+display_name = "M700"
+custom_aabb = AABB(-0.09, -0.62, -1.335, 0.9, 0.25, 0.1)
+
+[node name="ExtendedPickupInteraction" parent="." unique_id=54646705 instance=ExtResource("3_6xgbl")]
+hold_interaction_text = "Wield"
+
+[node name="PickupComponent" type="Node3D" parent="." unique_id=610475193]
+script = ExtResource("4_k683o")
+slot_data = SubResource("Resource_65xvt")
+metadata/_custom_type_script = "uid://b0a3vpjf8hylo"
+
+[node name="CarryableComponent" parent="." unique_id=32635005 instance=ExtResource("7_4qcgh")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=566114659]
+transform = Transform3D(-0.0017782539, -0.0045208056, 0.9999882, 0.012974124, 0.9999055, 0.004543504, -0.9999142, 0.012982052, -0.0017194302, -0.0016712876, -0.0037355796, -0.17567053)
+shape = SubResource("BoxShape3D_ak47col")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=1270568352]
+bus = &"SFX"
+
+[node name="m700" parent="." unique_id=1140920897 instance=ExtResource("7_08a6w")]

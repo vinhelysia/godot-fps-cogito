@@ -161,7 +161,7 @@ remote_path = NodePath("../Scope/Camera3D")
 
 [node name="Scope" type="SubViewport" parent="." unique_id=1965263649]
 use_hdr_2d = true
-size = Vector2i(1024, 1024)
+anisotropic_filtering_level = 0
 
 [node name="Camera3D" type="Camera3D" parent="Scope" unique_id=982753780]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.35216555, 0, 0)

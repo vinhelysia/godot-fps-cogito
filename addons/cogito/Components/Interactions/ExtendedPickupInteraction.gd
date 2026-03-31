@@ -100,6 +100,9 @@ func consume(consumable: ConsumableItemPD) -> void:
 #region Ammos
 ## Called if the PickupComponent item is an AmmoItem type
 func cant_reload_current_wieldable() -> bool:
+	if player_interaction_component.equipped_wieldable_node == null or player_interaction_component.equipped_wieldable_item == null:
+		return true
+
 	if player_interaction_component.equipped_wieldable_node.animation_player.is_playing():
 		return true
 	if player_interaction_component.equipped_wieldable_item.ammo_item_name != pickup.slot_data.inventory_item.name:
@@ -114,6 +117,9 @@ func cant_reload_current_wieldable() -> bool:
 ## Called if the PickupComponent item is an AmmoItem type. 
 ## Based on the attempt_reload function in PIC, but doesn't reference player inventory and just looks at the pickup itself
 func attempt_reload_current_wieldable(ammo: AmmoItemPD) -> void:
+	if player_interaction_component.equipped_wieldable_node == null or player_interaction_component.equipped_wieldable_item == null:
+		return
+
 	if player_interaction_component.equipped_wieldable_node.animation_player.is_playing():
 		return
 	if player_interaction_component.equipped_wieldable_item.ammo_item_name != ammo.name:
@@ -156,11 +162,12 @@ func attempt_reload_current_wieldable(ammo: AmmoItemPD) -> void:
 func attempt_wield(wieldable: WieldableItemPD) -> void:
 	if player_interaction_component.is_changing_wieldables:
 		return
-	
+		
 	if player_interaction_component.player.inventory_data.pick_up_slot_data(pickup.slot_data):
-		if player_interaction_component.is_wielding:
+		if player_interaction_component.is_wielding and player_interaction_component.equipped_wieldable_item != null:
 			player_interaction_component.equipped_wieldable_item.put_away()
-			await get_tree().create_timer(player_interaction_component.equipped_wieldable_node.animation_player.current_animation_length).timeout 
+			while player_interaction_component.is_changing_wieldables:
+				await get_tree().process_frame
 	
 		wieldable.use(player_interaction_component.player)
 		was_interacted_with.emit(interaction_text, input_map_action)
