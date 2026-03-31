@@ -6,6 +6,8 @@ class_name CogitoWieldable
 var item_reference : WieldableItemPD
 ## Visible parts of the wieldable. Used to hide/show on equip/unequip.
 @export var wieldable_mesh : Node3D
+## Time in seconds to fully aim down sights (ADS). Each weapon can override this.
+@export var ads_time: float = 0.2
 
 @export_group("Animations")
 @onready var animation_player: AnimationPlayer = $AnimationPlayer

@@ -51,6 +51,10 @@ music_max_volume_db = 6.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=793914440]
 environment = SubResource("Environment_txthi")
 
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=918971464]
+transform = Transform3D(0.81935227, -2.44186e-08, -0.5732905, 0.29080313, 0.8617974, 0.4156186, 0.49406025, -0.50725263, 0.70611566, -2.69071, 32.049805, 40.612164)
+shadow_enabled = true
+
 [node name="Geometry" type="Node3D" parent="." unique_id=1735591731]
 transform = Transform3D(-1.8642258e-08, 0, 1, 0, 1, 0, -0.42648512, 0, -4.371139e-08, 0, 2.5, -50)
 

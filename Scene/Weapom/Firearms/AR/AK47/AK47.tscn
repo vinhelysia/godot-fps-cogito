@@ -960,6 +960,7 @@ default_position = Vector3(0.722, -0.3, -0.973)
 ads_position = Vector3(0, -0.21, -0.8)
 aim_recoil_values = Vector3(0.04, 0.045, 0)
 wieldable_mesh = NodePath(".")
+ads_time = 0.25
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=288433027]
 libraries/ = SubResource("AnimationLibrary_ws41e")

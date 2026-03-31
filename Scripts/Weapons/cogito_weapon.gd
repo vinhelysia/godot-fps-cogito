@@ -409,8 +409,8 @@ func _enter_ads() -> void:
 
 	_is_aiming = true
 	var camera := get_viewport().get_camera_3d()
-	create_tween().tween_property(camera, "fov", ads_fov, 0.2)
-	create_tween().tween_property(self, "position", Vector3(0, ads_position.y, ads_position.z), 0.2)
+	create_tween().tween_property(camera, "fov", ads_fov, ads_time)
+	create_tween().tween_property(self, "position", Vector3(0, ads_position.y, ads_position.z), ads_time)
 	if player_interaction_component:
 		player_interaction_component.update_crosshair.emit(false)
 
@@ -430,8 +430,8 @@ func _exit_ads() -> void:
 
 	_is_aiming = false
 	var camera := get_viewport().get_camera_3d()
-	create_tween().tween_property(camera, "fov", 75.0, 0.2)
-	create_tween().tween_property(self, "position", default_position, 0.2)
+	create_tween().tween_property(camera, "fov", 75.0, ads_time)
+	create_tween().tween_property(self, "position", default_position, ads_time)
 	if player_interaction_component:
 		player_interaction_component.update_crosshair.emit(true)
 

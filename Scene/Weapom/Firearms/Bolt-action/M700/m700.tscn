@@ -311,6 +311,7 @@ default_position = Vector3(0.557, -0.308, -0.897)
 ads_position = Vector3(0, -0.175, -0.636)
 trigger_pull_rotation = -18.0
 wieldable_mesh = NodePath(".")
+ads_time = 0.45
 
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=145585913]
 unique_name_in_owner = true
