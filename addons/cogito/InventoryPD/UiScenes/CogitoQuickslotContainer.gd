@@ -80,9 +80,10 @@ func update_quickslot_data(slot_data: InventorySlotPD) -> void:
 		CogitoGlobals.debug_log(true,"COgitoQuickslotContainer", "update_quickslot_data(): passed slot_data was " + str(slot_data) )
 		inventory_slot_reference = slot_data
 		item_reference = inventory_slot_reference.inventory_item
-		
+
 		item_texture.show()
-		item_texture.texture = item_reference.icon
+		var qs_icon = item_reference.get("quickslot_icon")
+		item_texture.texture = qs_icon if qs_icon else item_reference.icon
 		
 		#Setting stack once here.
 		if inventory_slot_reference.quantity > 1:

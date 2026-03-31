@@ -8,6 +8,8 @@ signal charge_changed()
 @export var wieldable_scene : PackedScene
 ## Icon that is displayed on the HUD when item is wielded. If NULL, the item icon will be used instead.
 @export var wieldable_data_icon : Texture2D
+## Square (1:1) icon used in the quickslot bar. If NULL, falls back to the default item icon.
+@export var quickslot_icon : Texture2D
 @export var wieldable_crosshair : Texture2D
 ## Check this if your wieldable doesn't use reload (for example melee weapons)
 @export var no_reload : bool = false
