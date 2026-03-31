@@ -5,13 +5,25 @@ const vec3 BLACK = vec3(0.0);
 
 // -- Textures -----------------------------------------------------------------
 /** Viewport texture from a 3D Camera - the scope's world view */
-uniform sampler2D scope_texture : source_color, repeat_disable;
+// REMOVED source_color to prevent double gamma/sRGB conversion
+uniform sampler2D scope_texture : repeat_disable;
 
 // -- Scope Geometry ------------------------------------------------------------
 uniform float scope_radius = 0.025;
 uniform float reticle_depth = 2.0;
 uniform float parallax_factor : hint_range(0.0, 0.3, 0.001) = 0.1;
 uniform float view_edge_fade_factor : hint_range(0.0, 0.5, 0.001) = 0.05;
+
+// -- Color Correction (NEW) ----------------------------------------------------
+group_uniforms Color_Correction;
+/** Exposure multiplier - lower = darker scope view */
+uniform float scope_exposure : hint_range(0.1, 2.0, 0.01) = 0.7;
+/** Gamma correction - higher = darker midtones */
+uniform float scope_gamma : hint_range(0.5, 2.2, 0.01) = 1.0;
+/** Contrast adjustment */
+uniform float scope_contrast : hint_range(0.5, 1.5, 0.01) = 1.0;
+/** Saturation adjustment */
+uniform float scope_saturation : hint_range(0.0, 1.5, 0.01) = 1.0;
 
 // -- Eyebox -------------------------------------------------------------------
 group_uniforms Eyebox;
@@ -220,6 +232,28 @@ float in_bounds(vec2 uv) {
 
 
 // ============================================================================
+// COLOR CORRECTION HELPERS (NEW)
+// ============================================================================
+
+vec3 apply_color_correction(vec3 color) {
+	// Apply exposure
+	color *= scope_exposure;
+	
+	// Apply contrast (around 0.5 midpoint)
+	color = (color - 0.5) * scope_contrast + 0.5;
+	
+	// Apply gamma correction
+	color = pow(max(color, vec3(0.0)), vec3(scope_gamma));
+	
+	// Apply saturation
+	float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+	color = mix(vec3(luminance), color, scope_saturation);
+	
+	return clamp(color, vec3(0.0), vec3(1.0));
+}
+
+
+// ============================================================================
 // VERTEX
 // ============================================================================
 
@@ -257,6 +291,9 @@ void fragment() {
 	} else {
 		scope_color = texture(scope_texture, scope_uv).rgb;
 	}
+
+	// Apply color correction to match main camera (NEW)
+	scope_color = apply_color_correction(scope_color);
 
 	float scope_shadow = get_scope_shadow_mask(UV, view_dir, eye_distance);
 

@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://dmdmar5r18j30"]
 
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_2x0ol"]
-[ext_resource type="PackedScene" uid="uid://c1lv8khlafvto" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope.tscn" id="2_2x0ol"]
+[ext_resource type="PackedScene" uid="uid://c1lv8khlafvto" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.tscn" id="2_2x0ol"]
 [ext_resource type="Resource" uid="uid://dexbuqmkgsldx" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700.tres" id="2_vsell"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vsed6"]

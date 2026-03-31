@@ -21,6 +21,7 @@ sky_material = SubResource("PanoramaSkyMaterial_epm0u")
 
 [sub_resource type="Environment" id="Environment_txthi"]
 background_mode = 2
+background_energy_multiplier = 0.8
 sky = SubResource("Sky_proto")
 ambient_light_sky_contribution = 0.5
 ambient_light_energy = 0.8
@@ -35,7 +36,7 @@ volumetric_fog_density = 0.03
 albedo_texture = ExtResource("2_ha6b3")
 uv1_scale = Vector3(10, 10, 10)
 
-[sub_resource type="Resource" id="Resource_rniks"]
+[sub_resource type="Resource" id="Resource_yhbxf"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
@@ -46,13 +47,6 @@ inventory_slots = Array[ExtResource("4_xdnjf")]([null, null, null, null, null, n
 script = ExtResource("1_g1f60")
 bgm_neutral = ExtResource("2_4p7si")
 music_max_volume_db = 6.0
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1505125913]
-transform = Transform3D(0.5, -0.224144, 0.836516, -1.13133e-08, 0.965926, 0.258819, -0.866025, -0.12941, 0.482963, 0, 10, 0)
-light_color = Color(1, 0.929167, 0.75, 1)
-light_energy = 2.0
-shadow_enabled = true
-shadow_opacity = 0.8
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=793914440]
 environment = SubResource("Environment_txthi")
@@ -87,7 +81,7 @@ size = Vector3(1, 5, 100)
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.8379371, -18.182486)
-inventory_data = SubResource("Resource_rniks")
+inventory_data = SubResource("Resource_yhbxf")
 
 [node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]
 transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.08470869, -28.715464)

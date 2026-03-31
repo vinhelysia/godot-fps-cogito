@@ -1,4 +1,7 @@
-[gd_scene format=4 uid="uid://dm25pnn4rpikl"]
+[gd_scene format=4 uid="uid://c1lv8khlafvto"]
+
+[ext_resource type="Script" uid="uid://dikf87rtteijf" path="res://Scripts/Weapons/scope_controller.gd" id="1_8b3am"]
+[ext_resource type="Shader" uid="uid://cf7leb6ap2tlo" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.gdshader" id="1_toaoc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7ukyl"]
 resource_name = "1b"
@@ -99,7 +102,76 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_nmi6g")
 
-[node name="scope" type="MeshInstance3D" unique_id=2011235629]
+[sub_resource type="ViewportTexture" id="ViewportTexture_8b3am"]
+viewport_path = NodePath("Scope")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8b3am"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_toaoc")
+shader_parameter/scope_texture = SubResource("ViewportTexture_8b3am")
+shader_parameter/scope_radius = 0.048
+shader_parameter/reticle_depth = 0.945
+shader_parameter/parallax_factor = 0.1
+shader_parameter/view_edge_fade_factor = 0.10000000475
+shader_parameter/scope_exposure = 0.69999998807892
+shader_parameter/scope_gamma = 1.0999999865888
+shader_parameter/scope_contrast = 0.97999998927104
+shader_parameter/scope_saturation = 1.0
+shader_parameter/eyebox_position = 0.2
+shader_parameter/eyebox_tolerance = 0.005
+shader_parameter/eyebox_fade_distance = 0.05
+shader_parameter/shadow_inner_radius = 0.7999999821184
+shader_parameter/shadow_fade_factor = 0.3
+shader_parameter/shadow_movement_factor = 0.999999988824
+shader_parameter/barrel_distortion = 0.03999999910592
+shader_parameter/chromatic_aberration = 0.0
+shader_parameter/vignette_strength = 0.0
+shader_parameter/reticle_color = Color(0.89, 0.15, 0.21, 1)
+shader_parameter/reticle_opacity = 1.0
+shader_parameter/reticle_aa = 0.003
+shader_parameter/ring_radius = 0.18
+shader_parameter/ring_thickness = 0.025
+shader_parameter/cross_length = 0.085
+shader_parameter/cross_gap = 0.025
+shader_parameter/cross_thickness = 0.004
+shader_parameter/stadia_length = 0.015
+shader_parameter/stadia_thickness = 0.003
+shader_parameter/center_dot_radius = 0.007
+shader_parameter/bdc_dot_count = 3
+shader_parameter/bdc_dot_spacing = 0.025
+shader_parameter/bdc_dot_start = 0.04
+shader_parameter/bdc_dot_radius = 0.006
+shader_parameter/ring_dot_radius = 0.005
+
+[sub_resource type="QuadMesh" id="QuadMesh_mv1c6"]
+size = Vector2(0.115, 0.115)
+
+[node name="Tac3014x24Riflescope" type="Node3D" unique_id=367804236]
+script = ExtResource("1_8b3am")
+magnification = 6.0
+base_fov_at_1x = 75.0
+
+[node name="scope" type="MeshInstance3D" parent="." unique_id=2011235629]
 transform = Transform3D(0, 0.099204384, 0, -0.18941411, 0, 0, 0, 0, 0.18941411, 0, 0, 0)
 mesh = SubResource("ArrayMesh_njnyc")
 skeleton = NodePath("")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1164025291]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -0.32777476, 0, 0)
+material_override = SubResource("ShaderMaterial_8b3am")
+mesh = SubResource("QuadMesh_mv1c6")
+skeleton = NodePath("../RemoteTransform3D")
+
+[node name="RemoteTransform3D" type="RemoteTransform3D" parent="." unique_id=25546069]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.34805712, 0, 0)
+remote_path = NodePath("../Scope/Camera3D")
+
+[node name="Scope" type="SubViewport" parent="." unique_id=1965263649]
+use_hdr_2d = true
+anisotropic_filtering_level = 0
+size = Vector2i(1024, 1024)
+
+[node name="Camera3D" type="Camera3D" parent="Scope" unique_id=982753780]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.34805712, 0, 0)
+fov = 12.5

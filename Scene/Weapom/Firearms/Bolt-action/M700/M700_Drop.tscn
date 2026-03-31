@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://38efjuqypg1q"]
 
-[ext_resource type="PackedScene" uid="uid://c1lv8khlafvto" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope.tscn" id="3_rxeuf"]
+[ext_resource type="PackedScene" uid="uid://c1lv8khlafvto" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.tscn" id="3_rxeuf"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vsed6"]
 resource_name = "2b"
