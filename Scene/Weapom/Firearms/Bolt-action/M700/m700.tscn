@@ -385,6 +385,13 @@ weapon_data = ExtResource("2_vsell")
 ads_fov = 40.0
 default_position = Vector3(0.557, -0.308, -0.897)
 ads_position = Vector3(0, -0.175, -0.636)
+shoot_motion_mode = 1
+hip_shot_position_offset = Vector3(0, 0.015, 0.09)
+hip_shot_rotation_deg = Vector3(0.8, 0, 0)
+ads_shot_position_offset = Vector3(0, 0.01, 0.05)
+ads_shot_rotation_deg = Vector3(0.4, 0, 0)
+shoot_kick_out_time = 0.035
+shoot_return_time = 0.08
 trigger_pull_rotation = -18.0
 wieldable_mesh = NodePath(".")
 ads_time = 0.45
@@ -420,7 +427,6 @@ base_fov_at_1x = 60.0
 [node name="SubViewport" type="SubViewport" parent="." unique_id=1010963431]
 
 [node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=669320740]
-fov = 60.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1612865397]
 libraries/ = SubResource("AnimationLibrary_n1hoc")

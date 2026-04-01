@@ -959,6 +959,17 @@ ads_fov = 40.0
 default_position = Vector3(0.722, -0.3, -0.973)
 ads_position = Vector3(0, -0.21, -0.8)
 aim_recoil_values = Vector3(0.04, 0.045, 0)
+shoot_motion_mode = 1
+hip_shot_position_offset = Vector3(0, 0.015, 0.128)
+hip_shot_rotation_deg = Vector3(0.5, 0, 0)
+ads_shot_position_offset = Vector3(0, 0.01, 0.2)
+ads_shot_rotation_deg = Vector3(0.2, 0, 0)
+shoot_kick_out_time = 0.03
+shoot_return_time = 0.06
+fire_part_node = NodePath("ak47 bolt carrier")
+fire_part_position_offset = Vector3(0, 0, 0.8102)
+fire_part_out_time = 0.03
+fire_part_return_time = 0.058
 wieldable_mesh = NodePath(".")
 ads_time = 0.25
 
