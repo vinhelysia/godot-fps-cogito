@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://c2kkj7vhsd1oi" path="res://addons/cogito/SceneManagement/cogito_scene.gd" id="1_g1f60"]
 [ext_resource type="Texture2D" uid="uid://sdcljx8f5dhj" path="res://addons/cogito/Assets/hdris/kloofendal_48d_partly_cloudy_puresky_2k.hdr" id="1_qvonb"]
 [ext_resource type="AudioStream" uid="uid://lr1efmq0q16k" path="res://addons/cogito/Assets/Audio/Phazorknight/CogitoAmbience_v02.ogg" id="2_4p7si"]
-[ext_resource type="Texture2D" uid="uid://bwsdnn5dpwjyq" path="res://addons/kenney_prototype_textures/green/texture_01.png" id="2_ha6b3"]
 [ext_resource type="PackedScene" uid="uid://kicjwmh02uwf" path="res://addons/cogito/PackedScenes/cogito_player.tscn" id="3_xdnjf"]
 [ext_resource type="Script" uid="uid://btnha2whsheir" path="res://addons/cogito/InventoryPD/cogito_inventory.gd" id="4_3dqf0"]
 [ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="4_xdnjf"]
@@ -32,11 +31,7 @@ glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g1f60"]
-albedo_texture = ExtResource("2_ha6b3")
-uv1_scale = Vector3(10, 10, 10)
-
-[sub_resource type="Resource" id="Resource_yhbxf"]
+[sub_resource type="Resource" id="Resource_lb3ao"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
@@ -55,40 +50,12 @@ environment = SubResource("Environment_txthi")
 transform = Transform3D(0.81935227, -2.44186e-08, -0.5732905, 0.29080313, 0.8617974, 0.4156186, 0.49406025, -0.50725263, 0.70611566, -2.69071, 32.049805, 40.612164)
 shadow_enabled = true
 
-[node name="Geometry" type="Node3D" parent="." unique_id=1735591731]
-transform = Transform3D(-1.8642258e-08, 0, 1, 0, 1, 0, -0.42648512, 0, -4.371139e-08, 0, 2.5, -50)
-
-[node name="Floor" type="CSGBox3D" parent="Geometry" unique_id=960431233]
-transform = Transform3D(-1.0249218e-07, 0, -2.3447478, 0, 1, 0, 1, 0, -4.3711392e-08, -117.23739, -2.5, -2.1855697e-06)
-use_collision = true
-size = Vector3(100, 0.1, 100)
-material = SubResource("StandardMaterial3D_g1f60")
-
-[node name="Wall" type="CSGBox3D" parent="Geometry" unique_id=708452315]
-transform = Transform3D(-4.371139e-08, 0, -2.3447478, 0, 1, 0, 0.42648512, 0, -4.3711392e-08, -117.23738, 0.016541004, -50.21778)
-use_collision = true
-size = Vector3(1, 5, 100)
-
-[node name="Wall2" type="CSGBox3D" parent="Geometry" unique_id=653582144]
-transform = Transform3D(-4.371139e-08, 0, -2.3447478, 0, 1, 0, 0.42648512, 0, -4.3711392e-08, -117.2374, 0, 50.217995)
-use_collision = true
-size = Vector3(1, 5, 100)
-
-[node name="Wall3" type="CSGBox3D" parent="Geometry" unique_id=323114226]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -234.47478, 0, -4.3711393e-06)
-use_collision = true
-size = Vector3(1, 5, 100)
-
-[node name="Wall4" type="CSGBox3D" parent="Geometry" unique_id=1865144564]
-use_collision = true
-size = Vector3(1, 5, 100)
-
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.8379371, -18.182486)
-inventory_data = SubResource("Resource_yhbxf")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.8379371, -27.005917)
+inventory_data = SubResource("Resource_lb3ao")
 
 [node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]
-transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.08470869, -28.715464)
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
 
 [node name="7_62x51mm_Item" parent="." unique_id=1276708987 instance=ExtResource("11_lb3ao")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.340513)
@@ -122,7 +89,7 @@ transform = Transform3D(0.9999998, -7.1054274e-15, 0, 0, 0.99999994, 0, 0, 0, 0.
 freeze = true
 
 [node name="Pickup_AK47" parent="Pickup1" unique_id=1016856659 instance=ExtResource("7_3dqf0")]
-transform = Transform3D(-4.371139e-08, -0.99999994, 0, 1, -4.3711385e-08, 0, 0, 0, 0.99999994, 0.032093048, 0.0068007708, -0.13647461)
+transform = Transform3D(-4.371139e-08, -0.99999994, 0, 1, -4.3711385e-08, 0, 0, 0, 0.99999994, 0.032093048, 0.028178334, -0.13647461)
 freeze = true
 
 [node name="Pickup_AK47" parent="." unique_id=1092859853 instance=ExtResource("12_yhbxf")]

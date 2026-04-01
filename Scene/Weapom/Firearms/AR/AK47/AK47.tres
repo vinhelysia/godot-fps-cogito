@@ -13,5 +13,5 @@ recoilHorizontal = 0.06
 recoilRecovery = 6.0
 Type = 2
 bulletProjectileToLoad = ExtResource("1_amxwy")
-weaponVelocity = 715
+weaponVelocity = 716
 metadata/_custom_type_script = "uid://n2v7dh3aksy2"

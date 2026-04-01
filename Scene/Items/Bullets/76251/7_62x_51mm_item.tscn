@@ -10,7 +10,7 @@
 height = 0.21111917
 radius = 0.017578125
 
-[sub_resource type="Resource" id="Resource_vyprr"]
+[sub_resource type="Resource" id="Resource_5uoj0"]
 resource_local_to_scene = true
 script = ExtResource("5_xw5h4")
 inventory_item = ExtResource("4_5uoj0")
@@ -30,5 +30,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0002536904, 0)
 shape = SubResource("CylinderShape3D_b8itn")
 
 [node name="PickupComponent" parent="." index="2" unique_id=58604231 instance=ExtResource("2_17qlu")]
-slot_data = SubResource("Resource_vyprr")
+slot_data = SubResource("Resource_5uoj0")
 display_item_name = true

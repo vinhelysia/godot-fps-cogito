@@ -56,7 +56,7 @@ cogito_name = "7_62x39Projectile"
 transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
 
 [node name="7_62x39mm bullet" type="MeshInstance3D" parent="7_62x39 projectile" unique_id=575003327]
-transform = Transform3D(-4.371139e-08, -1, -4.371139e-08, 0, -4.371139e-08, 1, -1, 4.371139e-08, 1.9106855e-15, 0, 0, 0)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
 mesh = SubResource("ArrayMesh_q7jq3")
 skeleton = NodePath("")
 

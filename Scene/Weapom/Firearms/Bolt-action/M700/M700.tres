@@ -7,5 +7,5 @@
 script = ExtResource("1_qrmst")
 Type = 2
 bulletProjectileToLoad = ExtResource("1_73mm4")
-weaponVelocity = 950
+weaponVelocity = 915
 metadata/_custom_type_script = "uid://cbuwlci27f7a2"

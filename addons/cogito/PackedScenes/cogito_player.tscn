@@ -115,7 +115,7 @@ root_node = NodePath("../..")
 libraries/ = ExtResource("10_tp6cj")
 
 [node name="Camera" type="Camera3D" parent="Body/Neck/Head/Eyes" unique_id=371341059]
-transform = Transform3D(1, 0, 0, 0, 1, 4.46638e-06, 0, -4.46638e-06, 1, 0, 0, 0)
+fov = 60.0
 
 [node name="InteractionRaycast" parent="Body/Neck/Head/Eyes/Camera" unique_id=965846353 instance=ExtResource("10_2dndr")]
 

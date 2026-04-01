@@ -47,7 +47,7 @@ uv1_scale = Vector3(10, 10, 10)
 material = SubResource("StandardMaterial3D_u16t1")
 size = Vector2(7.2, 9.8)
 
-[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_cec6b"]
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_fatix"]
 points = PackedVector3Array(3.6, 0, 4.9, -3.6, 0, 4.9, 3.6, 0, -4.9, -3.6, 0, -4.9)
 
 [sub_resource type="Animation" id="Animation_iiwd3"]
@@ -173,15 +173,15 @@ shape = SubResource("CylinderShape3D_u16t1")
 
 [node name="BasicInteraction" parent="Geometry/ButtonBox/CogitoButton" unique_id=883799988 instance=ExtResource("4_lgqu4")]
 
-[node name="Floor" type="Node3D" parent="Geometry" unique_id=264374225]
+[node name="Floor" type="StaticBody3D" parent="Geometry" unique_id=1651890978]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Geometry/Floor" unique_id=455561955]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045295715, 0, -3.4243546)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.503803)
 mesh = SubResource("PlaneMesh_62jy6")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Geometry/Floor" unique_id=385838598]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045295715, 0, -3.4243546)
-shape = SubResource("ConvexPolygonShape3D_cec6b")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Geometry/Floor" unique_id=1574949744]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.503803)
+shape = SubResource("ConvexPolygonShape3D_fatix")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=526775705]
 libraries/ = SubResource("AnimationLibrary_kl144")
