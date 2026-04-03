@@ -78,6 +78,7 @@ var _trigger_tween: Tween = null
 var _trigger_press_time: float = -1.0
 
 # ── Internal state ────────────────────────────────────────────────────────────
+var _base_mouse_sens: float = -1.0  # -1.0 = not cached
 var _is_firing: bool = false
 var _is_aiming: bool = false
 var _fire_cooldown: float = 0.0
@@ -539,6 +540,7 @@ func _enter_ads() -> void:
 		return
 
 	_is_aiming = true
+	_apply_scope_sensitivity()
 	_cancel_ads_motion(false)
 	_play_ads_transition()
 	if player_interaction_component:
@@ -552,6 +554,7 @@ func _exit_ads(immediate: bool = false) -> void:
 		return
 
 	_is_aiming = false
+	_restore_scope_sensitivity()
 	_cancel_ads_motion(false)
 	_play_ads_transition(immediate)
 	if player_interaction_component:
@@ -760,6 +763,7 @@ func _reset_state() -> void:
 	_is_venting = false
 	_is_reloading = false
 	_is_firing = false
+	_restore_scope_sensitivity()
 	_is_aiming = false
 	_is_shoot_tween_active = false
 	_capture_rest_state()
@@ -887,3 +891,32 @@ func _complete_bolt_cycle() -> void:
 func _complete_pump_cycle() -> void:
 	_pump_ready = true
 	_capture_rest_state()
+
+
+# ── Scope sensitivity ─────────────────────────────────────────────────────────
+
+func _get_scope_controller() -> ScopeController:
+	for child in get_children():
+		if child is ScopeController:
+			return child as ScopeController
+	return null
+
+
+func _apply_scope_sensitivity() -> void:
+	var sc := _get_scope_controller()
+	if sc == null:
+		return
+	var player := player_interaction_component.get_parent() if player_interaction_component else null
+	if player == null or not "MOUSE_SENS" in player:
+		return
+	_base_mouse_sens = player.MOUSE_SENS
+	player.MOUSE_SENS = _base_mouse_sens * sc.get_sensitivity_multiplier()
+
+
+func _restore_scope_sensitivity() -> void:
+	if _base_mouse_sens < 0.0:
+		return
+	var player := player_interaction_component.get_parent() if player_interaction_component else null
+	if player and "MOUSE_SENS" in player:
+		player.MOUSE_SENS = _base_mouse_sens
+	_base_mouse_sens = -1.0

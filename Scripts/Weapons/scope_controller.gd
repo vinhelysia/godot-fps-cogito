@@ -50,6 +50,20 @@ enum ReticleType {
 		_apply_magnification()
 
 # ---------------------------------------------------------------------------
+# Exports — ADS Sensitivity
+# ---------------------------------------------------------------------------
+
+@export_group("ADS Sensitivity")
+
+## Hệ số nhân mouse sensitivity khi đang dùng scope này.
+## 1.0 = không thay đổi. 0.6 = giảm 40% (mặc định cho TAC30 1-4x).
+@export_range(0.1, 1.0, 0.01) var scope_sensitivity_multiplier: float = 0.6
+
+## Trả về hệ số nhân sensitivity. Gọi từ cogito_weapon.gd khi ADS enter/exit.
+func get_sensitivity_multiplier() -> float:
+	return scope_sensitivity_multiplier
+
+# ---------------------------------------------------------------------------
 # Exports — Reticle Type
 # ---------------------------------------------------------------------------
 

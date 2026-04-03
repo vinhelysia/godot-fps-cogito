@@ -385,7 +385,6 @@ weapon_data = ExtResource("2_vsell")
 ads_fov = 40.0
 default_position = Vector3(0.557, -0.308, -0.897)
 ads_position = Vector3(0, -0.175, -0.636)
-shoot_motion_mode = 1
 hip_shot_position_offset = Vector3(0, 0.015, 0.09)
 hip_shot_rotation_deg = Vector3(0.8, 0, 0)
 ads_shot_position_offset = Vector3(0, 0.01, 0.05)
