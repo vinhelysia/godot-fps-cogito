@@ -14,3 +14,12 @@ class_name MarksmanRifle_Resource
 
 func get_fire_mode() -> FireMode:
 	return FireMode.SEMI
+
+func get_ads_fov_override() -> float:
+	return scopedFOV
+
+func get_ads_duration_override() -> float:
+	return scopeInTime
+
+func is_scope_weapon() -> bool:
+	return true

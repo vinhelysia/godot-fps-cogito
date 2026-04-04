@@ -5,20 +5,30 @@ extends Node3D
 ##
 ## Pair with a CameraShake sibling node for positional screen-shake on fire.
 
-# Internal rotation tracking
-var currentRotation: Vector3
-var targetRotation: Vector3
-var _prevRotation := Vector3.ZERO
+# ── Constants ────────────────────────────────────────────────────────────────
 
-# Per-weapon recoil vectors (set via setRecoil / setAimRecoil on equip)
+const BURST_DRIFT_CAP_RATIO: float = 0.6
+const FIRE_TRAUMA_HIP: float = 0.25
+const FIRE_TRAUMA_ADS: float = 0.1
+
+# ── Internal rotation tracking ───────────────────────────────────────────────
+
+var current_rotation: Vector3
+var target_rotation: Vector3
+var _prev_rotation := Vector3.ZERO
+
+# ── Per-weapon recoil vectors (set via set_recoil / set_aim_recoil on equip) ─
+
 @export var recoil: Vector3
-@export var aimRecoil: Vector3
+@export var aim_recoil: Vector3
 
-# Tuning
+# ── Tuning ───────────────────────────────────────────────────────────────────
+
 @export var snappiness: float = 10.0
-@export var returnSpeed: float = 5.0
+@export var return_speed: float = 5.0
 
-# Burst / ramp-up settings
+# ── Burst / ramp-up settings ────────────────────────────────────────────────
+
 ## Number of shots before recoil reaches peak multiplier.
 @export var recoil_ramp_shots: int = 4
 ## Maximum recoil multiplier reached after ramping up.
@@ -28,12 +38,14 @@ var _prevRotation := Vector3.ZERO
 ## Extra horizontal drift added per shot during sustained fire (radians).
 @export var burst_drift_per_shot: float = 0.003
 
-# Burst state
+# ── Burst state ──────────────────────────────────────────────────────────────
+
 var _shot_count: int = 0
 var _burst_drift: float = 0.0
 var _time_since_last_shot: float = 0.0
 
-# Optional sibling CameraShake node
+# ── Optional sibling CameraShake node ────────────────────────────────────────
+
 var _camera_shake: Node = null
 
 
@@ -49,21 +61,23 @@ func _process(delta: float) -> void:
 		_shot_count = 0
 		_burst_drift = 0.0
 
-	targetRotation = lerp(targetRotation, Vector3.ZERO, returnSpeed * delta)
-	currentRotation = lerp(currentRotation, targetRotation, snappiness * delta)
+	target_rotation = lerp(target_rotation, Vector3.ZERO, return_speed * delta)
+	current_rotation = lerp(current_rotation, target_rotation, snappiness * delta)
 
-	var delta_rot := currentRotation - _prevRotation
-	_prevRotation = currentRotation
+	var delta_rot := current_rotation - _prev_rotation
+	_prev_rotation = current_rotation
 
 	if get_parent() and delta_rot.length() > 0.0001:
 		get_parent().rotate_object_local(Vector3.RIGHT, delta_rot.x)
 		get_parent().rotate_object_local(Vector3.UP, delta_rot.y)
 		# Prevent unintended z-axis tilt when recoil.z is unused
-		if recoil.z == 0.0 and aimRecoil.z == 0.0:
+		if recoil.z == 0.0 and aim_recoil.z == 0.0:
 			get_parent().global_rotation.z = 0.0
 
 
-func recoilFire(isAiming: bool = false) -> void:
+# ── Public API (snake_case — canonical) ──────────────────────────────────────
+
+func recoil_fire(is_aiming: bool = false) -> void:
 	_time_since_last_shot = 0.0
 	_shot_count += 1
 
@@ -71,12 +85,12 @@ func recoilFire(isAiming: bool = false) -> void:
 	var ramp: float = clampf(float(_shot_count - 1) / float(maxi(recoil_ramp_shots - 1, 1)), 0.0, 1.0)
 	var multiplier: float = lerpf(1.0, recoil_ramp_max, ramp)
 
-	# Accumulate leftward horizontal drift on sustained fire, capped at base.y
-	_burst_drift = minf(_burst_drift + burst_drift_per_shot, recoil.y * 0.6)
+	# Accumulate leftward horizontal drift on sustained fire, capped
+	_burst_drift = minf(_burst_drift + burst_drift_per_shot, recoil.y * BURST_DRIFT_CAP_RATIO)
 
-	var base := aimRecoil if isAiming else recoil
+	var base := aim_recoil if is_aiming else recoil
 
-	targetRotation += Vector3(
+	target_rotation += Vector3(
 		base.x * multiplier,
 		randf_range(-base.y, base.y) + _burst_drift,
 		randf_range(-base.z, base.z)
@@ -84,13 +98,25 @@ func recoilFire(isAiming: bool = false) -> void:
 
 	# Notify sibling CameraShake if present
 	if _camera_shake and _camera_shake.has_method("add_trauma"):
-		var trauma := 0.25 if not isAiming else 0.1
+		var trauma := FIRE_TRAUMA_ADS if is_aiming else FIRE_TRAUMA_HIP
 		_camera_shake.add_trauma(trauma)
 
 
-func setRecoil(newRecoil: Vector3) -> void:
-	recoil = newRecoil
+func set_recoil(new_recoil: Vector3) -> void:
+	recoil = new_recoil
 
 
-func setAimRecoil(newRecoil: Vector3) -> void:
-	aimRecoil = newRecoil
+func set_aim_recoil(new_recoil: Vector3) -> void:
+	aim_recoil = new_recoil
+
+
+# ── Backwards-compatible aliases (camelCase) ─────────────────────────────────
+
+func recoilFire(is_aiming: bool = false) -> void:
+	recoil_fire(is_aiming)
+
+func setRecoil(new_recoil: Vector3) -> void:
+	set_recoil(new_recoil)
+
+func setAimRecoil(new_recoil: Vector3) -> void:
+	set_aim_recoil(new_recoil)

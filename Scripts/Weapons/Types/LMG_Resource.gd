@@ -5,7 +5,7 @@ class_name LMG_Resource
 @export_group("LMG")
 ## Rounds per minute.
 @export var fireRate: float = 600.0
-## Heat added per shot (0.0–1.0 scale; 1.0 = fully overheated).
+## Heat added per shot (0.0-1.0 scale; 1.0 = fully overheated).
 @export var heatPerShot: float = 0.05
 ## Heat dissipated per second while trigger is released (passive cooling).
 @export var cooldownRate: float = 0.1
@@ -16,3 +16,18 @@ class_name LMG_Resource
 
 func get_fire_mode() -> FireMode:
 	return FireMode.AUTO
+
+func get_fire_cooldown() -> float:
+	return 60.0 / fireRate
+
+func can_fire(state: Dictionary) -> bool:
+	return state.get("current_heat", 0.0) < 1.0
+
+func on_reload(ctx: Dictionary) -> bool:
+	var current_heat: float = ctx.get("current_heat", 0.0)
+	if current_heat <= 0.0:
+		return false
+	# LMG reload = vent heat, not ammo swap
+	ctx["start_venting"] = true
+	ctx["vent_animation"] = ventAnimation
+	return true

@@ -1,5 +1,6 @@
 extends CogitoWieldable
-## Adapter that bridges Weapon_Resource types into Cogito's wieldable system.
+## Thin orchestrator bridging Weapon_Resource types into Cogito's wieldable system.
+## Delegates fire logic to weapon_data virtuals and motion to helper objects.
 ##
 ## Usage:
 ## 1. Create a wieldable scene (Node3D root with AnimationPlayer + AudioStreamPlayer3D + mesh).
@@ -15,6 +16,8 @@ extends CogitoWieldable
 ## 5. Add a Marker3D named "Bullet_Point" (unique name) as the muzzle origin.
 
 enum ShootMotionMode { ANIMATION, TWEEN }
+
+# ── EXPORTS (names preserved for .tscn compatibility) ────────────────────────
 
 @export_group("Weapon Configuration")
 ## The Weapon_Resource that defines fire mode, recoil, and type-specific data.
@@ -59,60 +62,55 @@ enum ShootMotionMode { ANIMATION, TWEEN }
 @export var anim_shoot_ads: String = "action_primary_ads"
 ## Reload animation when magazine is completely empty.
 @export var anim_reload_empty: String = "reload_empty"
-## Reload animation when magazine is completely empty while ADSing
+## Reload animation when magazine is completely empty while ADSing.
 @export var anim_reload_empty_ads: String = "reload_empty_ads"
-## Reload animation while ADSing
+## Reload animation while ADSing.
 @export var anim_reload_ads: String = "reload_ads"
 
-# ── Trigger mesh ──────────────────────────────────────────────────────────────
-## Optional child Node3D named "trigger". If present its Z-rotation is tweened
-## to trigger_pull_rotation on mouse-press and back to 0° on mouse-release.
 @export_group("Trigger Animation")
 ## Z-rotation (degrees) the trigger mesh rotates to when the mouse is held.
 @export var trigger_pull_rotation: float = -20.0
-## Minimum time (seconds) the trigger stays pulled. Fast clicks shorter than
-## this will hold the pulled position for the remainder before springing back.
+## Minimum time (seconds) the trigger stays pulled.
 @export var trigger_min_hold_time: float = 0.1
-var _trigger_mesh: Node3D = null
-var _trigger_tween: Tween = null
-var _trigger_press_time: float = -1.0
 
-# ── Internal state ────────────────────────────────────────────────────────────
-var _base_mouse_sens: float = -1.0  # -1.0 = not cached
+# ── Constants ────────────────────────────────────────────────────────────────
+
+const ADS_RECOIL_SCALE: float = 0.4
+const RECOIL_THRESHOLD: float = 0.001
+
+# ── HELPERS (instantiated in _ready, not scene nodes) ────────────────────────
+
+var _shoot_motion: ShootMotionController
+var _trigger: TriggerAnimator
+var _ads: ADSController
+var _ammo: AmmoManager
+
+# ── INTERNAL STATE ───────────────────────────────────────────────────────────
+
 var _is_firing: bool = false
-var _is_aiming: bool = false
 var _fire_cooldown: float = 0.0
 var _is_reloading: bool = false
-var _is_shoot_tween_active: bool = false
-
-# Bolt / Pump
 var _bolt_is_cycled: bool = true
 var _pump_ready: bool = true
-
-# LMG heat
 var _current_heat: float = 0.0
 var _is_venting: bool = false
-
 var _item_ref: WieldableItemPD
-var _fire_part: Node3D = null
 var _rest_rotation_degrees: Vector3 = Vector3.ZERO
-var _fire_part_rest_position: Vector3 = Vector3.ZERO
-var _shoot_tween: Tween = null
-var _fire_part_tween: Tween = null
-var _shoot_state_tween: Tween = null
 var _post_fire_cycle_tween: Tween = null
-var _ads_camera_tween: Tween = null
-var _ads_weapon_tween: Tween = null
 
 
-# ── Lifecycle ─────────────────────────────────────────────────────────────────
+# ── Lifecycle ────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
 	if wieldable_mesh:
 		wieldable_mesh.hide()
 	animation_player.animation_finished.connect(_on_anim_finished)
-	_trigger_mesh = get_node_or_null("trigger") as Node3D
-	_resolve_fire_part()
+
+	_trigger = TriggerAnimator.new(self)
+	_ads = ADSController.new(self)
+	_shoot_motion = ShootMotionController.new(self)
+	_shoot_motion.shoot_visual_finished.connect(_on_shoot_visual_finished)
+	_sync_shoot_motion_config()
 	_capture_rest_state()
 
 
@@ -120,7 +118,7 @@ func _physics_process(delta: float) -> void:
 	if weapon_data == null:
 		return
 
-	_fire_cooldown = max(0.0, _fire_cooldown - delta)
+	_fire_cooldown = maxf(0.0, _fire_cooldown - delta)
 
 	# Auto-fire loop
 	if _is_firing and not _is_reloading and _fire_cooldown <= 0.0:
@@ -131,41 +129,38 @@ func _physics_process(delta: float) -> void:
 
 	# LMG passive heat cooldown
 	if weapon_data is LMG_Resource:
+		var lmg := weapon_data as LMG_Resource
 		if not _is_firing and not _is_venting:
-			_current_heat = max(0.0, _current_heat - (weapon_data as LMG_Resource).cooldownRate * delta)
+			_current_heat = maxf(0.0, _current_heat - lmg.cooldownRate * delta)
 		if _is_venting:
-			_current_heat = max(0.0, _current_heat - (weapon_data as LMG_Resource).ventRate * delta)
+			_current_heat = maxf(0.0, _current_heat - lmg.ventRate * delta)
 			if _current_heat <= 0.0:
 				_is_venting = false
 				_is_reloading = false
 
 
-# ── CogitoWieldable interface ─────────────────────────────────────────────────
+# ── CogitoWieldable interface ────────────────────────────────────────────────
 
 func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 	player_interaction_component = _player_interaction_component
 	_item_ref = item_reference
+	_ammo = AmmoManager.new(player_interaction_component)
 	_reset_state()
-	_cancel_all_motion_tweens(false)
+	_shoot_motion.cancel(false)
 	animation_player.play(anim_equip)
-
-	# Configure recoil on the player's CameraRecoil node
-	var rn := _get_recoil_node()
-	if rn and weapon_data:
-		var hip := Vector3(weapon_data.recoilVertical, weapon_data.recoilHorizontal, 0.0)
-		rn.setRecoil(hip)
-		var aim := aim_recoil_values if aim_recoil_values.length() > 0.001 else hip * 0.4
-		if rn.has_method("setAimRecoil"):
-			rn.setAimRecoil(aim)
+	_configure_recoil()
 
 
 func unequip() -> void:
-	_cancel_shoot_motion(true)
+	_shoot_motion.cancel(true)
+	_apply_rest_pose()
 	_is_firing = false
-	if _is_aiming:
-		_exit_ads(true)
+	if _ads.is_aiming:
+		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
+				block_ads_during_shot_tween, _shoot_motion.is_active, true,
+				player_interaction_component)
 	else:
-		_cancel_ads_motion(true)
+		_ads.cancel_tweens_and_snap(weapon_data, ads_fov, default_position, ads_position)
 	animation_player.play(anim_unequip)
 
 
@@ -176,13 +171,13 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 
 	if _is_released:
 		_is_firing = false
-		var elapsed: float = Time.get_ticks_msec() / 1000.0 - _trigger_press_time
-		var delay: float = max(0.0, trigger_min_hold_time - elapsed)
-		_tween_trigger_delayed(0.0, delay)
+		var elapsed: float = Time.get_ticks_msec() / 1000.0 - _trigger.press_time
+		var delay: float = maxf(0.0, trigger_min_hold_time - elapsed)
+		_trigger.release_delayed(0.0, delay)
 		return
 
-	_trigger_press_time = Time.get_ticks_msec() / 1000.0
-	_tween_trigger(trigger_pull_rotation)
+	_trigger.press_time = Time.get_ticks_msec() / 1000.0
+	_trigger.pull(trigger_pull_rotation)
 
 	var mode := weapon_data.get_fire_mode()
 
@@ -201,9 +196,13 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 
 func action_secondary(_is_released: bool) -> void:
 	if _is_released:
-		_exit_ads()
+		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
+				block_ads_during_shot_tween, _shoot_motion.is_active, false,
+				player_interaction_component)
 	else:
-		_enter_ads()
+		_ads.enter(weapon_data, ads_fov, ads_time, ads_position, default_position,
+				block_ads_during_shot_tween, _shoot_motion.is_active,
+				animation_player, player_interaction_component)
 
 
 func reload() -> void:
@@ -218,56 +217,39 @@ func reload() -> void:
 	if mode == Weapon_Resource.FireMode.PUMP and not _pump_ready:
 		return
 
-	if weapon_data is LMG_Resource and _current_heat > 0.0 and not _is_venting:
-		_cancel_shoot_motion(true)
-		_is_venting = true
-		_is_reloading = true
-		var vent_anim: String = (weapon_data as LMG_Resource).ventAnimation
-		if vent_anim != "":
-			animation_player.play(vent_anim)
-		if sound_reload:
-			audio_stream_player_3d.stream = sound_reload
-			audio_stream_player_3d.play()
+	# Let resource handle special reload (LMG vent)
+	var reload_ctx := {"current_heat": _current_heat}
+	if weapon_data.on_reload(reload_ctx):
+		_shoot_motion.cancel(true)
+		_apply_rest_pose()
+		if reload_ctx.get("start_venting", false):
+			_is_venting = true
+			_is_reloading = true
+			var vent_anim: String = reload_ctx.get("vent_animation", "")
+			if vent_anim != "":
+				animation_player.play(vent_anim)
+			if sound_reload:
+				audio_stream_player_3d.stream = sound_reload
+				audio_stream_player_3d.play()
 		return
 
 	var ammo_needed: int = ceili(_item_ref.charge_max - _item_ref.charge_current)
-	if ammo_needed <= 0:
-		return
-	if _get_available_reload_amount() <= 0:
+	if ammo_needed <= 0 or _ammo.get_available_ammo(_item_ref) <= 0:
 		return
 
-	_cancel_shoot_motion(true)
+	_shoot_motion.cancel(true)
+	_apply_rest_pose()
 	_is_reloading = true
 	animation_player.play(_get_reload_animation_name())
-
 	if sound_reload:
 		audio_stream_player_3d.stream = sound_reload
 		audio_stream_player_3d.play()
 
 
-func _get_reload_animation_name() -> String:
-	var is_empty_mag := _item_ref != null and _item_ref.charge_current <= 0
-
-	if _is_aiming:
-		if is_empty_mag and anim_reload_empty_ads != "":
-			return anim_reload_empty_ads
-		if anim_reload_ads != "":
-			return anim_reload_ads
-		if is_empty_mag and anim_reload_empty != "":
-			return anim_reload_empty
-
-	if is_empty_mag and anim_reload_empty != "":
-		return anim_reload_empty
-
-	return anim_reload
-
-
-# ── Fire logic ────────────────────────────────────────────────────────────────
+# ── Fire logic ───────────────────────────────────────────────────────────────
 
 func _try_fire() -> void:
-	if weapon_data == null or _is_reloading:
-		return
-	if _fire_cooldown > 0.0:
+	if weapon_data == null or _is_reloading or _fire_cooldown > 0.0:
 		return
 	if _item_ref == null or _item_ref.charge_current <= 0:
 		if _item_ref:
@@ -282,13 +264,18 @@ func _try_fire() -> void:
 		return
 	if mode == Weapon_Resource.FireMode.PUMP and not _pump_ready:
 		return
-	if weapon_data is LMG_Resource and _current_heat >= 1.0:
+
+	var fire_state := {"current_heat": _current_heat}
+	if not weapon_data.can_fire(fire_state):
 		_is_firing = false
 		return
+
 	if _uses_animation_shoot_motion() and mode != Weapon_Resource.FireMode.AUTO and _is_shoot_animation_playing():
 		return
 
-	# ── Execute shot ──────────────────────────────────────────────────────────
+	# ── Execute shot ─────────────────────────────────────────────────────────
+
+	# Visual
 	var used_animation_shot: bool = _play_shoot_visual()
 
 	# Sound
@@ -296,463 +283,258 @@ func _try_fire() -> void:
 		audio_stream_player_3d.stream = sound_shoot
 		audio_stream_player_3d.play()
 
-	# Consume ammo via Cogito's system
+	# Consume ammo
 	_item_ref.subtract(1)
 
-	# Fire dispatch
-	if weapon_data is Shotgun_Resource:
-		_fire_shotgun()
-	elif weapon_data is GrenadeLauncher_Resource:
-		_fire_grenade()
-	else:
-		var cam_col: Vector3 = player_interaction_component.Get_Camera_Collision()
-		match weapon_data.Type:
-			1: # HITSCAN
-				_hitscan_fire(cam_col)
-			2: # PROJECTILE
-				_fire_projectile(cam_col)
+	# Delegate fire to resource (polymorphic dispatch)
+	var ctx := _build_fire_context()
+	weapon_data.fire(ctx)
 
 	# Recoil
-	var rn := _get_recoil_node()
-	if rn:
-		rn.recoilFire(_is_aiming)
+	_apply_recoil()
 
-	# Set fire cooldown
-	if weapon_data is AssaultRifle_Resource:
-		_fire_cooldown = 60.0 / (weapon_data as AssaultRifle_Resource).fireRate
-	elif weapon_data is LMG_Resource:
-		_fire_cooldown = 60.0 / (weapon_data as LMG_Resource).fireRate
-	elif weapon_data is Pistol_Resource:
-		_fire_cooldown = (weapon_data as Pistol_Resource).triggerResetTime
-	else:
-		_fire_cooldown = 0.1
+	# Cooldown (polymorphic)
+	_fire_cooldown = weapon_data.get_fire_cooldown()
 
-	# Post-fire state
-	if mode == Weapon_Resource.FireMode.BOLT_ACTION:
-		_bolt_is_cycled = false
-		if not used_animation_shot:
-			_schedule_post_fire_cycle(_get_shoot_visual_duration())
+	# Post-fire (bolt cycle, pump — polymorphic)
+	var post_ctx := {"used_animation_shot": used_animation_shot}
+	if weapon_data.on_post_fire(post_ctx):
+		if post_ctx.get("needs_bolt_cycle", false):
+			_bolt_is_cycled = false
+			if not used_animation_shot:
+				_schedule_post_fire_cycle(_get_shoot_visual_duration(), "bolt")
+		if post_ctx.get("needs_pump_cycle", false):
+			_pump_ready = false
+			if not used_animation_shot:
+				_schedule_post_fire_cycle(_get_shoot_visual_duration(), "pump")
 
-	if mode == Weapon_Resource.FireMode.PUMP:
-		_pump_ready = false
-		if not used_animation_shot:
-			_schedule_post_fire_cycle(_get_shoot_visual_duration())
-
+	# LMG heat accumulation
 	if weapon_data is LMG_Resource:
 		var lmg := weapon_data as LMG_Resource
-		_current_heat = min(1.0, _current_heat + lmg.heatPerShot)
+		_current_heat = minf(1.0, _current_heat + lmg.heatPerShot)
 		if _current_heat >= 1.0:
 			_is_firing = false
 
 
+func _build_fire_context() -> Dictionary:
+	return {
+		"bullet_point": bullet_point,
+		"camera_collision": player_interaction_component.Get_Camera_Collision(),
+		"is_aiming": _ads.is_aiming,
+		"item_ref": _item_ref,
+		"player_interaction_component": player_interaction_component,
+		"world_3d": get_world_3d(),
+		"viewport": get_viewport(),
+		"scene_tree": get_tree(),
+	}
+
+
+# ── Shoot visual ─────────────────────────────────────────────────────────────
+
 func _play_shoot_visual() -> bool:
 	if _uses_animation_shoot_motion():
-		var shoot_anim := _get_shoot_animation_name()
-		animation_player.play(shoot_anim)
+		animation_player.play(_get_shoot_animation_name())
 		return true
-
-	_play_shoot_tween()
+	var rest_pos := _ads.get_rest_position(weapon_data, ads_position, default_position)
+	_shoot_motion.play(rest_pos, _rest_rotation_degrees, _ads.is_aiming)
 	return false
 
 
-func _play_shoot_tween() -> void:
-	var rest_position := _get_rest_position()
-	var rest_rotation := _rest_rotation_degrees
-	var kick_position := rest_position + _get_shot_position_offset()
-	var kick_rotation := rest_rotation + _get_shot_rotation_offset_deg()
-
-	_cancel_shoot_motion(true)
-	_is_shoot_tween_active = true
-
-	_shoot_tween = create_tween()
-	_shoot_tween.tween_property(self, "position", kick_position, shoot_kick_out_time).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	_shoot_tween.parallel().tween_property(self, "rotation_degrees", kick_rotation, shoot_kick_out_time).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	_shoot_tween.tween_property(self, "position", rest_position, shoot_return_time).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	_shoot_tween.parallel().tween_property(self, "rotation_degrees", rest_rotation, shoot_return_time).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-
-	if _fire_part and fire_part_position_offset.length() > 0.0:
-		_fire_part_tween = create_tween()
-		_fire_part_tween.tween_property(_fire_part, "position", _fire_part_rest_position + fire_part_position_offset, fire_part_out_time).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-		_fire_part_tween.tween_property(_fire_part, "position", _fire_part_rest_position, fire_part_return_time).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-
-	_shoot_state_tween = create_tween()
-	_shoot_state_tween.tween_interval(_get_shoot_visual_duration())
-	_shoot_state_tween.finished.connect(_on_shoot_visual_finished)
-
-
 func _on_shoot_visual_finished() -> void:
-	_is_shoot_tween_active = false
 	_apply_rest_pose()
 
 
-func _schedule_post_fire_cycle(delay: float) -> void:
+func _get_shoot_visual_duration() -> float:
+	return _shoot_motion.get_duration()
+
+
+# ── Post-fire cycling ────────────────────────────────────────────────────────
+
+func _schedule_post_fire_cycle(delay: float, cycle_type: String) -> void:
 	if _post_fire_cycle_tween:
 		_post_fire_cycle_tween.kill()
-
 	_post_fire_cycle_tween = create_tween()
 	if delay > 0.0:
 		_post_fire_cycle_tween.tween_interval(delay)
-	_post_fire_cycle_tween.finished.connect(_start_post_fire_cycle)
+	_post_fire_cycle_tween.finished.connect(_start_post_fire_cycle.bind(cycle_type))
 
 
-func _start_post_fire_cycle() -> void:
+func _start_post_fire_cycle(cycle_type: String) -> void:
 	_post_fire_cycle_tween = null
 	if weapon_data == null:
 		return
 
-	var mode := weapon_data.get_fire_mode()
-	if mode == Weapon_Resource.FireMode.BOLT_ACTION and weapon_data is BoltAction_Resource:
+	if cycle_type == "bolt" and weapon_data is BoltAction_Resource:
 		var bolt_res := weapon_data as BoltAction_Resource
 		if bolt_res.boltCycleAnimation != "" and animation_player.has_animation(bolt_res.boltCycleAnimation):
 			animation_player.play(bolt_res.boltCycleAnimation)
 		else:
-			_schedule_bolt_cycle_completion(bolt_res.boltCycleDuration)
-	elif mode == Weapon_Resource.FireMode.PUMP and weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
-		var shotgun_res := weapon_data as Shotgun_Resource
-		if shotgun_res.pumpAnimation != "" and animation_player.has_animation(shotgun_res.pumpAnimation):
-			animation_player.play(shotgun_res.pumpAnimation)
+			_complete_cycle_after_delay("bolt", bolt_res.boltCycleDuration)
+	elif cycle_type == "pump" and weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
+		var sg := weapon_data as Shotgun_Resource
+		if sg.pumpAnimation != "" and animation_player.has_animation(sg.pumpAnimation):
+			animation_player.play(sg.pumpAnimation)
 		else:
-			_schedule_pump_cycle_completion(shotgun_res.pumpDuration)
+			_complete_cycle_after_delay("pump", sg.pumpDuration)
 
 
-func _schedule_bolt_cycle_completion(delay: float) -> void:
+func _complete_cycle_after_delay(cycle_type: String, delay: float) -> void:
 	if delay <= 0.0:
-		_complete_bolt_cycle()
+		_finalize_cycle(cycle_type)
 		return
-
 	_post_fire_cycle_tween = create_tween()
 	_post_fire_cycle_tween.tween_interval(delay)
-	_post_fire_cycle_tween.finished.connect(_on_bolt_cycle_fallback_finished)
-
-
-func _schedule_pump_cycle_completion(delay: float) -> void:
-	if delay <= 0.0:
-		_complete_pump_cycle()
-		return
-
-	_post_fire_cycle_tween = create_tween()
-	_post_fire_cycle_tween.tween_interval(delay)
-	_post_fire_cycle_tween.finished.connect(_on_pump_cycle_fallback_finished)
-
-
-func _on_bolt_cycle_fallback_finished() -> void:
-	_post_fire_cycle_tween = null
-	_complete_bolt_cycle()
-
-
-func _on_pump_cycle_fallback_finished() -> void:
-	_post_fire_cycle_tween = null
-	_complete_pump_cycle()
-
-
-# ── Fire implementations ─────────────────────────────────────────────────────
-
-func _hitscan_fire(collision_point: Vector3) -> void:
-	var origin := bullet_point.global_position
-	var direction := (collision_point - origin).normalized()
-	var query := PhysicsRayQueryParameters3D.create(
-		origin, collision_point + direction * 2.0
+	_post_fire_cycle_tween.finished.connect(func():
+		_post_fire_cycle_tween = null
+		_finalize_cycle(cycle_type)
 	)
-	if player_interaction_component.player_rid:
-		query.exclude = [player_interaction_component.player_rid]
-	query.collision_mask = 0b111
-
-	var result := get_world_3d().direct_space_state.intersect_ray(query)
-	if result:
-		_deal_damage(result.collider, direction, result.position)
 
 
-func _fire_shotgun() -> void:
-	var res := weapon_data as Shotgun_Resource
-	var spread: float = res.adsSpreadAngle if _is_aiming else res.spreadAngle
-	var camera := get_viewport().get_camera_3d()
-	var vp: Vector2 = Vector2(get_viewport().get_size())
-	var center: Vector2 = vp / 2.0
-
-	for i in res.pelletCount:
-		var offset: Vector2 = Vector2(
-			randf_range(-1.0, 1.0),
-			randf_range(-1.0, 1.0)
-		).normalized() * tan(deg_to_rad(spread))
-		var spread_point: Vector2 = center + offset * vp.x * 0.1
-		var ray_origin := camera.project_ray_origin(spread_point)
-		var ray_end := ray_origin + camera.project_ray_normal(spread_point) * _item_ref.wieldable_range
-
-		var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
-		if player_interaction_component.player_rid:
-			query.exclude = [player_interaction_component.player_rid]
-		query.collision_mask = 0b111
-
-		var hit := get_world_3d().direct_space_state.intersect_ray(query)
-		if hit:
-			_deal_damage(hit.collider, (hit.position - ray_origin).normalized(), hit.position)
-
-
-func _fire_grenade() -> void:
-	var res := weapon_data as GrenadeLauncher_Resource
-	if res.grenadeScene == null:
-		return
-	var camera := get_viewport().get_camera_3d()
-	var forward := -camera.global_transform.basis.z
-	var launch_dir := (forward + Vector3.UP * tan(deg_to_rad(res.launchAngle))).normalized()
-
-	var grenade := res.grenadeScene.instantiate()
-	get_tree().current_scene.add_child(grenade)
-	grenade.global_position = bullet_point.global_position
-	if grenade.has_method("set_linear_velocity"):
-		grenade.set_linear_velocity(launch_dir * res.launchVelocity)
-	if "damage_amount" in grenade:
-		grenade.damage_amount = _item_ref.wieldable_damage
-	if "fuse_duration" in grenade:
-		grenade.fuse_duration = res.fuseDuration
-	if "blast_radius" in grenade:
-		grenade.blast_radius = res.blastRadius
-
-
-func _fire_projectile(target_point: Vector3) -> void:
-	if weapon_data.bulletProjectileToLoad == null:
-		return
-	var direction := (target_point - bullet_point.global_position).normalized()
-	var proj := weapon_data.bulletProjectileToLoad.instantiate()
-	get_tree().current_scene.add_child(proj)
-	proj.global_position = bullet_point.global_position
-	if "damage_amount" in proj:
-		proj.damage_amount = _item_ref.wieldable_damage
-	if proj.has_method("set_linear_velocity"):
-		proj.set_linear_velocity(direction * weapon_data.weaponVelocity)
-	if "Direction" in proj:
-		proj.Direction = direction
-
-
-func _deal_damage(collider: Node, direction: Vector3, hit_position: Vector3) -> void:
-	if collider.has_signal("damage_received"):
-		collider.damage_received.emit(_item_ref.wieldable_damage, direction, hit_position)
-
-
-# ── ADS ───────────────────────────────────────────────────────────────────────
-
-func _enter_ads() -> void:
-	if _is_aiming:
-		return
-	if animation_player.is_playing():
-		return
-	if block_ads_during_shot_tween and _is_shoot_tween_active:
-		return
-
-	_is_aiming = true
-	_apply_scope_sensitivity()
-	_cancel_ads_motion(false)
-	_play_ads_transition()
-	if player_interaction_component:
-		player_interaction_component.update_crosshair.emit(false)
-
-
-func _exit_ads(immediate: bool = false) -> void:
-	if not _is_aiming and not immediate:
-		return
-	if not immediate and block_ads_during_shot_tween and _is_shoot_tween_active:
-		return
-
-	_is_aiming = false
-	_restore_scope_sensitivity()
-	_cancel_ads_motion(false)
-	_play_ads_transition(immediate)
-	if player_interaction_component:
-		player_interaction_component.update_crosshair.emit(true)
-
-
-func _play_ads_transition(immediate: bool = false) -> void:
-	var camera := get_viewport().get_camera_3d()
-	var is_marksman := weapon_data is MarksmanRifle_Resource
-	var target_fov := 75.0
-	var duration := ads_time
-
-	if _is_aiming:
-		target_fov = ads_fov
-		if is_marksman:
-			var marksman_res := weapon_data as MarksmanRifle_Resource
-			target_fov = marksman_res.scopedFOV
-			duration = marksman_res.scopeInTime
-	else:
-		if is_marksman:
-			duration = (weapon_data as MarksmanRifle_Resource).scopeInTime
-
-	if camera:
-		if immediate:
-			camera.fov = target_fov
-		else:
-			_ads_camera_tween = create_tween()
-			_ads_camera_tween.tween_property(camera, "fov", target_fov, duration)
-
-	if is_marksman:
-		return
-
-	var target_position := _get_rest_position()
-	if immediate:
-		position = target_position
-	else:
-		_ads_weapon_tween = create_tween()
-		_ads_weapon_tween.tween_property(self, "position", target_position, duration)
+func _finalize_cycle(cycle_type: String) -> void:
+	if cycle_type == "bolt":
+		_bolt_is_cycled = true
+	elif cycle_type == "pump":
+		_pump_ready = true
+	_capture_rest_state()
 
 
 # ── Animation callbacks ──────────────────────────────────────────────────────
 
 func _on_anim_finished(anim_name: StringName) -> void:
-	var is_reload_anim := anim_name == anim_reload \
-		or anim_name == anim_reload_empty \
-		or (anim_reload_ads != "" and anim_name == anim_reload_ads) \
-		or (anim_reload_empty_ads != "" and anim_name == anim_reload_empty_ads)
-
-	if is_reload_anim:
-		_finish_reload_from_inventory()
+	# Reload finished
+	if _is_reload_animation(anim_name):
+		_ammo.finish_reload(_item_ref)
 		_is_reloading = false
 		_capture_rest_state()
 
-	var used_animation_shoot := _uses_animation_shoot_motion()
-	if used_animation_shoot and _is_shoot_animation_name(anim_name):
+	# Shoot animation finished — chain bolt/pump cycle
+	if _uses_animation_shoot_motion() and _is_shoot_animation_name(anim_name):
 		if weapon_data is BoltAction_Resource:
 			var bolt_anim: String = (weapon_data as BoltAction_Resource).boltCycleAnimation
 			if bolt_anim != "" and animation_player.has_animation(bolt_anim):
 				animation_player.play(bolt_anim)
-
 		if weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
 			var pump_anim: String = (weapon_data as Shotgun_Resource).pumpAnimation
 			if pump_anim != "" and animation_player.has_animation(pump_anim):
 				animation_player.play(pump_anim)
 
-	if weapon_data is BoltAction_Resource:
-		if anim_name == (weapon_data as BoltAction_Resource).boltCycleAnimation:
-			_complete_bolt_cycle()
+	# Bolt/pump cycle animations finished
+	if weapon_data is BoltAction_Resource and anim_name == (weapon_data as BoltAction_Resource).boltCycleAnimation:
+		_bolt_is_cycled = true
+		_capture_rest_state()
+	if weapon_data is Shotgun_Resource and anim_name == (weapon_data as Shotgun_Resource).pumpAnimation:
+		_pump_ready = true
+		_capture_rest_state()
 
-	if weapon_data is Shotgun_Resource:
-		if anim_name == (weapon_data as Shotgun_Resource).pumpAnimation:
-			_complete_pump_cycle()
+	# LMG vent finished
+	if weapon_data is LMG_Resource and anim_name == (weapon_data as LMG_Resource).ventAnimation:
+		_is_venting = false
+		_is_reloading = false
+		_capture_rest_state()
 
-	if weapon_data is LMG_Resource:
-		if anim_name == (weapon_data as LMG_Resource).ventAnimation:
-			_is_venting = false
-			_is_reloading = false
-			_capture_rest_state()
-
+	# Equip finished
 	if anim_name == anim_equip:
 		_capture_rest_state()
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+func _configure_recoil() -> void:
+	var rn := _get_recoil_node()
+	if rn and weapon_data:
+		var hip := Vector3(weapon_data.recoilVertical, weapon_data.recoilHorizontal, 0.0)
+		rn.setRecoil(hip)
+		var aim := aim_recoil_values if aim_recoil_values.length() > RECOIL_THRESHOLD else hip * ADS_RECOIL_SCALE
+		if rn.has_method("setAimRecoil"):
+			rn.setAimRecoil(aim)
+
+
+func _apply_recoil() -> void:
+	var rn := _get_recoil_node()
+	if rn:
+		rn.recoilFire(_ads.is_aiming)
+
 
 func _get_recoil_node() -> Node3D:
 	if not player_interaction_component:
 		return null
-	return player_interaction_component.get_parent().get_node_or_null("Body/Neck/Head/CameraRecoil") as Node3D
+	var player := player_interaction_component.get_parent()
+	return player.find_child("CameraRecoil", true, false) as Node3D
 
 
-func _get_inventory() -> CogitoInventory:
-	if player_interaction_component == null:
-		return null
-	return player_interaction_component.get_parent().inventory_data as CogitoInventory
+func _get_reload_animation_name() -> String:
+	var is_empty := _item_ref != null and _item_ref.charge_current <= 0
+	if _ads.is_aiming:
+		if is_empty and anim_reload_empty_ads != "":
+			return anim_reload_empty_ads
+		if anim_reload_ads != "":
+			return anim_reload_ads
+		if is_empty and anim_reload_empty != "":
+			return anim_reload_empty
+	if is_empty and anim_reload_empty != "":
+		return anim_reload_empty
+	return anim_reload
 
 
-func _get_available_reload_amount() -> int:
-	var inventory: CogitoInventory = _get_inventory()
-	if inventory == null or _item_ref == null:
-		return 0
-
-	var total: int = 0
-	for slot: InventorySlotPD in inventory.inventory_slots:
-		if slot == null or slot.inventory_item == null:
-			continue
-		if slot.inventory_item.name != _item_ref.ammo_item_name:
-			continue
-
-		var ammo_item := slot.inventory_item as AmmoItemPD
-		if ammo_item == null:
-			continue
-
-		total += ammo_item.reload_amount * slot.quantity
-
-	return total
+func _is_reload_animation(anim_name: StringName) -> bool:
+	return anim_name == anim_reload \
+		or anim_name == anim_reload_empty \
+		or (anim_reload_ads != "" and anim_name == anim_reload_ads) \
+		or (anim_reload_empty_ads != "" and anim_name == anim_reload_empty_ads)
 
 
-func _consume_inventory_ammo(ammo_needed: int) -> int:
-	var inventory: CogitoInventory = _get_inventory()
-	if inventory == null:
-		return 0
-
-	var ammo_loaded: int = 0
-	var inventory_changed: bool = false
-
-	for slot: InventorySlotPD in inventory.inventory_slots:
-		if ammo_needed <= 0:
-			break
-		if slot == null or slot.inventory_item == null:
-			continue
-		if slot.inventory_item.name != _item_ref.ammo_item_name:
-			continue
-
-		var ammo_item := slot.inventory_item as AmmoItemPD
-		if ammo_item == null:
-			continue
-
-		var quantity_needed: int = ceili(float(ammo_needed) / float(ammo_item.reload_amount))
-		var quantity_used: int = mini(slot.quantity, quantity_needed)
-		var ammo_used: int = ammo_item.reload_amount * quantity_used
-
-		if quantity_used >= slot.quantity:
-			inventory.remove_slot_data(slot)
-		else:
-			slot.quantity -= quantity_used
-
-		ammo_loaded += ammo_used
-		ammo_needed -= ammo_used
-		inventory_changed = true
-
-	if inventory_changed:
-		inventory.inventory_updated.emit(inventory)
-
-	return ammo_loaded
+func _uses_animation_shoot_motion() -> bool:
+	if shoot_motion_mode != ShootMotionMode.ANIMATION:
+		return false
+	var shoot_anim := _get_shoot_animation_name()
+	return shoot_anim != "" and animation_player.has_animation(shoot_anim)
 
 
-func _finish_reload_from_inventory() -> void:
-	if _item_ref == null:
-		return
-
-	var ammo_needed: int = ceili(_item_ref.charge_max - _item_ref.charge_current)
-	if ammo_needed <= 0:
-		return
-
-	var ammo_loaded: int = _consume_inventory_ammo(ammo_needed)
-	if ammo_loaded > 0:
-		_item_ref.add(ammo_loaded)
+func _get_shoot_animation_name() -> String:
+	if _ads.is_aiming and anim_shoot_ads != "" and animation_player.has_animation(anim_shoot_ads):
+		return anim_shoot_ads
+	return anim_action_primary
 
 
-func _tween_trigger(target_z_deg: float) -> void:
-	if _trigger_mesh == null:
-		return
-	if _trigger_tween and _trigger_tween.is_running():
-		_trigger_tween.kill()
-	_trigger_tween = create_tween()
-	_trigger_tween.tween_property(
-		_trigger_mesh,
-		"rotation_degrees:z",
-		target_z_deg,
-		0.06
-	).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+func _is_shoot_animation_name(anim_name: StringName) -> bool:
+	return anim_name == anim_action_primary or (anim_shoot_ads != "" and anim_name == anim_shoot_ads)
 
 
-func _tween_trigger_delayed(target_z_deg: float, delay: float) -> void:
-	if _trigger_mesh == null:
-		return
-	if _trigger_tween and _trigger_tween.is_running():
-		_trigger_tween.kill()
-	_trigger_tween = create_tween()
-	if delay > 0.0:
-		_trigger_tween.tween_interval(delay)
-	_trigger_tween.tween_property(
-		_trigger_mesh,
-		"rotation_degrees:z",
-		target_z_deg,
-		0.06
-	).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+func _is_shoot_animation_playing() -> bool:
+	return animation_player.is_playing() and _is_shoot_animation_name(animation_player.current_animation)
+
+
+func _sync_shoot_motion_config() -> void:
+	_shoot_motion.hip_shot_position_offset = hip_shot_position_offset
+	_shoot_motion.hip_shot_rotation_deg = hip_shot_rotation_deg
+	_shoot_motion.ads_shot_position_offset = ads_shot_position_offset
+	_shoot_motion.ads_shot_rotation_deg = ads_shot_rotation_deg
+	_shoot_motion.shoot_kick_out_time = shoot_kick_out_time
+	_shoot_motion.shoot_return_time = shoot_return_time
+	_shoot_motion.fire_part_position_offset = fire_part_position_offset
+	_shoot_motion.fire_part_out_time = fire_part_out_time
+	_shoot_motion.fire_part_return_time = fire_part_return_time
+	_resolve_fire_part()
+
+
+func _resolve_fire_part() -> void:
+	_shoot_motion.fire_part = null
+	if fire_part_node != NodePath(""):
+		_shoot_motion.fire_part = get_node_or_null(fire_part_node) as Node3D
+	if _shoot_motion.fire_part:
+		_shoot_motion.fire_part_rest_position = _shoot_motion.fire_part.position
+
+
+func _capture_rest_state() -> void:
+	_rest_rotation_degrees = rotation_degrees
+	_resolve_fire_part()
+
+
+func _apply_rest_pose() -> void:
+	position = _ads.get_rest_position(weapon_data, ads_position, default_position)
+	rotation_degrees = _rest_rotation_degrees
+	if _shoot_motion.fire_part:
+		_shoot_motion.fire_part.position = _shoot_motion.fire_part_rest_position
 
 
 func _reset_state() -> void:
@@ -763,160 +545,5 @@ func _reset_state() -> void:
 	_is_venting = false
 	_is_reloading = false
 	_is_firing = false
-	_restore_scope_sensitivity()
-	_is_aiming = false
-	_is_shoot_tween_active = false
+	_ads.is_aiming = false
 	_capture_rest_state()
-
-
-func _resolve_fire_part() -> void:
-	_fire_part = null
-	if fire_part_node != NodePath(""):
-		_fire_part = get_node_or_null(fire_part_node) as Node3D
-	if _fire_part:
-		_fire_part_rest_position = _fire_part.position
-
-
-func _capture_rest_state() -> void:
-	_rest_rotation_degrees = rotation_degrees
-	_resolve_fire_part()
-
-
-func _get_rest_position() -> Vector3:
-	if _is_aiming and not (weapon_data is MarksmanRifle_Resource):
-		return Vector3(0, ads_position.y, ads_position.z)
-	return default_position
-
-
-func _apply_rest_pose() -> void:
-	position = _get_rest_position()
-	rotation_degrees = _rest_rotation_degrees
-	if _fire_part:
-		_fire_part.position = _fire_part_rest_position
-
-
-func _cancel_all_motion_tweens(restore_rest: bool) -> void:
-	_cancel_shoot_motion(restore_rest)
-	_cancel_ads_motion(false)
-
-
-func _cancel_shoot_motion(restore_rest: bool) -> void:
-	if _shoot_tween:
-		_shoot_tween.kill()
-		_shoot_tween = null
-	if _fire_part_tween:
-		_fire_part_tween.kill()
-		_fire_part_tween = null
-	if _shoot_state_tween:
-		_shoot_state_tween.kill()
-		_shoot_state_tween = null
-	if _post_fire_cycle_tween:
-		_post_fire_cycle_tween.kill()
-		_post_fire_cycle_tween = null
-	_is_shoot_tween_active = false
-	if restore_rest:
-		_apply_rest_pose()
-
-
-func _cancel_ads_motion(apply_target_pose: bool) -> void:
-	if _ads_camera_tween:
-		_ads_camera_tween.kill()
-		_ads_camera_tween = null
-	if _ads_weapon_tween:
-		_ads_weapon_tween.kill()
-		_ads_weapon_tween = null
-
-	if not apply_target_pose:
-		return
-
-	var camera := get_viewport().get_camera_3d()
-	var target_fov := 75.0
-	if _is_aiming:
-		if weapon_data is MarksmanRifle_Resource:
-			target_fov = (weapon_data as MarksmanRifle_Resource).scopedFOV
-		else:
-			target_fov = ads_fov
-	if camera:
-		camera.fov = target_fov
-	if not (weapon_data is MarksmanRifle_Resource):
-		position = _get_rest_position()
-
-
-func _get_shoot_animation_name() -> String:
-	if _is_aiming and anim_shoot_ads != "" and animation_player.has_animation(anim_shoot_ads):
-		return anim_shoot_ads
-	return anim_action_primary
-
-
-func _uses_animation_shoot_motion() -> bool:
-	if shoot_motion_mode != ShootMotionMode.ANIMATION:
-		return false
-	var shoot_anim := _get_shoot_animation_name()
-	return shoot_anim != "" and animation_player.has_animation(shoot_anim)
-
-
-func _is_shoot_animation_name(anim_name: StringName) -> bool:
-	if anim_name == anim_action_primary:
-		return true
-	return anim_shoot_ads != "" and anim_name == anim_shoot_ads
-
-
-func _is_shoot_animation_playing() -> bool:
-	if not animation_player.is_playing():
-		return false
-	return _is_shoot_animation_name(animation_player.current_animation)
-
-
-func _get_shot_position_offset() -> Vector3:
-	return ads_shot_position_offset if _is_aiming else hip_shot_position_offset
-
-
-func _get_shot_rotation_offset_deg() -> Vector3:
-	return ads_shot_rotation_deg if _is_aiming else hip_shot_rotation_deg
-
-
-func _get_shoot_visual_duration() -> float:
-	var root_duration: float = max(0.0, shoot_kick_out_time) + max(0.0, shoot_return_time)
-	var fire_part_duration: float = 0.0
-	if _fire_part and fire_part_position_offset.length() > 0.0:
-		fire_part_duration = max(0.0, fire_part_out_time) + max(0.0, fire_part_return_time)
-	return max(root_duration, fire_part_duration)
-
-
-func _complete_bolt_cycle() -> void:
-	_bolt_is_cycled = true
-	_capture_rest_state()
-
-
-func _complete_pump_cycle() -> void:
-	_pump_ready = true
-	_capture_rest_state()
-
-
-# ── Scope sensitivity ─────────────────────────────────────────────────────────
-
-func _get_scope_controller() -> ScopeController:
-	for child in get_children():
-		if child is ScopeController:
-			return child as ScopeController
-	return null
-
-
-func _apply_scope_sensitivity() -> void:
-	var sc := _get_scope_controller()
-	if sc == null:
-		return
-	var player := player_interaction_component.get_parent() if player_interaction_component else null
-	if player == null or not "MOUSE_SENS" in player:
-		return
-	_base_mouse_sens = player.MOUSE_SENS
-	player.MOUSE_SENS = _base_mouse_sens * sc.get_sensitivity_multiplier()
-
-
-func _restore_scope_sensitivity() -> void:
-	if _base_mouse_sens < 0.0:
-		return
-	var player := player_interaction_component.get_parent() if player_interaction_component else null
-	if player and "MOUSE_SENS" in player:
-		player.MOUSE_SENS = _base_mouse_sens
-	_base_mouse_sens = -1.0

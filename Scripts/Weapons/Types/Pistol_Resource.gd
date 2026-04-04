@@ -8,3 +8,6 @@ class_name Pistol_Resource
 
 func get_fire_mode() -> FireMode:
 	return FireMode.SEMI
+
+func get_fire_cooldown() -> float:
+	return triggerResetTime

@@ -10,3 +10,9 @@ class_name BoltAction_Resource
 
 func get_fire_mode() -> FireMode:
 	return FireMode.BOLT_ACTION
+
+func on_post_fire(ctx: Dictionary) -> bool:
+	ctx["needs_bolt_cycle"] = true
+	ctx["bolt_cycle_animation"] = boltCycleAnimation
+	ctx["bolt_cycle_duration"] = boltCycleDuration
+	return true

@@ -18,3 +18,25 @@ class_name GrenadeLauncher_Resource
 
 func get_fire_mode() -> FireMode:
 	return FireMode.SEMI
+
+func fire(ctx: Dictionary) -> void:
+	if grenadeScene == null:
+		return
+	var viewport: Viewport = ctx["viewport"]
+	var camera: Camera3D = viewport.get_camera_3d()
+	var bullet_point: Marker3D = ctx["bullet_point"]
+	var item_ref: WieldableItemPD = ctx["item_ref"]
+	var scene_tree: SceneTree = ctx["scene_tree"]
+	var forward := -camera.global_transform.basis.z
+	var launch_dir := (forward + Vector3.UP * tan(deg_to_rad(launchAngle))).normalized()
+	var grenade := grenadeScene.instantiate()
+	scene_tree.current_scene.add_child(grenade)
+	grenade.global_position = bullet_point.global_position
+	if grenade.has_method("set_linear_velocity"):
+		grenade.set_linear_velocity(launch_dir * launchVelocity)
+	if "damage_amount" in grenade:
+		grenade.damage_amount = item_ref.wieldable_damage
+	if "fuse_duration" in grenade:
+		grenade.fuse_duration = fuseDuration
+	if "blast_radius" in grenade:
+		grenade.blast_radius = blastRadius

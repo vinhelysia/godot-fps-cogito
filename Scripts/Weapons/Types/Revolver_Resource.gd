@@ -15,3 +15,6 @@ class_name Revolver_Resource
 
 func get_fire_mode() -> FireMode:
 	return FireMode.REVOLVER
+
+func get_fire_cooldown() -> float:
+	return 0.15
