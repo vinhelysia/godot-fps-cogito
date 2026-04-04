@@ -2,20 +2,24 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bfev4ce5pcwwq"
-path="res://.godot/imported/ak47_qucik.png-b87b7c4c0d4b50f106dd3ff788421e36.ctex"
+uid="uid://cbfwxuq4cq435"
+path.s3tc="res://.godot/imported/crate_Texture_BaseColor_v02.png-16a167a36d149dc69250c17f6f0c84ee.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
+}
+generator_parameters={
+"md5": "e802f42f34a516b810ae4c4881625171"
 }
 
 [deps]
 
-source_file="res://ak47_qucik.png"
-dest_files=["res://.godot/imported/ak47_qucik.png-b87b7c4c0d4b50f106dd3ff788421e36.ctex"]
+source_file="res://Assets/crate_Texture_BaseColor_v02.png"
+dest_files=["res://.godot/imported/crate_Texture_BaseColor_v02.png-16a167a36d149dc69250c17f6f0c84ee.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -23,7 +27,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -37,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

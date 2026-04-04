@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://cpoyxgguqsn3m" path="res://Scene/Weapom/Firearms/AR/AK47/pickup_ak47.tscn" id="7_3dqf0"]
 [ext_resource type="PackedScene" uid="uid://bdx62tdh4qp0" path="res://Scene/Items/Bullets/76239/7.62x39mm_Item.tscn" id="8_epm0u"]
 [ext_resource type="PackedScene" uid="uid://u7tvrbwfpvb2" path="res://Scene/Items/Bullets/76251/7_62x_51mm_item.tscn" id="11_lb3ao"]
+[ext_resource type="PackedScene" uid="uid://cp6ih5a86n4xs" path="res://Scene/Object/Deco/Crate/crate.tscn" id="12_rniks"]
 [ext_resource type="PackedScene" uid="uid://bebw6gvua3ljl" path="res://Scene/Weapom/Firearms/Bolt-action/M700/pickup_m700.tscn" id="12_yhbxf"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_epm0u"]
@@ -31,7 +32,7 @@ glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="Resource" id="Resource_lb3ao"]
+[sub_resource type="Resource" id="Resource_yhbxf"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
@@ -52,7 +53,7 @@ shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.8379371, -27.005917)
-inventory_data = SubResource("Resource_lb3ao")
+inventory_data = SubResource("Resource_yhbxf")
 
 [node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]
 transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
@@ -95,3 +96,6 @@ freeze = true
 [node name="Pickup_AK47" parent="." unique_id=1092859853 instance=ExtResource("12_yhbxf")]
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 32.73425, 0.9648551, -29.774569)
 freeze = true
+
+[node name="Crate" parent="." unique_id=1741609525 instance=ExtResource("12_rniks")]
+transform = Transform3D(-2.5, 0, -3.774895e-07, 0, 2.5, 0, 3.774895e-07, 0, -2.5, 47.06791, 0.054561857, -26.0007)
