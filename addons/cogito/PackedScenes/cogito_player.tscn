@@ -26,6 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://dkie3md1cmsip" path="res://addons/cogito/EasyMenus/Scenes/PauseMenu.tscn" id="22_haksr"]
 [ext_resource type="PackedScene" uid="uid://cga0lxak2u2oq" path="res://addons/cogito/Components/AutoPickUpZone.tscn" id="24_810bw"]
 [ext_resource type="Script" uid="uid://egffa3q4ftpg" path="res://addons/cogito/Scripts/CogitoGUI.gd" id="24_ekjhh"]
+[ext_resource type="Texture2D" uid="uid://cimqjp18ny07v" path="res://Assets/crosshair001.png" id="26_bpb0d"]
 [ext_resource type="Texture2D" uid="uid://b25kmgxyo1dk4" path="res://Assets/my-image.png" id="26_ekjhh"]
 [ext_resource type="PackedScene" uid="uid://bnlt0es031dsf" path="res://addons/cogito/Components/AutoConsumes/HealthAutoConsume.tscn" id="32_s725a"]
 [ext_resource type="PackedScene" uid="uid://txkg0abvpsj7" path="res://addons/cogito/Components/AutoConsumes/StaminaAutoConsume.tscn" id="35_wx2rv"]
@@ -193,6 +194,7 @@ grow_vertical = 2
 layout_mode = 2
 player = NodePath("../../../..")
 item_drop_distance_offset = 0.0
+default_crosshair = ExtResource("26_bpb0d")
 interaction_crosshair = ExtResource("26_ekjhh")
 
 [node name="PauseMenu" parent="GUI/Panel/AspectRatioContainer" unique_id=791464710 instance=ExtResource("22_haksr")]
