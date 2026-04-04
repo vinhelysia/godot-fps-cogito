@@ -26,7 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://dkie3md1cmsip" path="res://addons/cogito/EasyMenus/Scenes/PauseMenu.tscn" id="22_haksr"]
 [ext_resource type="PackedScene" uid="uid://cga0lxak2u2oq" path="res://addons/cogito/Components/AutoPickUpZone.tscn" id="24_810bw"]
 [ext_resource type="Script" uid="uid://egffa3q4ftpg" path="res://addons/cogito/Scripts/CogitoGUI.gd" id="24_ekjhh"]
-[ext_resource type="Texture2D" uid="uid://ivvl263je2fm" path="res://Assets/tile_0176.png" id="26_ekjhh"]
+[ext_resource type="Texture2D" uid="uid://b25kmgxyo1dk4" path="res://Assets/my-image.png" id="26_ekjhh"]
 [ext_resource type="PackedScene" uid="uid://bnlt0es031dsf" path="res://addons/cogito/Components/AutoConsumes/HealthAutoConsume.tscn" id="32_s725a"]
 [ext_resource type="PackedScene" uid="uid://txkg0abvpsj7" path="res://addons/cogito/Components/AutoConsumes/StaminaAutoConsume.tscn" id="35_wx2rv"]
 [ext_resource type="Script" uid="uid://dw0bupxm1mn0q" path="res://Scripts/Weapons/weapon_recoil.gd" id="36_recoil"]
