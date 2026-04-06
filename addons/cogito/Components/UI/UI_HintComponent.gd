@@ -15,6 +15,7 @@ var fade_out_tween : Tween
 
 
 func _ready() -> void:
+	_set_mouse_passthrough(self)
 	hint_timer.timeout.connect(on_hint_timeout)
 	hint_timer.wait_time = hint_time
 	
@@ -39,3 +40,11 @@ func on_hint_timeout():
 	
 	await get_tree().create_timer(tween_time*2).timeout
 	queue_free()
+
+
+func _set_mouse_passthrough(node: Node) -> void:
+	if node is Control:
+		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	for child in node.get_children():
+		_set_mouse_passthrough(child)

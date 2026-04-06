@@ -5,8 +5,8 @@
 [ext_resource type="AudioStream" uid="uid://lr1efmq0q16k" path="res://addons/cogito/Assets/Audio/Phazorknight/CogitoAmbience_v02.ogg" id="2_4p7si"]
 [ext_resource type="PackedScene" uid="uid://kicjwmh02uwf" path="res://addons/cogito/PackedScenes/cogito_player.tscn" id="3_xdnjf"]
 [ext_resource type="Script" uid="uid://btnha2whsheir" path="res://addons/cogito/InventoryPD/cogito_inventory.gd" id="4_3dqf0"]
-[ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="4_xdnjf"]
 [ext_resource type="PackedScene" uid="uid://bc4ey2218mco8" path="res://Scene/Object/House1.tscn" id="5_ha6b3"]
+[ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="5_hdm3a"]
 [ext_resource type="PackedScene" uid="uid://cpoyxgguqsn3m" path="res://Scene/Weapom/Firearms/AR/AK47/pickup_ak47.tscn" id="7_3dqf0"]
 [ext_resource type="PackedScene" uid="uid://bdx62tdh4qp0" path="res://Scene/Items/Bullets/76239/7.62x39mm_Item.tscn" id="8_epm0u"]
 [ext_resource type="PackedScene" uid="uid://u7tvrbwfpvb2" path="res://Scene/Items/Bullets/76251/7_62x_51mm_item.tscn" id="11_lb3ao"]
@@ -39,7 +39,7 @@ resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
 inventory_size = Vector2i(9, 4)
-inventory_slots = Array[ExtResource("4_xdnjf")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
+inventory_slots = Array[ExtResource("5_hdm3a")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xp5ie"]
 render_priority = 0

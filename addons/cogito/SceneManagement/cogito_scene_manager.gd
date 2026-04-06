@@ -460,7 +460,7 @@ func copy_slot_saves_to_temp(passed_slot:String) -> bool:
 	CogitoGlobals.debug_log(true,"CSM","Attempting to copy files from slot " + passed_slot + " to temp.")
 	var slot_dir = DirAccess.open(cogito_state_dir + passed_slot)
 	
-	var cogito_dir = DirAccess.open(CogitoSceneManager.cogito_state_dir)
+	var cogito_dir = DirAccess.open(cogito_state_dir)
 	if not cogito_dir.dir_exists("temp"):
 		cogito_dir.make_dir("temp")
 
@@ -470,7 +470,7 @@ func copy_slot_saves_to_temp(passed_slot:String) -> bool:
 		
 		while file_name != "":
 			CogitoGlobals.debug_log(true,"CSM","Copying file to temp: "+ file_name)
-			if slot_dir.copy(str(CogitoSceneManager.cogito_state_dir + passed_slot + "/" + file_name), str(CogitoSceneManager.cogito_state_dir + "temp/" + file_name), -1) != OK:
+			if slot_dir.copy(str(cogito_state_dir + passed_slot + "/" + file_name), str(cogito_state_dir + "temp/" + file_name), -1) != OK:
 				CogitoGlobals.debug_log(true,"CSM","Copying file "+ file_name + " failed.")
 				return false
 			# iterate to next file
@@ -487,7 +487,7 @@ func copy_temp_saves_to_slot(passed_slot:String) -> bool:
 	CogitoGlobals.debug_log(true,"CSM","Attempting to copy files from temp to slot " + passed_slot)
 	var temp_dir = DirAccess.open(cogito_state_dir + "temp")
 	
-	var cogito_dir = DirAccess.open(CogitoSceneManager.cogito_state_dir)
+	var cogito_dir = DirAccess.open(cogito_state_dir)
 	if not cogito_dir.dir_exists(passed_slot):
 		cogito_dir.make_dir(passed_slot)
 
@@ -497,7 +497,7 @@ func copy_temp_saves_to_slot(passed_slot:String) -> bool:
 		
 		while file_name != "":
 			CogitoGlobals.debug_log(true,"CSM","Copying file to temp: "+ file_name)
-			if temp_dir.copy(str(CogitoSceneManager.cogito_state_dir + "temp/" + file_name), str(CogitoSceneManager.cogito_state_dir + passed_slot + "/" + file_name), -1) != OK:
+			if temp_dir.copy(str(cogito_state_dir + "temp/" + file_name), str(cogito_state_dir + passed_slot + "/" + file_name), -1) != OK:
 				CogitoGlobals.debug_log(true,"CSM","Copying file " + file_name + " failed.")
 				return false
 			# iterate to next file
