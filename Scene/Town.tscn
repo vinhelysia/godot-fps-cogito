@@ -12,6 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://u7tvrbwfpvb2" path="res://Scene/Items/Bullets/76251/7_62x_51mm_item.tscn" id="11_lb3ao"]
 [ext_resource type="PackedScene" uid="uid://cp6ih5a86n4xs" path="res://Scene/Object/Deco/Crate/crate.tscn" id="12_rniks"]
 [ext_resource type="PackedScene" uid="uid://bebw6gvua3ljl" path="res://Scene/Weapom/Firearms/Bolt-action/M700/pickup_m700.tscn" id="12_yhbxf"]
+[ext_resource type="Shader" uid="uid://d2axglu6nlfai" path="res://Assets/Textures/Grass/grass_pbr.gdshader" id="13_gi6o6"]
+[ext_resource type="Texture2D" uid="uid://dm7pxodtw082t" path="res://addons/kenney_prototype_textures/green/texture_08.png" id="14_hdm3a"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_epm0u"]
 panorama = ExtResource("1_qvonb")
@@ -32,17 +34,40 @@ glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="Resource" id="Resource_yhbxf"]
+[sub_resource type="Resource" id="Resource_hdm3a"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
 inventory_size = Vector2i(9, 4)
 inventory_slots = Array[ExtResource("4_xdnjf")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_xp5ie"]
+render_priority = 0
+shader = ExtResource("13_gi6o6")
+shader_parameter/albedo_tex = ExtResource("14_hdm3a")
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/uv_scale = 10.00000047174012
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_yhbxf"]
+lightmap_size_hint = Vector2i(252, 297)
+material = SubResource("ShaderMaterial_xp5ie")
+size = Vector2(50, 59)
+subdivide_width = 32
+subdivide_depth = 32
+
+[sub_resource type="QuadMesh" id="QuadMesh_rniks"]
+size = Vector2(50, 3)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_hdm3a"]
+points = PackedVector3Array(25, 1.5, 0, 25, -1.5, 0, -25, 1.5, 0, -25, -1.5, 0)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_flngw"]
+points = PackedVector3Array(25, 0, 29.5, -25, 0, 29.5, 25, 0, -29.5, -25, 0, -29.5)
+
 [node name="Town" type="Node3D" unique_id=2099410991]
 script = ExtResource("1_g1f60")
 bgm_neutral = ExtResource("2_4p7si")
-music_max_volume_db = 6.0
+music_max_volume_db = 5.909999999999997
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=793914440]
 environment = SubResource("Environment_txthi")
@@ -52,23 +77,27 @@ transform = Transform3D(0.81935227, -2.44186e-08, -0.5732905, 0.29080313, 0.8617
 shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.8379371, -27.005917)
-inventory_data = SubResource("Resource_yhbxf")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 2.985649, -27.005917)
+inventory_data = SubResource("Resource_hdm3a")
 
 [node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]
 transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
 
 [node name="7_62x51mm_Item" parent="." unique_id=1276708987 instance=ExtResource("11_lb3ao")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.340513)
+freeze = true
 
 [node name="7_62x51mm_Item2" parent="." unique_id=1501710493 instance=ExtResource("11_lb3ao")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.396194)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.377495)
+freeze = true
 
 [node name="7_62x51mm_Item3" parent="." unique_id=1999968572 instance=ExtResource("11_lb3ao")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.455984)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.418095)
+freeze = true
 
 [node name="7_62x51mm_Item4" parent="." unique_id=1667993844 instance=ExtResource("11_lb3ao")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.511534)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.458563)
+freeze = true
 
 [node name="Pickup1" type="Node3D" parent="." unique_id=2061386749]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.655907, 0.9061992, -26.810593)
@@ -93,9 +122,28 @@ freeze = true
 transform = Transform3D(-4.371139e-08, -0.99999994, 0, 1, -4.3711385e-08, 0, 0, 0, 0.99999994, 0.032093048, 0.028178334, -0.13647461)
 freeze = true
 
-[node name="Pickup_AK47" parent="." unique_id=1092859853 instance=ExtResource("12_yhbxf")]
+[node name="Pickup_M700" parent="." unique_id=1092859853 instance=ExtResource("12_yhbxf")]
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 32.73425, 0.9648551, -29.774569)
 freeze = true
 
 [node name="Crate" parent="." unique_id=1741609525 instance=ExtResource("12_rniks")]
 transform = Transform3D(-2.5, 0, -3.774895e-07, 0, 2.5, 0, 3.774895e-07, 0, -2.5, 47.06791, 0.054561857, -26.0007)
+
+[node name="Geometry" type="StaticBody3D" parent="." unique_id=1590174803]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Geometry" unique_id=425838633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.272581, 0, 30.954575)
+mesh = SubResource("PlaneMesh_yhbxf")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Geometry" unique_id=1791929580]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.701439, 0.49081236, 1.6246014)
+mesh = SubResource("QuadMesh_rniks")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Geometry" unique_id=1783393449]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.701439, 0.49081236, 1.6246014)
+shape = SubResource("ConvexPolygonShape3D_hdm3a")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Geometry" unique_id=803583386]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.32085, 0, 31.099411)
+shape = SubResource("ConvexPolygonShape3D_flngw")

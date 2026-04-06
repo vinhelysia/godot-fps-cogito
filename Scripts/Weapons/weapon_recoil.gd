@@ -3,7 +3,7 @@ extends Node3D
 ## Applies rotation delta to the parent (Head) node each frame, creating smooth
 ## camera kick on fire with automatic recovery.
 ##
-## Pair with a CameraShake sibling node for positional screen-shake on fire.
+## Built-in trauma-based positional shake — no sibling CameraShake node needed.
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -44,13 +44,31 @@ var _shot_count: int = 0
 var _burst_drift: float = 0.0
 var _time_since_last_shot: float = 0.0
 
-# ── Optional sibling CameraShake node ────────────────────────────────────────
+# ── Built-in camera shake ────────────────────────────────────────────────────
 
-var _camera_shake: Node = null
+## Maximum positional shake offset (metres) applied to the parent Head node.
+@export var shake_max_offset: Vector3 = Vector3(0.015, 0.02, 0.0)
+## Maximum roll shake in degrees.
+@export var shake_max_roll_deg: float = 1.5
+## How fast trauma decays per second (higher = snappier recovery).
+@export var shake_trauma_decay: float = 1.8
+## Trauma is raised to this power before sampling — higher = more contrast.
+@export var shake_trauma_power: float = 2.0
+## Noise oscillation speed — higher = faster shake.
+@export var shake_noise_frequency: float = 20.0
+
+var _trauma: float = 0.0
+var _shake_time: float = 0.0
+var _shake_noise: FastNoiseLite
+var _shake_base_position: Vector3
 
 
 func _ready() -> void:
-	_camera_shake = get_parent().get_node_or_null("CameraShake")
+	_shake_noise = FastNoiseLite.new()
+	_shake_noise.noise_type = FastNoiseLite.TYPE_PERLIN
+	_shake_noise.seed = randi()
+	if get_parent():
+		_shake_base_position = get_parent().position
 
 
 func _process(delta: float) -> void:
@@ -74,6 +92,11 @@ func _process(delta: float) -> void:
 		if recoil.z == 0.0 and aim_recoil.z == 0.0:
 			get_parent().global_rotation.z = 0.0
 
+	# Positional shake
+	_trauma = maxf(0.0, _trauma - shake_trauma_decay * delta)
+	_shake_time += delta
+	_apply_shake()
+
 
 # ── Public API (snake_case — canonical) ──────────────────────────────────────
 
@@ -96,10 +119,8 @@ func recoil_fire(is_aiming: bool = false) -> void:
 		randf_range(-base.z, base.z)
 	)
 
-	# Notify sibling CameraShake if present
-	if _camera_shake and _camera_shake.has_method("add_trauma"):
-		var trauma := FIRE_TRAUMA_ADS if is_aiming else FIRE_TRAUMA_HIP
-		_camera_shake.add_trauma(trauma)
+	var trauma_amount := FIRE_TRAUMA_ADS if is_aiming else FIRE_TRAUMA_HIP
+	add_trauma(trauma_amount)
 
 
 func set_recoil(new_recoil: Vector3) -> void:
@@ -108,6 +129,30 @@ func set_recoil(new_recoil: Vector3) -> void:
 
 func set_aim_recoil(new_recoil: Vector3) -> void:
 	aim_recoil = new_recoil
+
+
+## Inject trauma (0–1). Stacks additively, capped at 1.0.
+## Call this externally (e.g. from explosion or melee hit) for extra shake.
+func add_trauma(amount: float) -> void:
+	_trauma = minf(1.0, _trauma + amount)
+
+
+func _apply_shake() -> void:
+	var parent := get_parent() as Node3D
+	if not parent:
+		return
+	if _trauma <= 0.001:
+		parent.position = _shake_base_position
+		parent.rotation_degrees.z = 0.0
+		return
+	var shake: float = pow(_trauma, shake_trauma_power)
+	var t: float = _shake_time * shake_noise_frequency
+	parent.position = _shake_base_position + Vector3(
+		_shake_noise.get_noise_2d(t, 0.0)   * shake_max_offset.x * shake,
+		_shake_noise.get_noise_2d(0.0, t)   * shake_max_offset.y * shake,
+		0.0
+	)
+	parent.rotation_degrees.z = _shake_noise.get_noise_2d(t, 100.0) * shake_max_roll_deg * shake
 
 
 # ── Backwards-compatible aliases (camelCase) ─────────────────────────────────

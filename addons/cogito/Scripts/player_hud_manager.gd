@@ -69,6 +69,8 @@ var previous_crosshair_texture : Texture
 func _ready():
 	# TESTING THIS
 	set_process_unhandled_input(false)
+	# Hint notifications should never block inventory slot clicks beneath them.
+	hint_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Connect to signal that detects change of input device
 	InputHelper.device_changed.connect(_on_input_device_change)

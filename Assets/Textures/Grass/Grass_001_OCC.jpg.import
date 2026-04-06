@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddu6tj6mwrwbo"
-path.s3tc="res://.godot/imported/texture_02.png-aa1bb055b55bdc7c20e196b7286eebdf.s3tc.ctex"
+uid="uid://bb1wxnn7ku6a5"
+path.s3tc="res://.godot/imported/Grass_001_OCC.jpg-fe3caa126d973512578e80fa0499d33d.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://addons/kenney_prototype_textures/green/texture_02.png"
-dest_files=["res://.godot/imported/texture_02.png-aa1bb055b55bdc7c20e196b7286eebdf.s3tc.ctex"]
+source_file="res://Assets/Textures/Grass/Grass_001_OCC.jpg"
+dest_files=["res://.godot/imported/Grass_001_OCC.jpg-fe3caa126d973512578e80fa0499d33d.s3tc.ctex"]
 
 [params]
 

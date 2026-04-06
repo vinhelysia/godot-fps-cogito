@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ddu6tj6mwrwbo"
-path.s3tc="res://.godot/imported/texture_02.png-aa1bb055b55bdc7c20e196b7286eebdf.s3tc.ctex"
+uid="uid://clu2pmnhvrnvx"
+path.s3tc="res://.godot/imported/Grass_001_NORM.jpg-504e4f4c95da2abf2547bc51e93424a9.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://addons/kenney_prototype_textures/green/texture_02.png"
-dest_files=["res://.godot/imported/texture_02.png-aa1bb055b55bdc7c20e196b7286eebdf.s3tc.ctex"]
+source_file="res://Assets/Textures/Grass/Grass_001_NORM.jpg"
+dest_files=["res://.godot/imported/Grass_001_NORM.jpg-504e4f4c95da2abf2547bc51e93424a9.s3tc.ctex"]
 
 [params]
 
@@ -22,7 +22,7 @@ compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
