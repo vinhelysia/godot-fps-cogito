@@ -213,6 +213,7 @@ func stop_carrying():
 ### Wieldable Management
 func equip_wieldable(wieldable_item: WieldableItemPD):
 	if wieldable_item != null:
+		_reset_wieldable_container_motion()
 		equipped_wieldable_item = wieldable_item #Set Inventory Item reference
 		# Set Wieldable node reference
 		var wieldable_node = wieldable_item.build_wieldable_scene()
@@ -229,6 +230,7 @@ func equip_wieldable(wieldable_item: WieldableItemPD):
 
 func change_wieldable_to(next_wieldable: InventoryItemPD):
 	is_changing_wieldables = true
+	_reset_wieldable_container_motion()
 	if equipped_wieldable_item != null:
 		equipped_wieldable_item.is_being_wielded = false
 		if equipped_wieldable_node != null:
@@ -249,7 +251,8 @@ func attempt_action_primary(is_released: bool):
 		print("Nothing equipped, but is_wielding was true. This shouldn't happen!")
 		return
 
-	#else:
+	if not is_released:
+		_interrupt_wieldable_container_motion()
 	equipped_wieldable_node.action_primary(equipped_wieldable_item, is_released)
 
 
@@ -260,6 +263,8 @@ func attempt_action_secondary(is_released: bool):
 		print("Nothing equipped, but is_wielding was true. This shouldn't happen!")
 		return
 	else:
+		if not is_released and wieldable_container != null and wieldable_container.has_method("should_block_secondary_action") and wieldable_container.should_block_secondary_action():
+			return
 		equipped_wieldable_node.action_secondary(is_released)
 
 
@@ -287,6 +292,8 @@ func attempt_reload():
 		CogitoGlobals.debug_log(true,"PIC", "You have no ammo for this wieldable.")
 		return
 
+	_interrupt_wieldable_container_motion()
+
 	if equipped_wieldable_node.animation_player.is_playing(): # Make sure reload isn't interrupting another animation.
 		return
 
@@ -295,6 +302,7 @@ func attempt_reload():
 
 
 func on_death():
+	_reset_wieldable_container_motion()
 	if equipped_wieldable_item:
 		equipped_wieldable_item.is_being_wielded = false
 	
@@ -350,6 +358,7 @@ func save():
 func set_state():
 	### Clearing out data from previous player state
 	updated_wieldable_data.emit(null, 0, null) # Clearing out wieldable HUD Data
+	_reset_wieldable_container_motion()
 	
 	# Clearing out any instantiated wielable nodes
 	var leftover_wieldable_nodes : Array[Node] = wieldable_container.get_children()
@@ -451,3 +460,13 @@ func get_carried_object_mass(carried_object) -> float:
 ## This prevents incidental quickslot cycling when only attempting to interact with an item in the world that uses the same input action
 func _on_can_cycle_quickslots_timeout() -> void:
 	can_cycle_quickslots = true
+
+
+func _interrupt_wieldable_container_motion() -> void:
+	if wieldable_container != null and wieldable_container.has_method("interrupt_motion"):
+		wieldable_container.interrupt_motion()
+
+
+func _reset_wieldable_container_motion() -> void:
+	if wieldable_container != null and wieldable_container.has_method("reset_motion"):
+		wieldable_container.reset_motion()

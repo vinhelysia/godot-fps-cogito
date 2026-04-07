@@ -970,6 +970,10 @@ fire_part_position_offset = Vector3(0, 0, 0.8102)
 fire_part_return_time = 0.058
 wieldable_mesh = NodePath(".")
 ads_time = 0.25
+enable_sprint_motion = true
+sprint_rotation_offset_deg = Vector3(-20, 30, 6)
+sprint_enter_time = 0.2
+sprint_exit_time = 0.25
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=288433027]
 libraries/ = SubResource("AnimationLibrary_ws41e")
@@ -979,7 +983,7 @@ transform = Transform3D(3.333333, 0, 0, 0, 3.333333, 0, 0, 0, 3.333333, 0.004511
 
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=1006062773]
 unique_name_in_owner = true
-transform = Transform3D(-4.3711374e-08, 0, 0.9999996, 0, 0.99999964, 0, -0.9999997, 0, -4.3711374e-08, -0.014, 0.184, -4.279)
+transform = Transform3D(-4.3711374e-08, 0, 0.99999964, 0, 0.99999964, 0, -0.9999997, 0, -4.3711374e-08, -0.013999939, 0.18399996, -4.3802786)
 
 [node name="7_62x39 ak47 mag 30rnd (steel)" type="MeshInstance3D" parent="." unique_id=137813977]
 transform = Transform3D(-4.37114e-08, 0, 1.0000005, 0, 1.0000006, 0, -1.0000002, 0, -4.371141e-08, -1.5648672e-08, -0.9569998, -0.35799992)
@@ -1036,3 +1040,6 @@ skeleton = NodePath("")
 [node name="SubViewport" type="SubViewport" parent="." unique_id=25578981]
 
 [node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1528756918]
+
+[node name="Shell_Eject_Point" type="Marker3D" parent="." unique_id=725094400]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34635276, -0.28527904)

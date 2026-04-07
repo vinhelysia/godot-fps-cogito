@@ -246,6 +246,26 @@ func reload() -> void:
 		audio_stream_player_3d.play()
 
 
+func cancel_ads_for_sprint() -> void:
+	if _ads == null or weapon_data == null:
+		return
+	if _ads.is_aiming:
+		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
+				block_ads_during_shot_tween, _shoot_motion.is_active, true,
+				player_interaction_component)
+
+
+func is_ads_active() -> bool:
+	return _ads != null and _ads.is_aiming
+
+
+func should_suspend_container_motion() -> bool:
+	return animation_player.is_playing() \
+		or _is_reloading \
+		or _is_firing \
+		or (_shoot_motion != null and _shoot_motion.is_active)
+
+
 # ── Fire logic ───────────────────────────────────────────────────────────────
 
 func _try_fire() -> void:

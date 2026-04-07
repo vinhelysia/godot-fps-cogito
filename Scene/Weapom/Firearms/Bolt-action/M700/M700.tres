@@ -4,7 +4,9 @@
 [ext_resource type="Script" uid="uid://cbuwlci27f7a2" path="res://Scripts/Weapons/Types/BoltAction_Resource.gd" id="1_qrmst"]
 
 [resource]
+resource_local_to_scene = true
 script = ExtResource("1_qrmst")
+weaponName = "M700"
 Type = 2
 bulletProjectileToLoad = ExtResource("1_73mm4")
 weaponVelocity = 915
