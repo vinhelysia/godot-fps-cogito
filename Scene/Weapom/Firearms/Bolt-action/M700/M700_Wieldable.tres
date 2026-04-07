@@ -15,6 +15,7 @@ wieldable_range = 1000.0
 name = "M700"
 description = "Old reliable. There aren't many moving parts to break on an M700, making it the perfect companion for the lonely marksman. It’s heavy, it’s loud, and it hits like a freight train."
 icon = ExtResource("1_6ywfr")
+slot_background_preset = 1
 drop_scene = "uid://cpoyxgguqsn3m"
 item_size = Vector2(5, 1)
 can_auto_slot = true

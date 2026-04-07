@@ -60,15 +60,13 @@ var _time_since_last_shot: float = 0.0
 var _trauma: float = 0.0
 var _shake_time: float = 0.0
 var _shake_noise: FastNoiseLite
-var _shake_base_position: Vector3
+var _shake_offset: Vector3 = Vector3.ZERO
 
 
 func _ready() -> void:
 	_shake_noise = FastNoiseLite.new()
 	_shake_noise.noise_type = FastNoiseLite.TYPE_PERLIN
 	_shake_noise.seed = randi()
-	if get_parent():
-		_shake_base_position = get_parent().position
 
 
 func _process(delta: float) -> void:
@@ -141,17 +139,23 @@ func _apply_shake() -> void:
 	var parent := get_parent() as Node3D
 	if not parent:
 		return
+
+	# Remove previous frame's shake offset so we don't accumulate
+	parent.position -= _shake_offset
+
 	if _trauma <= 0.001:
-		parent.position = _shake_base_position
+		_shake_offset = Vector3.ZERO
 		parent.rotation_degrees.z = 0.0
 		return
+
 	var shake: float = pow(_trauma, shake_trauma_power)
 	var t: float = _shake_time * shake_noise_frequency
-	parent.position = _shake_base_position + Vector3(
+	_shake_offset = Vector3(
 		_shake_noise.get_noise_2d(t, 0.0)   * shake_max_offset.x * shake,
 		_shake_noise.get_noise_2d(0.0, t)   * shake_max_offset.y * shake,
 		0.0
 	)
+	parent.position += _shake_offset
 	parent.rotation_degrees.z = _shake_noise.get_noise_2d(t, 100.0) * shake_max_roll_deg * shake
 
 

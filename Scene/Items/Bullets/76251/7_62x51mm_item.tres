@@ -8,6 +8,7 @@ script = ExtResource("1_i3pv3")
 name = "7.62x51mm"
 description = "Full-power rifle cartridge. Designed for maximum kinetic energy transfer and deep penetration. These heavy rounds offer superior damage and structural penetration compared to intermediate cartridges."
 icon = ExtResource("1_pfrcw")
+slot_background_preset = 1
 is_stackable = true
 stack_size = 50
 drop_scene = null

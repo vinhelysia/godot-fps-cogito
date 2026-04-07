@@ -1,12 +1,24 @@
 extends Resource
 class_name InventoryItemPD
 
+enum SlotBackgroundPreset {
+	NONE,
+	TARKOV_GRAY,
+}
+
+const SLOT_BACKGROUND_PRESET_COLORS := {
+	SlotBackgroundPreset.NONE: Color(1, 1, 1, 0.0),
+	SlotBackgroundPreset.TARKOV_GRAY: Color(0.22, 0.24, 0.25, 0.15),
+}
+
 ## Name of Item as it appears in game.
 @export var name : String = ""
 ## Description of Item as it'll appear in the HUD / Inventory menu
 @export_multiline var description : String = ""
 ## Icon of Item for HUD / Inventory
 @export var icon : Texture2D
+## Named background preset shown behind the item icon in slot-based inventory UI.
+@export var slot_background_preset : SlotBackgroundPreset = SlotBackgroundPreset.NONE
 ## Sets if an item can be stackable or not. Usually used for consumables or ammo.
 @export var is_stackable : bool = false
 ## Sets if an item can be dropped or not. Used for important items so they can't get lost. Items can still be moved to external inventories.
@@ -47,3 +59,11 @@ func get_region(x, y):
 	var y_chunk = icon.get_height() / item_size.y
 	var region = Rect2i(Vector2i(x * x_chunk, y * y_chunk), Vector2i(x_chunk, y_chunk))
 	return image.get_region(region)
+
+
+func get_slot_background_color() -> Color:
+	match slot_background_preset:
+		SlotBackgroundPreset.TARKOV_GRAY:
+			return SLOT_BACKGROUND_PRESET_COLORS[SlotBackgroundPreset.TARKOV_GRAY]
+		_:
+			return SLOT_BACKGROUND_PRESET_COLORS[SlotBackgroundPreset.NONE]

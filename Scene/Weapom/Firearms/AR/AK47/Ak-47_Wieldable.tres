@@ -16,6 +16,7 @@ charge_current = 30.0
 name = "AK-47"
 description = "Scavenged from an abandoned military cache, this rifle has seen better days, but it still spits lead without hesitation. It's loud, it's messy, and it's exactly what you need to survive the next wave. Just watch your ammo counter—7.62 rounds go fast when you're holding down the trigger"
 icon = ExtResource("1_ik1uf")
+slot_background_preset = 1
 drop_scene = "uid://cpoyxgguqsn3m"
 item_size = Vector2(4, 2)
 can_auto_slot = true

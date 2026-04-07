@@ -77,7 +77,7 @@ transform = Transform3D(0.81935227, -2.44186e-08, -0.5732905, 0.29080313, 0.8617
 shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 2.985649, -27.005917)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.175818, -27.005917)
 inventory_data = SubResource("Resource_hdm3a")
 
 [node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]

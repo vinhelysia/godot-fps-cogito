@@ -1,5 +1,6 @@
 class_name SlotPanel extends PanelContainer
 
+@onready var background_panel: Panel = $Background
 @onready var texture_rect = $MarginContainer/TextureRect
 @onready var quantity_label = $QuantityLabel
 @onready var charge_label = $ChargeLabel
@@ -27,14 +28,17 @@ func using_grid(using_grid: bool):
 func set_icon_region(x, y):
 	var region = item_data.get_region(x, y)
 	texture_rect.texture = ImageTexture.create_from_image(region)
+	_apply_item_background(Vector2i(x, y), false)
 
 
 func set_hotbar_icon():
 	texture_rect.texture = item_data.icon
+	_apply_item_background(Vector2i.ZERO, true)
 
 
 func set_slot_data(slot_data: InventorySlotPD, index: int, moving: bool, x_size: int):
 	item_data = slot_data.inventory_item
+	_apply_item_background(Vector2i.ZERO, true)
 	if moving:
 		slot_data.origin_index = index
 		origin_index = index
@@ -61,6 +65,36 @@ func set_slot_data(slot_data: InventorySlotPD, index: int, moving: bool, x_size:
 		if item_data.has_signal("charge_changed") and item_data.charge_changed.is_connected(_on_charge_changed):
 			item_data.charge_changed.disconnect(_on_charge_changed)
 		charge_label.hide()
+
+
+func _apply_item_background(cell_coords: Vector2i, use_full_border: bool):
+	if not item_data:
+		background_panel.hide()
+		return
+
+	var background_color: Color = item_data.get_slot_background_color()
+	var background_style := background_panel.get_theme_stylebox("panel")
+	var background_style_flat := background_style.duplicate() as StyleBoxFlat
+	background_style_flat.bg_color = background_color
+	_set_background_border(background_style_flat, cell_coords, use_full_border)
+	background_panel.add_theme_stylebox_override("panel", background_style_flat)
+	background_panel.show()
+
+
+func _set_background_border(background_style_flat: StyleBoxFlat, cell_coords: Vector2i, use_full_border: bool):
+	background_style_flat.border_color = Color.BLACK
+	if use_full_border:
+		background_style_flat.border_width_left = 1
+		background_style_flat.border_width_top = 1
+		background_style_flat.border_width_right = 1
+		background_style_flat.border_width_bottom = 1
+		return
+
+	var item_size := Vector2i(item_data.item_size)
+	background_style_flat.border_width_left = 1 if cell_coords.x == 0 else 0
+	background_style_flat.border_width_top = 1 if cell_coords.y == 0 else 0
+	background_style_flat.border_width_right = 1 if cell_coords.x == item_size.x - 1 else 0
+	background_style_flat.border_width_bottom = 1 if cell_coords.y == item_size.y - 1 else 0
 
 
 func check_if_top_right_slot(slot_data: InventorySlotPD, index: int):
@@ -117,13 +151,13 @@ func set_selection(is_selected : bool):
 
 func _on_mouse_entered():
 	grab_focus()
-
+	
 func _on_mouse_exited():
 	release_focus()
-
+	
 func _on_hidden():
 	release_focus()
-
+	
 func _on_focus_entered() -> void:
 	Audio.play_sound(sound_highlight)
 	highlight_slot.emit(get_index(), true)

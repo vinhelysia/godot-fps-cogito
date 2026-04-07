@@ -22,7 +22,7 @@ script = ExtResource("2_5uoj0")
 cogito_name = "7.62x51mm"
 display_name = "7.62x51mm"
 
-[node name="7_62x51 mag_002" parent="." index="0" unique_id=1723309849]
+[node name="7_62x51 mag_002" parent="." index="0" unique_id=605894063]
 transform = Transform3D(1.6180179e-08, -0.37015927, 1.9708914e-08, -0.37015927, -1.6180175e-08, 5.705483e-09, -1.6180174e-08, -5.5892496e-08, -0.13052623, 0, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." index="1" unique_id=2082777454]
