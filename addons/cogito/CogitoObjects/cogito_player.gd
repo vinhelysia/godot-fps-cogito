@@ -378,12 +378,12 @@ func _input(event):
 				look_movement.x = -event.relative.x
 			
 			if INVERT_Y_AXIS:
-				head.rotate_x(-deg_to_rad(-event.relative.y * MOUSE_SENS))
+				head.rotation.x -= deg_to_rad(-event.relative.y * MOUSE_SENS)
 				look_movement.y = -event.relative.y
 			else:
-				head.rotate_x(deg_to_rad(-event.relative.y * MOUSE_SENS))
+				head.rotation.x += deg_to_rad(-event.relative.y * MOUSE_SENS)
 				look_movement.y = event.relative.y
-			head.rotation.x = clamp(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+			head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
 			
 		mouse_movement.emit(look_movement)
 
@@ -720,11 +720,11 @@ func _process_on_ladder(_delta):
 	if joystick_h_event:
 			if abs(joystick_h_event.get_axis_value()) > JOY_DEADZONE:
 				if INVERT_Y_AXIS:
-					head.rotate_x(deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS))
+					head.rotation.x += deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS)
 				else:
-					head.rotate_x(-deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS))
-				head.rotation.x = clamp(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
-				
+					head.rotation.x -= deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS)
+				head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
+
 	if joystick_v_event:
 		if abs(joystick_v_event.get_axis_value()) > JOY_DEADZONE:
 			neck.rotate_y(deg_to_rad(-joystick_v_event.get_axis_value() * JOY_V_SENS))
@@ -824,10 +824,10 @@ func _physics_process(delta):
 	if joystick_h_event and !is_movement_paused:
 			if abs(joystick_h_event.get_axis_value()) > JOY_DEADZONE:
 				if INVERT_Y_AXIS:
-					head.rotate_x(deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS))
+					head.rotation.x += deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS)
 				else:
-					head.rotate_x(-deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS))
-				head.rotation.x = clamp(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+					head.rotation.x -= deg_to_rad(joystick_h_event.get_axis_value() * JOY_H_SENS)
+				head.rotation.x = clamp(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
 				
 	if joystick_v_event and !is_movement_paused:
 		if abs(joystick_v_event.get_axis_value()) > JOY_DEADZONE:

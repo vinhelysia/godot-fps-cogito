@@ -16,13 +16,16 @@ extends CogitoWieldable
 ## 5. Add a Marker3D named "Bullet_Point" (unique name) as the muzzle origin.
 
 enum ShootMotionMode { ANIMATION, TWEEN }
-
+enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
 # ── EXPORTS (names preserved for .tscn compatibility) ────────────────────────
 
 @export_group("Weapon Configuration")
 ## The Weapon_Resource that defines fire mode, recoil, and type-specific data.
 @export var weapon_data: Weapon_Resource
-
+@export_group("Shell Ejection")
+@export var shell_casing_scene: PackedScene
+@export_enum("On Fire", "On Cycle") var shell_eject_timing: int = ShellEjectTiming.ON_FIRE
+@onready var shell_eject_point: Marker3D = get_node_or_null("%shell_eject_point") as Marker3D
 @export_group("Muzzle")
 ## Marker3D where bullets/projectiles spawn. Set via unique name %Bullet_Point.
 @onready var bullet_point: Marker3D = %Bullet_Point
@@ -309,6 +312,8 @@ func _try_fire() -> void:
 	# Delegate fire to resource (polymorphic dispatch)
 	var ctx := _build_fire_context()
 	weapon_data.fire(ctx)
+	if shell_eject_timing == ShellEjectTiming.ON_FIRE:
+		_spawn_shell_casing()
 
 	# Recoil
 	_apply_recoil()
@@ -383,6 +388,8 @@ func _start_post_fire_cycle(cycle_type: String) -> void:
 	_post_fire_cycle_tween = null
 	if weapon_data == null:
 		return
+	if shell_eject_timing == ShellEjectTiming.ON_CYCLE and (cycle_type == "bolt" or cycle_type == "pump"):
+		_spawn_shell_casing()
 
 	if cycle_type == "bolt" and weapon_data is BoltAction_Resource:
 		var bolt_res := weapon_data as BoltAction_Resource
@@ -567,3 +574,24 @@ func _reset_state() -> void:
 	_is_firing = false
 	_ads.is_aiming = false
 	_capture_rest_state()
+
+func _spawn_shell_casing() -> void:
+	if shell_casing_scene == null or shell_eject_point == null:
+		return
+
+	var shell_instance := shell_casing_scene.instantiate() as ShellCasingFx
+	if shell_instance == null:
+		push_warning("shell_casing_scene root must be ShellCasingFx.")
+		return
+
+	if player_interaction_component:
+		var player := player_interaction_component.get_parent()
+		if "main_velocity" in player:
+			shell_instance.player_velocity = player.main_velocity
+
+	var world_root := get_tree().current_scene
+	if world_root == null:
+		return
+
+	world_root.add_child(shell_instance)
+	shell_instance.global_transform = shell_eject_point.global_transform

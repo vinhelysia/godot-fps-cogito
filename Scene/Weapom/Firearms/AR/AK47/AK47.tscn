@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_awh6b"]
 [ext_resource type="Resource" uid="uid://dr3aharu3mmkm" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tres" id="2_66jaj"]
+[ext_resource type="PackedScene" uid="uid://f0lviuikv26i" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39shell_casing_fx.tscn.tscn" id="3_ag60c"]
 [ext_resource type="AudioStream" uid="uid://bt13lvujeulm7" path="res://Assets/SFX/Firearm/AK-47/shoot.wav" id="3_pkyv7"]
 
 [sub_resource type="Animation" id="Animation_i0oj7"]
@@ -950,10 +951,11 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_4hn0l")
 
 [node name="Ak47" type="Node3D" unique_id=920174355 node_paths=PackedStringArray("wieldable_mesh")]
-transform = Transform3D(0.0850485, -0.23795222, -0.16169569, 0.28025877, 0.030445853, 0.10260605, -0.06497453, -0.1801438, 0.23092537, 0.72170836, -1.0590003, -1.518794)
+transform = Transform3D(0.08504844, -0.23795211, -0.16169564, 0.28025857, 0.030445842, 0.10260602, -0.06497449, -0.18014373, 0.2309253, 0.72170836, -1.0590003, -1.518794)
 visible = false
 script = ExtResource("1_awh6b")
 weapon_data = ExtResource("2_66jaj")
+shell_casing_scene = ExtResource("3_ag60c")
 sound_shoot = ExtResource("3_pkyv7")
 ads_fov = 40.0
 default_position = Vector3(0.722, -0.3, -0.973)
@@ -971,9 +973,11 @@ fire_part_return_time = 0.058
 wieldable_mesh = NodePath(".")
 ads_time = 0.25
 enable_sprint_motion = true
-sprint_rotation_offset_deg = Vector3(-20, 30, 6)
-sprint_enter_time = 0.2
-sprint_exit_time = 0.25
+sprint_position_offset = Vector3(0.185, -1.3, 0.1)
+sprint_rotation_offset_deg = Vector3(26.8, 61.2, 69.4)
+sprint_enter_time = 0.5
+sprint_exit_time = 0.45
+sprint_bob_rotation_amplitude_deg = Vector3(0.3, 0.1, 1.3)
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=288433027]
 libraries/ = SubResource("AnimationLibrary_ws41e")
@@ -1041,5 +1045,6 @@ skeleton = NodePath("")
 
 [node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1528756918]
 
-[node name="Shell_Eject_Point" type="Marker3D" parent="." unique_id=725094400]
+[node name="shell_eject_point" type="Marker3D" parent="." unique_id=725094400]
+unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34635276, -0.28527904)
