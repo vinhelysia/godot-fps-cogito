@@ -23,6 +23,11 @@ func _ready() -> void:
 	label_stack_amount.hide()
 	dynamic_input_icon.action_name = input_action
 	dynamic_input_icon.update_input_icon()
+	set_empty_visual_state()
+
+
+func set_empty_visual_state() -> void:
+	self.modulate = Color(1.0, 1.0, 1.0, 0.45)
 
 
 func _on_gui_input(event):
@@ -52,6 +57,7 @@ func clear_this_quickslot():
 	item_reference = null
 	item_texture.hide()
 	label_stack_amount.hide()
+	set_empty_visual_state()
 	quickslot_cleared.emit(self)
 
 
@@ -81,6 +87,7 @@ func update_quickslot_data(slot_data: InventorySlotPD) -> void:
 		inventory_slot_reference = slot_data
 		item_reference = inventory_slot_reference.inventory_item
 
+		self.modulate = Color(1.0, 1.0, 1.0, 1.0)
 		item_texture.show()
 		var qs_icon = item_reference.get("quickslot_icon")
 		item_texture.texture = qs_icon if qs_icon else item_reference.icon

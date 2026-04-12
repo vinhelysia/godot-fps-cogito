@@ -25,6 +25,7 @@ enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
 @export_group("Shell Ejection")
 @export var shell_casing_scene: PackedScene
 @export_enum("On Fire", "On Cycle") var shell_eject_timing: int = ShellEjectTiming.ON_FIRE
+@export var max_shell_casings: int = 10
 @onready var shell_eject_point: Marker3D = get_node_or_null("%shell_eject_point") as Marker3D
 @export_group("Muzzle")
 ## Marker3D where bullets/projectiles spawn. Set via unique name %Bullet_Point.
@@ -97,6 +98,7 @@ var _bolt_is_cycled: bool = true
 var _pump_ready: bool = true
 var _current_heat: float = 0.0
 var _is_venting: bool = false
+var _sprint_blocked_press: bool = false
 var _item_ref: WieldableItemPD
 var _rest_rotation_degrees: Vector3 = Vector3.ZERO
 var _post_fire_cycle_tween: Tween = null
@@ -125,7 +127,9 @@ func _physics_process(delta: float) -> void:
 
 	# Auto-fire loop
 	if _is_firing and not _is_reloading and _fire_cooldown <= 0.0:
-		if _item_ref and _item_ref.charge_current > 0:
+		if _is_player_sprinting():
+			_is_firing = false
+		elif _item_ref and _item_ref.charge_current > 0:
 			_try_fire()
 		else:
 			_is_firing = false
@@ -174,11 +178,18 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 
 	if _is_released:
 		_is_firing = false
-		var elapsed: float = Time.get_ticks_msec() / 1000.0 - _trigger.press_time
-		var delay: float = maxf(0.0, trigger_min_hold_time - elapsed)
-		_trigger.release_delayed(0.0, delay)
+		if not _sprint_blocked_press:
+			var elapsed: float = Time.get_ticks_msec() / 1000.0 - _trigger.press_time
+			var delay: float = maxf(0.0, trigger_min_hold_time - elapsed)
+			_trigger.release_delayed(0.0, delay)
+		_sprint_blocked_press = false
 		return
 
+	if _is_player_sprinting():
+		_sprint_blocked_press = true
+		return
+
+	_sprint_blocked_press = false
 	_trigger.press_time = Time.get_ticks_msec() / 1000.0
 	_trigger.pull(trigger_pull_rotation)
 
@@ -203,6 +214,8 @@ func action_secondary(_is_released: bool) -> void:
 				block_ads_during_shot_tween, _shoot_motion.is_active, false,
 				player_interaction_component)
 	else:
+		if _is_player_sprinting():
+			return
 		_ads.enter(weapon_data, ads_fov, ads_time, ads_position, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active,
 				animation_player, player_interaction_component)
@@ -272,6 +285,9 @@ func should_suspend_container_motion() -> bool:
 # ── Fire logic ───────────────────────────────────────────────────────────────
 
 func _try_fire() -> void:
+	if _is_player_sprinting():
+		_is_firing = false
+		return
 	if weapon_data == null or _is_reloading or _fire_cooldown > 0.0:
 		return
 	if _item_ref == null or _item_ref.charge_current <= 0:
@@ -486,7 +502,16 @@ func _get_recoil_node() -> Node3D:
 	if not player_interaction_component:
 		return null
 	var player := player_interaction_component.get_parent()
+	if not player:
+		return null
 	return player.find_child("CameraRecoil", true, false) as Node3D
+
+
+func _is_player_sprinting() -> bool:
+	if not player_interaction_component:
+		return false
+	var player := player_interaction_component.get_parent()
+	return player != null and player.get("is_sprinting") == true
 
 
 func _get_reload_animation_name() -> String:
@@ -572,6 +597,7 @@ func _reset_state() -> void:
 	_is_venting = false
 	_is_reloading = false
 	_is_firing = false
+	_sprint_blocked_press = false
 	_ads.is_aiming = false
 	_capture_rest_state()
 
@@ -595,3 +621,7 @@ func _spawn_shell_casing() -> void:
 
 	world_root.add_child(shell_instance)
 	shell_instance.global_transform = shell_eject_point.global_transform
+
+	var active_shells := get_tree().get_nodes_in_group("shell_casings")
+	if active_shells.size() > max_shell_casings:
+		active_shells[0].queue_free()

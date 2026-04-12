@@ -48,6 +48,8 @@ height = 0.05429077
 radius = 0.01171875
 
 [node name="7_62x39Projectile" type="RigidBody3D" unique_id=844824024]
+contact_monitor = true
+max_contacts_reported = 4
 script = ExtResource("1_usm1l")
 destroy_on_impact = true
 cogito_name = "7_62x39Projectile"
@@ -65,3 +67,5 @@ transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 6
 shape = SubResource("CylinderShape3D_e83yt")
 
 [node name="Lifespan" type="Timer" parent="." unique_id=982286599]
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

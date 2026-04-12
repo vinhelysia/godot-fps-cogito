@@ -13,6 +13,7 @@ quickslot_icon = ExtResource("2_droao")
 charge_max = 5.0
 ammo_item_name = "7.62x51mm"
 charge_current = 5.0
+wieldable_damage = 80.0
 wieldable_range = 1000.0
 name = "M700"
 description = "Old reliable. There aren't many moving parts to break on an M700, making it the perfect companion for the lonely marksman. It’s heavy, it’s loud, and it hits like a freight train."

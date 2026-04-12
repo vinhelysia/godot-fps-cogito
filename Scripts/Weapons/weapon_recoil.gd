@@ -62,8 +62,11 @@ var _shake_time: float = 0.0
 var _shake_noise: FastNoiseLite
 var _shake_offset: Vector3 = Vector3.ZERO
 
+var _head_node: Node3D
+
 
 func _ready() -> void:
+	_head_node = get_parent() as Node3D
 	_shake_noise = FastNoiseLite.new()
 	_shake_noise.noise_type = FastNoiseLite.TYPE_PERLIN
 	_shake_noise.seed = randi()
@@ -83,12 +86,12 @@ func _process(delta: float) -> void:
 	var delta_rot := current_rotation - _prev_rotation
 	_prev_rotation = current_rotation
 
-	if get_parent() and delta_rot.length() > 0.0001:
-		get_parent().rotate_object_local(Vector3.RIGHT, delta_rot.x)
-		get_parent().rotate_object_local(Vector3.UP, delta_rot.y)
+	if _head_node and delta_rot.length() > 0.0001:
+		_head_node.rotate_object_local(Vector3.RIGHT, delta_rot.x)
+		_head_node.rotate_object_local(Vector3.UP, delta_rot.y)
 		# Prevent unintended z-axis tilt when recoil.z is unused
 		if recoil.z == 0.0 and aim_recoil.z == 0.0:
-			get_parent().global_rotation.z = 0.0
+			_head_node.global_rotation.z = 0.0
 
 	# Positional shake
 	_trauma = maxf(0.0, _trauma - shake_trauma_decay * delta)
@@ -136,7 +139,7 @@ func add_trauma(amount: float) -> void:
 
 
 func _apply_shake() -> void:
-	var parent := get_parent() as Node3D
+	var parent := _head_node
 	if not parent:
 		return
 

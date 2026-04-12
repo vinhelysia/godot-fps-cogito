@@ -252,6 +252,8 @@ func attempt_action_primary(is_released: bool):
 		return
 
 	if not is_released:
+		if wieldable_container != null and wieldable_container.has_method("should_block_primary_action") and wieldable_container.should_block_primary_action():
+			return
 		_interrupt_wieldable_container_motion()
 	equipped_wieldable_node.action_primary(equipped_wieldable_item, is_released)
 

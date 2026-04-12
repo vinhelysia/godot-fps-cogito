@@ -9,6 +9,7 @@ extends RigidBody3D
 var player_velocity := Vector3.ZERO
 
 func _ready() -> void:
+	add_to_group("shell_casings")
 	call_deferred("_eject")
 	get_tree().create_timer(despawn_delay).timeout.connect(queue_free)
 

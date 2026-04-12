@@ -13,6 +13,9 @@ class_name Weapon_Resource
 @export var bulletProjectileToLoad: PackedScene
 @export var weaponVelocity: int
 
+# ── Fire Type (matches @export_flags bit positions) ───────────────────────────
+enum FireType { HITSCAN = 1, PROJECTILE = 2 }
+
 # ── Fire Mode ──────────────────────────────────────────────────────────────────
 enum FireMode { SEMI, AUTO, BOLT_ACTION, PUMP, REVOLVER }
 
@@ -32,8 +35,8 @@ func get_fire_cooldown() -> float:
 ##           player_interaction_component, world_3d, viewport, scene_tree
 func fire(ctx: Dictionary) -> void:
 	match Type:
-		1: _hitscan_fire(ctx)
-		2: _projectile_fire(ctx)
+		FireType.HITSCAN: _hitscan_fire(ctx)
+		FireType.PROJECTILE: _projectile_fire(ctx)
 
 
 # ── Virtual: Post-fire actions (bolt cycle, pump, LMG heat) ───────────────────

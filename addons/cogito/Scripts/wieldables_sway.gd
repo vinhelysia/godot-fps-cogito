@@ -8,6 +8,8 @@ extends Node3D
 @export var sway_return_speed: float = 5.0
 ## Minimum horizontal speed before sprint motion engages.
 @export var sprint_speed_threshold: float = 0.1
+## Minimum time (seconds) between sprint state transitions. Prevents jitter when spamming sprint.
+@export_range(0.0, 0.5, 0.01) var sprint_transition_cooldown: float = 0.15
 
 var _sway_offset: Vector3 = Vector3.ZERO
 var _sprint_pose_position: Vector3 = Vector3.ZERO
@@ -16,6 +18,7 @@ var _sprint_bob_position: Vector3 = Vector3.ZERO
 var _sprint_bob_rotation: Vector3 = Vector3.ZERO
 var _sprint_time: float = 0.0
 var _sprint_active: bool = false
+var _sprint_transition_timer: float = 0.0
 var _tracked_wieldable: CogitoWieldable = null
 var _sprint_pose_tween: Tween = null
 
@@ -26,6 +29,7 @@ func _process(delta: float) -> void:
         _tracked_wieldable = active_wieldable
         reset_motion()
 
+    _sprint_transition_timer += delta
     _update_sprint_state(active_wieldable)
 
     _sway_offset.x = lerp(_sway_offset.x, 0.0, delta * sway_return_speed)
@@ -40,6 +44,10 @@ func sway(sway_amount: Vector2) -> void:
 
 
 func should_block_secondary_action() -> bool:
+    return _should_activate_sprint(_get_active_wieldable())
+
+
+func should_block_primary_action() -> bool:
     return _should_activate_sprint(_get_active_wieldable())
 
 
@@ -65,6 +73,9 @@ func _update_sprint_state(active_wieldable: CogitoWieldable) -> void:
     var should_sprint := _should_activate_sprint(active_wieldable)
     if should_sprint == _sprint_active:
         return
+    if _sprint_transition_timer < sprint_transition_cooldown:
+        return
+    _sprint_transition_timer = 0.0
     _set_sprint_active(should_sprint, false, active_wieldable)
 
 
