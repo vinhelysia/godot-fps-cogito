@@ -332,45 +332,6 @@ tracks/3/keys = {
 "values": [Vector3(-0.39269873, 8.005783e-08, -1.570796), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-0.39269873, 8.005783e-08, -1.570796)]
 }
 
-[sub_resource type="Animation" id="Animation_k8wy1"]
-resource_name = "equip"
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:visible")
-tracks/0/interp = 0
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.05),
-"transitions": PackedFloat32Array(1, 1),
-"update": 1,
-"values": [false, true]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath(".:rotation")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector3(0.120062545, 2.1391022, -0.7621769), Vector3(0, 1.5707964, 0)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath(".:position")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 1),
-"transitions": PackedFloat32Array(1, 1),
-"update": 0,
-"values": [Vector3(0.2346071, -1.1711823, -0.8965045), Vector3(0.557, -0.308, -0.897)]
-}
-
 [sub_resource type="Animation" id="Animation_ads01"]
 resource_name = "bolt_cycle_ads"
 length = 1.2
@@ -423,6 +384,45 @@ tracks/3/keys = {
 "values": [Vector3(-0.39269873, 8.005783e-08, -1.570796), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-0.39269873, 8.005783e-08, -1.570796)]
 }
 
+[sub_resource type="Animation" id="Animation_k8wy1"]
+resource_name = "equip"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:visible")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.05),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0.120062545, 2.1391022, -0.7621769), Vector3(0, 1.5707964, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0.2346071, -1.1711823, -0.8965045), Vector3(0.557, -0.308, -0.897)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_n1hoc"]
 _data = {
 &"RESET": SubResource("Animation_vsell"),
@@ -442,11 +442,12 @@ ads_fov = 40.0
 default_position = Vector3(0.557, -0.308, -0.897)
 ads_position = Vector3(0, -0.175, -0.636)
 hip_shot_position_offset = Vector3(0, 0.015, 0.09)
-hip_shot_rotation_deg = Vector3(0.8, 0, 0)
-ads_shot_position_offset = Vector3(0, 0.01, 0.05)
-ads_shot_rotation_deg = Vector3(0.4, 0, 0)
-shoot_kick_out_time = 0.035
-shoot_return_time = 0.08
+hip_shot_rotation_deg = Vector3(0.45, 0, 0)
+ads_shot_position_offset = Vector3(0, 0.01, 0.06)
+ads_shot_rotation_deg = Vector3(0.3, 0, 0)
+shoot_kick_out_time = 0.2
+shoot_return_time = 0.1
+bolt_part_node = NodePath("Cylinder_001")
 trigger_pull_rotation = -18.0
 wieldable_mesh = NodePath(".")
 ads_time = 0.45
@@ -455,7 +456,7 @@ sprint_position_offset = Vector3(0.514, -0.039, 0.129)
 sprint_rotation_offset_deg = Vector3(-12.199, 60, 0)
 sprint_enter_time = 0.5
 sprint_exit_time = 0.65
-bolt_part_node = NodePath("Cylinder_001")
+sprint_bob_position_amplitude = Vector3(0.01, 0.01, 0.1)
 
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=145585913]
 unique_name_in_owner = true
