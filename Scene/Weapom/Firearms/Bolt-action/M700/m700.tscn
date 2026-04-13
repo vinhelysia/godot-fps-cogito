@@ -282,6 +282,7 @@ tracks/4/keys = {
 
 [sub_resource type="Animation" id="Animation_n1hoc"]
 resource_name = "bolt_cycle"
+length = 1.2
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -289,10 +290,10 @@ tracks/0/path = NodePath(".:position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.5, 1.2),
+"transitions": PackedFloat32Array(1, -2, -2),
 "update": 0,
-"values": [Vector3(0.557, -0.30799997, -0.897)]
+"values": [Vector3(0.557, -0.30799997, -0.897), Vector3(0.42, -0.34, -0.865), Vector3(0.557, -0.30799997, -0.897)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -301,10 +302,10 @@ tracks/1/path = NodePath(".:rotation")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.5, 1.2),
+"transitions": PackedFloat32Array(1, -2, -2),
 "update": 0,
-"values": [Vector3(0, 1.5707964, 0)]
+"values": [Vector3(0, 1.5707964, 0), Vector3(-0.2617994, 1.5882496, 0.034906585), Vector3(0, 1.5707964, 0)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -313,10 +314,10 @@ tracks/2/path = NodePath("Cylinder_001:position")
 tracks/2/interp = 1
 tracks/2/loop_wrap = true
 tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.26666668, 0.5, 0.7, 0.8666667),
+"transitions": PackedFloat32Array(1, 1, -2, 1, -2),
 "update": 0,
-"values": [Vector3(0.05584554, 0.059166227, 0)]
+"values": [Vector3(0.05584554, 0.059166227, 0), Vector3(0.05584554, 0.059166227, 0), Vector3(-0.1278401, 0.059375823, -0.0010124445), Vector3(-0.1278401, 0.059375823, -0.0010124445), Vector3(0.05584554, 0.059166227, 0)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -325,10 +326,10 @@ tracks/3/path = NodePath("Cylinder_001:rotation")
 tracks/3/interp = 1
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.2, 0.96666664, 1.2),
+"transitions": PackedFloat32Array(1, -2, 1, -2),
 "update": 0,
-"values": [Vector3(-0.39269873, 8.005783e-08, -1.570796)]
+"values": [Vector3(-0.39269873, 8.005783e-08, -1.570796), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-0.39269873, 8.005783e-08, -1.570796)]
 }
 
 [sub_resource type="Animation" id="Animation_k8wy1"]
@@ -370,15 +371,68 @@ tracks/2/keys = {
 "values": [Vector3(0.2346071, -1.1711823, -0.8965045), Vector3(0.557, -0.308, -0.897)]
 }
 
+[sub_resource type="Animation" id="Animation_ads01"]
+resource_name = "bolt_cycle_ads"
+length = 1.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1.2),
+"transitions": PackedFloat32Array(1, -2, -2),
+"update": 0,
+"values": [Vector3(0, -0.175, -0.636), Vector3(-0.04, -0.185, -0.626), Vector3(0, -0.175, -0.636)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.5, 1.2),
+"transitions": PackedFloat32Array(1, -2, -2),
+"update": 0,
+"values": [Vector3(0, 1.5707964, 0), Vector3(-0.0785398, 1.5795199, 0.0104719), Vector3(0, 1.5707964, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Cylinder_001:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.26666668, 0.5, 0.7, 0.8666667),
+"transitions": PackedFloat32Array(1, 1, -2, 1, -2),
+"update": 0,
+"values": [Vector3(0.05584554, 0.059166227, 0), Vector3(0.05584554, 0.059166227, 0), Vector3(-0.1278401, 0.059375823, -0.0010124445), Vector3(-0.1278401, 0.059375823, -0.0010124445), Vector3(0.05584554, 0.059166227, 0)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Cylinder_001:rotation")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.96666664, 1.2),
+"transitions": PackedFloat32Array(1, -2, 1, -2),
+"update": 0,
+"values": [Vector3(-0.39269873, 8.005783e-08, -1.570796), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-1.2234758, 0.0017453292, -1.5742869), Vector3(-0.39269873, 8.005783e-08, -1.570796)]
+}
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_n1hoc"]
 _data = {
 &"RESET": SubResource("Animation_vsell"),
 &"bolt_cycle": SubResource("Animation_n1hoc"),
+&"bolt_cycle_ads": SubResource("Animation_ads01"),
 &"equip": SubResource("Animation_k8wy1")
 }
 
 [node name="m700" type="Node3D" unique_id=1140920897 node_paths=PackedStringArray("wieldable_mesh")]
-transform = Transform3D(-0.4590063, -0.29861054, 0.83674663, -0.6855269, 0.7181274, -0.119774304, -0.56512487, -0.6285895, -0.53433055, 0.2346071, -1.1711823, -0.8965045)
+transform = Transform3D(-0.45900628, -0.29861054, 0.83674663, -0.68552685, 0.7181274, -0.119774304, -0.5651248, -0.6285895, -0.53433055, 0.2346071, -1.1711823, -0.8965045)
 visible = false
 script = ExtResource("1_2x0ol")
 weapon_data = ExtResource("2_vsell")
@@ -401,6 +455,7 @@ sprint_position_offset = Vector3(0.514, -0.039, 0.129)
 sprint_rotation_offset_deg = Vector3(-12.199, 60, 0)
 sprint_enter_time = 0.5
 sprint_exit_time = 0.65
+bolt_part_node = NodePath("Cylinder_001")
 
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=145585913]
 unique_name_in_owner = true
@@ -412,7 +467,7 @@ mesh = SubResource("ArrayMesh_gjjpp")
 skeleton = NodePath("")
 
 [node name="Cylinder_001" type="MeshInstance3D" parent="." unique_id=1163671021]
-transform = Transform3D(-2.8452677e-08, -0.094237044, -6.107817e-09, 0.07629256, -2.7330728e-08, -0.03160138, -0.03160138, 1.8865158e-08, -0.07629256, 0.05584554, 0.059166227, 0)
+transform = Transform3D(-2.8452684e-08, -0.09423709, -6.1078187e-09, 0.07629258, -2.733074e-08, -0.031601388, -0.031601388, 1.8865167e-08, -0.07629258, 0.05584554, 0.059166227, 0)
 mesh = SubResource("ArrayMesh_0wtq3")
 skeleton = NodePath("")
 

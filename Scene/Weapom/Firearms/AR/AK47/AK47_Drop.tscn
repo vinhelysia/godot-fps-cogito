@@ -467,13 +467,3 @@ skeleton = NodePath("")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.42475653, -0.31738266, 0)
 mesh = SubResource("ArrayMesh_g6a2n")
 skeleton = NodePath("")
-
-[node name="Bullet_Point" type="Marker3D" parent="ak-47" unique_id=1006062773]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.368396, 0.18407762, 0.013694913)
-
-[node name="SubViewport" type="SubViewport" parent="." unique_id=1719264414]
-transparent_bg = true
-
-[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1671685657]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.3421806, -0.0065096617, 0.0013830662)

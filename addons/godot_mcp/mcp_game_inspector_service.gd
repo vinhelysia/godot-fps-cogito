@@ -748,7 +748,7 @@ func _safe_get(node: Node, prop: String, default: Variant = null) -> Variant:
 
 	var output: Variant = null
 	if temp_node.has_method("run"):
-		output = temp_node.run()
+			output = temp_node.run()
 
 	var mcp_output: Array = temp_node.get("_mcp_output") if temp_node.get("_mcp_output") is Array else []
 	temp_node.queue_free()

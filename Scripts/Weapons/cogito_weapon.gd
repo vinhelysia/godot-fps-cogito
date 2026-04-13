@@ -70,6 +70,13 @@ enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
 @export var anim_reload_empty_ads: String = "reload_empty_ads"
 ## Reload animation while ADSing.
 @export var anim_reload_ads: String = "reload_ads"
+## Bolt-cycle animation while ADS (leave empty to fall back to boltCycleAnimation).
+@export var bolt_cycle_animation_ads: String = "bolt_cycle_ads"
+
+@export_group("Bolt Tween")
+## Assign the bolt handle mesh node (e.g. Cylinder_001). When set, bolt cycle uses tweens.
+## Tween parameters (positions, rotations, durations) live in BoltAction_Resource.
+@export var bolt_part_node: NodePath
 
 @export_group("Trigger Animation")
 ## Z-rotation (degrees) the trigger mesh rotates to when the mouse is held.
@@ -102,6 +109,10 @@ var _sprint_blocked_press: bool = false
 var _item_ref: WieldableItemPD
 var _rest_rotation_degrees: Vector3 = Vector3.ZERO
 var _post_fire_cycle_tween: Tween = null
+var _bolt_part: Node3D = null
+var _bolt_cycle_tween: Tween = null
+var _bolt_root_tween: Tween = null
+var _bolt_pre_cycle_rest_rot: Vector3 = Vector3.ZERO
 
 
 # ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -117,6 +128,8 @@ func _ready() -> void:
 	_shoot_motion.shoot_visual_finished.connect(_on_shoot_visual_finished)
 	_sync_shoot_motion_config()
 	_capture_rest_state()
+	if bolt_part_node != NodePath(""):
+		_bolt_part = get_node_or_null(bolt_part_node) as Node3D
 
 
 func _physics_process(delta: float) -> void:
@@ -159,6 +172,12 @@ func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 
 
 func unequip() -> void:
+	if _bolt_cycle_tween:
+		_bolt_cycle_tween.kill()
+		_bolt_cycle_tween = null
+	if _bolt_root_tween:
+		_bolt_root_tween.kill()
+		_bolt_root_tween = null
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
 	_is_firing = false
@@ -210,6 +229,10 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 
 func action_secondary(_is_released: bool) -> void:
 	if _is_released:
+		if _bolt_root_tween:
+			_bolt_root_tween.kill()
+			_bolt_root_tween = null
+			rotation_degrees = _bolt_pre_cycle_rest_rot
 		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, false,
 				player_interaction_component)
@@ -266,6 +289,10 @@ func cancel_ads_for_sprint() -> void:
 	if _ads == null or weapon_data == null:
 		return
 	if _ads.is_aiming:
+		if _bolt_root_tween:
+			_bolt_root_tween.kill()
+			_bolt_root_tween = null
+			rotation_degrees = _bolt_pre_cycle_rest_rot
 		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, true,
 				player_interaction_component)
@@ -409,10 +436,14 @@ func _start_post_fire_cycle(cycle_type: String) -> void:
 
 	if cycle_type == "bolt" and weapon_data is BoltAction_Resource:
 		var bolt_res := weapon_data as BoltAction_Resource
-		if bolt_res.boltCycleAnimation != "" and animation_player.has_animation(bolt_res.boltCycleAnimation):
-			animation_player.play(bolt_res.boltCycleAnimation)
+		if _bolt_part != null:
+			_run_bolt_tween()
 		else:
-			_complete_cycle_after_delay("bolt", bolt_res.boltCycleDuration)
+			var anim := _get_bolt_cycle_animation_name(bolt_res)
+			if anim != "" and animation_player.has_animation(anim):
+				animation_player.play(anim)
+			else:
+				_complete_cycle_after_delay("bolt", bolt_res.boltCycleDuration)
 	elif cycle_type == "pump" and weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
 		var sg := weapon_data as Shotgun_Resource
 		if sg.pumpAnimation != "" and animation_player.has_animation(sg.pumpAnimation):
@@ -453,16 +484,20 @@ func _on_anim_finished(anim_name: StringName) -> void:
 	# Shoot animation finished — chain bolt/pump cycle
 	if _uses_animation_shoot_motion() and _is_shoot_animation_name(anim_name):
 		if weapon_data is BoltAction_Resource:
-			var bolt_anim: String = (weapon_data as BoltAction_Resource).boltCycleAnimation
-			if bolt_anim != "" and animation_player.has_animation(bolt_anim):
-				animation_player.play(bolt_anim)
+			if _bolt_part != null:
+				_run_bolt_tween()
+			else:
+				var bolt_res := weapon_data as BoltAction_Resource
+				var bolt_anim := _get_bolt_cycle_animation_name(bolt_res)
+				if bolt_anim != "" and animation_player.has_animation(bolt_anim):
+					animation_player.play(bolt_anim)
 		if weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
 			var pump_anim: String = (weapon_data as Shotgun_Resource).pumpAnimation
 			if pump_anim != "" and animation_player.has_animation(pump_anim):
 				animation_player.play(pump_anim)
 
 	# Bolt/pump cycle animations finished
-	if weapon_data is BoltAction_Resource and anim_name == (weapon_data as BoltAction_Resource).boltCycleAnimation:
+	if _is_bolt_cycle_animation_name(anim_name):
 		_bolt_is_cycled = true
 		_capture_rest_state()
 	if weapon_data is Shotgun_Resource and anim_name == (weapon_data as Shotgun_Resource).pumpAnimation:
@@ -556,6 +591,76 @@ func _is_shoot_animation_playing() -> bool:
 	return animation_player.is_playing() and _is_shoot_animation_name(animation_player.current_animation)
 
 
+func _run_bolt_tween() -> void:
+	var bolt_res := weapon_data as BoltAction_Resource
+	if _bolt_cycle_tween:
+		_bolt_cycle_tween.kill()
+	if _bolt_root_tween:
+		_bolt_root_tween.kill()
+
+	# Capture rest transform now — works from any position (hip or ADS)
+	var base_pos := position
+	var base_rot := rotation
+
+	# Save the authoritative rest rotation before any tweening.
+	# Restored explicitly before _capture_rest_state() to prevent drift.
+	_bolt_pre_cycle_rest_rot = _rest_rotation_degrees
+
+	# Root viewmodel motion — eases to offset as bolt pulls back, returns as it closes
+	_bolt_root_tween = create_tween().set_trans(Tween.TRANS_SINE)
+	_bolt_root_tween.tween_property(self, "position",
+		base_pos + bolt_res.bolt_root_position_offset, 0.5)
+	_bolt_root_tween.parallel().tween_property(self, "rotation",
+		base_rot + bolt_res.bolt_root_rotation_offset, 0.5)
+	_bolt_root_tween.tween_property(self, "position", base_pos, 0.7)
+	_bolt_root_tween.parallel().tween_property(self, "rotation", base_rot, 0.7)
+
+	# Bolt handle sequential tween
+	_bolt_cycle_tween = create_tween().set_trans(Tween.TRANS_SINE)
+	# 1. Unlock: rotate handle up
+	_bolt_cycle_tween.tween_property(_bolt_part, "rotation",
+		bolt_res.bolt_unlocked_rotation, bolt_res.bolt_unlock_duration)
+	# 2. Pause before pulling
+	_bolt_cycle_tween.tween_interval(0.067)
+	# 3. Pull bolt back
+	_bolt_cycle_tween.tween_property(_bolt_part, "position",
+		bolt_res.bolt_position_back, bolt_res.bolt_pull_duration)
+	# 4. Hold
+	_bolt_cycle_tween.tween_interval(bolt_res.bolt_hold_duration)
+	# 5. Push bolt forward
+	_bolt_cycle_tween.tween_property(_bolt_part, "position",
+		bolt_res.bolt_position_forward, bolt_res.bolt_push_duration)
+	# 6. Pause before locking
+	_bolt_cycle_tween.tween_interval(0.1)
+	# 7. Lock: rotate handle down
+	_bolt_cycle_tween.tween_property(_bolt_part, "rotation",
+		bolt_res.bolt_locked_rotation, bolt_res.bolt_lock_duration)
+	_bolt_cycle_tween.finished.connect(func():
+		_bolt_cycle_tween = null
+		if _bolt_root_tween:
+			_bolt_root_tween.kill()
+			_bolt_root_tween = null
+		# Restore rotation to pre-cycle rest value before _capture_rest_state() reads it
+		rotation_degrees = _bolt_pre_cycle_rest_rot
+		_finalize_cycle("bolt")
+	)
+
+
+func _get_bolt_cycle_animation_name(bolt_res: BoltAction_Resource) -> String:
+	if _ads.is_aiming and bolt_cycle_animation_ads != "" \
+			and animation_player.has_animation(bolt_cycle_animation_ads):
+		return bolt_cycle_animation_ads
+	return bolt_res.boltCycleAnimation
+
+
+func _is_bolt_cycle_animation_name(anim_name: StringName) -> bool:
+	if not (weapon_data is BoltAction_Resource):
+		return false
+	var bolt_res := weapon_data as BoltAction_Resource
+	return anim_name == bolt_res.boltCycleAnimation \
+		or (bolt_cycle_animation_ads != "" and anim_name == bolt_cycle_animation_ads)
+
+
 func _sync_shoot_motion_config() -> void:
 	_shoot_motion.hip_shot_position_offset = hip_shot_position_offset
 	_shoot_motion.hip_shot_rotation_deg = hip_shot_rotation_deg
@@ -599,6 +704,16 @@ func _reset_state() -> void:
 	_is_firing = false
 	_sprint_blocked_press = false
 	_ads.is_aiming = false
+	if _bolt_cycle_tween:
+		_bolt_cycle_tween.kill()
+		_bolt_cycle_tween = null
+	if _bolt_root_tween:
+		_bolt_root_tween.kill()
+		_bolt_root_tween = null
+	if _bolt_part != null and weapon_data is BoltAction_Resource:
+		var bolt_res := weapon_data as BoltAction_Resource
+		_bolt_part.position = bolt_res.bolt_position_forward
+		_bolt_part.rotation = bolt_res.bolt_locked_rotation
 	_capture_rest_state()
 
 func _spawn_shell_casing() -> void:
