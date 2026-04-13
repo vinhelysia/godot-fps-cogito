@@ -4,6 +4,7 @@
 [ext_resource type="Resource" uid="uid://dr3aharu3mmkm" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tres" id="2_66jaj"]
 [ext_resource type="PackedScene" uid="uid://f0lviuikv26i" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39shell_casing_fx.tscn.tscn" id="3_ag60c"]
 [ext_resource type="AudioStream" uid="uid://bt13lvujeulm7" path="res://Assets/SFX/Firearm/AK-47/shoot.wav" id="3_pkyv7"]
+[ext_resource type="AudioStream" uid="uid://b38ucnv6ewqcf" path="res://Assets/SFX/Firearm/AK-47/ak_reload.ogg" id="5_wudpt"]
 
 [sub_resource type="Animation" id="Animation_i0oj7"]
 length = 0.001
@@ -957,7 +958,8 @@ script = ExtResource("1_awh6b")
 weapon_data = ExtResource("2_66jaj")
 shell_casing_scene = ExtResource("3_ag60c")
 sound_shoot = ExtResource("3_pkyv7")
-ads_fov = 40.0
+sound_reload = ExtResource("5_wudpt")
+ads_fov = 45.0
 default_position = Vector3(0.722, -0.3, -0.973)
 ads_position = Vector3(0, -0.21, -0.8)
 aim_recoil_values = Vector3(0.04, 0.045, 0)

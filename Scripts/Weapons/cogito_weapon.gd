@@ -113,6 +113,7 @@ var _bolt_part: Node3D = null
 var _bolt_cycle_tween: Tween = null
 var _bolt_root_tween: Tween = null
 var _bolt_pre_cycle_rest_rot: Vector3 = Vector3.ZERO
+var _audio_reload: AudioStreamPlayer3D
 
 
 # ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -121,6 +122,9 @@ func _ready() -> void:
 	if wieldable_mesh:
 		wieldable_mesh.hide()
 	animation_player.animation_finished.connect(_on_anim_finished)
+	_audio_reload = AudioStreamPlayer3D.new()
+	_audio_reload.bus = audio_stream_player_3d.bus if audio_stream_player_3d else "Master"
+	add_child(_audio_reload)
 
 	_trigger = TriggerAnimator.new(self)
 	_ads = ADSController.new(self)
@@ -271,9 +275,7 @@ func reload() -> void:
 			var vent_anim: String = reload_ctx.get("vent_animation", "")
 			if vent_anim != "":
 				animation_player.play(vent_anim)
-			if sound_reload:
-				audio_stream_player_3d.stream = sound_reload
-				audio_stream_player_3d.play()
+			_play_reload_sound()
 		return
 
 	var ammo_needed: int = ceili(_item_ref.charge_max - _item_ref.charge_current)
@@ -284,9 +286,7 @@ func reload() -> void:
 	_apply_rest_pose()
 	_is_reloading = true
 	animation_player.play(_get_reload_animation_name())
-	if sound_reload:
-		audio_stream_player_3d.stream = sound_reload
-		audio_stream_player_3d.play()
+	_play_reload_sound()
 
 
 func cancel_ads_for_sprint() -> void:
@@ -359,7 +359,8 @@ func _try_fire() -> void:
 	# Delegate fire to resource (polymorphic dispatch)
 	var ctx := _build_fire_context()
 	weapon_data.fire(ctx)
-	if shell_eject_timing == ShellEjectTiming.ON_FIRE:
+	var _bolt_tween_active := weapon_data is BoltAction_Resource and _bolt_part != null
+	if shell_eject_timing == ShellEjectTiming.ON_FIRE and not _bolt_tween_active:
 		_spawn_shell_casing()
 
 	# Recoil
@@ -435,14 +436,16 @@ func _start_post_fire_cycle(cycle_type: String) -> void:
 	_post_fire_cycle_tween = null
 	if weapon_data == null:
 		return
-	if shell_eject_timing == ShellEjectTiming.ON_CYCLE and (cycle_type == "bolt" or cycle_type == "pump"):
-		_spawn_shell_casing()
 
 	if cycle_type == "bolt" and weapon_data is BoltAction_Resource:
 		var bolt_res := weapon_data as BoltAction_Resource
 		if _bolt_part != null:
+			# Shell ejection is timed inside _run_bolt_tween via shell_eject_delay.
 			_run_bolt_tween()
 		else:
+			# No bolt tween — spawn shell here for animation/fallback path.
+			if shell_eject_timing == ShellEjectTiming.ON_CYCLE:
+				_spawn_shell_casing()
 			var anim := _get_bolt_cycle_animation_name(bolt_res)
 			if anim != "" and animation_player.has_animation(anim):
 				animation_player.play(anim)
@@ -619,6 +622,11 @@ func _run_bolt_tween() -> void:
 	_bolt_root_tween.tween_property(self, "position", base_pos, 0.7)
 	_bolt_root_tween.parallel().tween_property(self, "rotation", base_rot, 0.7)
 
+	# Shell ejection timed to bolt pull-back moment — always handled here for bolt tween.
+	var shell_timer := create_tween()
+	shell_timer.tween_interval(bolt_res.shell_eject_delay)
+	shell_timer.tween_callback(_spawn_shell_casing)
+
 	# Bolt handle sequential tween
 	_bolt_cycle_tween = create_tween().set_trans(Tween.TRANS_SINE)
 	# 1. Unlock: rotate handle up
@@ -720,6 +728,13 @@ func _reset_state() -> void:
 		_bolt_part.rotation = bolt_res.bolt_locked_rotation
 	_capture_rest_state()
 
+func _play_reload_sound() -> void:
+	if not sound_reload:
+		return
+	_audio_reload.stream = sound_reload
+	_audio_reload.play()
+
+
 func _spawn_shell_casing() -> void:
 	if shell_casing_scene == null or shell_eject_point == null:
 		return
@@ -733,6 +748,7 @@ func _spawn_shell_casing() -> void:
 		var player := player_interaction_component.get_parent()
 		if "main_velocity" in player:
 			shell_instance.player_velocity = player.main_velocity
+		shell_instance.player_node = player
 
 	var world_root := get_tree().current_scene
 	if world_root == null:

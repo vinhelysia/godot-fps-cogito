@@ -6,9 +6,10 @@
 [resource]
 resource_local_to_scene = true
 script = ExtResource("1_qrmst")
+boltCycleDuration = 1.2
 weaponName = "M700"
-recoilVertical = 1.2
-recoilHorizontal = 0.7
+recoilVertical = 0.8
+recoilHorizontal = 0.3
 recoilRecovery = 4.0
 Type = 2
 bulletProjectileToLoad = ExtResource("1_73mm4")

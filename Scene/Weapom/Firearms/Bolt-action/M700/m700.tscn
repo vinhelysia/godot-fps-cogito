@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_2x0ol"]
 [ext_resource type="PackedScene" uid="uid://c1lv8khlafvto" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.tscn" id="2_2x0ol"]
 [ext_resource type="Resource" uid="uid://dexbuqmkgsldx" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700.tres" id="2_vsell"]
+[ext_resource type="PackedScene" uid="uid://dexvig8rxjq74" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51shell_casing_fx.tscn.tscn" id="3_k8wy1"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vsed6"]
 resource_name = "2b"
@@ -436,15 +437,17 @@ transform = Transform3D(-0.45900628, -0.29861054, 0.83674663, -0.68552685, 0.718
 visible = false
 script = ExtResource("1_2x0ol")
 weapon_data = ExtResource("2_vsell")
+shell_casing_scene = ExtResource("3_k8wy1")
 shell_eject_timing = 1
 max_shell_casings = 2
-ads_fov = 40.0
+ads_fov = 45.0
 default_position = Vector3(0.557, -0.308, -0.897)
 ads_position = Vector3(0, -0.175, -0.636)
+aim_recoil_values = Vector3(0.5, 0.15, 0)
 hip_shot_position_offset = Vector3(0, 0.015, 0.09)
 hip_shot_rotation_deg = Vector3(0.45, 0, 0)
-ads_shot_position_offset = Vector3(0, 0.01, 0.06)
-ads_shot_rotation_deg = Vector3(0.3, 0, 0)
+ads_shot_position_offset = Vector3(0, 0.01, 0.03)
+ads_shot_rotation_deg = Vector3(1, 0, 0)
 shoot_kick_out_time = 0.2
 shoot_return_time = 0.1
 bolt_part_node = NodePath("Cylinder_001")
@@ -495,3 +498,7 @@ libraries/ = SubResource("AnimationLibrary_n1hoc")
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=542678012]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.36285734, 0.022366285, 0.0075900555)
+
+[node name="shell_eject_point" type="Marker3D" parent="." unique_id=1626226618]
+unique_name_in_owner = true
+transform = Transform3D(-0.2063238, 0, 0.97848386, 0, 1, 0, -0.9784838, 0, -0.20632379, -0.0036572814, 0.06475395, 0.025705993)
