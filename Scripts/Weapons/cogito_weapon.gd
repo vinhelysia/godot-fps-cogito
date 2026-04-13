@@ -239,6 +239,10 @@ func action_secondary(_is_released: bool) -> void:
 	else:
 		if _is_player_sprinting():
 			return
+		if _bolt_root_tween:
+			_bolt_root_tween.kill()
+			_bolt_root_tween = null
+			rotation_degrees = _bolt_pre_cycle_rest_rot
 		_ads.enter(weapon_data, ads_fov, ads_time, ads_position, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active,
 				animation_player, player_interaction_component)
