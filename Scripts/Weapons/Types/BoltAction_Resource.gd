@@ -28,6 +28,12 @@ class_name BoltAction_Resource
 ## Root viewmodel rotation offset at peak of bolt cycle (radians, applied relative to current rotation).
 @export var bolt_root_rotation_offset: Vector3 = Vector3(-0.2617994, 0.0174532, 0.034906585)
 
+@export_group("Shell Ejection Timing")
+## Seconds after bolt cycle starts before the shell casing is ejected.
+## Default matches the moment the bolt finishes unlocking and starts pulling back.
+## Only used when the weapon's Shell Eject Timing is set to On Cycle and bolt tween is active.
+@export var shell_eject_delay: float = 0.267
+
 func get_fire_mode() -> FireMode:
 	return FireMode.BOLT_ACTION
 
