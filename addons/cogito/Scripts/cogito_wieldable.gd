@@ -43,46 +43,46 @@ var player_interaction_component : PlayerInteractionComponent
 ### equip(_player_interaction_component), unequip(), action_primary(), action_secondary(), reload()
 
 func _ready():
-    if wieldable_mesh:
-        wieldable_mesh.hide()
+	if wieldable_mesh:
+		wieldable_mesh.hide()
 
 
 # Function called when wieldable is unequipped.
 func equip(_player_interaction_component: PlayerInteractionComponent):
-    animation_player.play(anim_equip)
-    player_interaction_component = _player_interaction_component
+	animation_player.play(anim_equip)
+	player_interaction_component = _player_interaction_component
 
 
 # Function called when wieldable is unequipped.
 func unequip():
-    animation_player.play(anim_unequip)
+	animation_player.play(anim_unequip)
 
 
 # Primary action called by the Player Interaction Component when flashlight is wielded.
 func action_primary(_passed_item_reference:InventoryItemPD, _is_released: bool):
-    pass
+	pass
 
 
 # Secondary action called by the Player Interaction Component when flashlight is wielded.
 func action_secondary(_is_released: bool):
-    pass
+	pass
 
 
 # Function called when wieldable reload is attempted
 func reload():
-    pass
+	pass
 
 
 ## Shared sprint-motion hook for ADS-capable wieldables.
 func cancel_ads_for_sprint() -> void:
-    pass
+	pass
 
 
 ## Shared sprint-motion hook so the container can query ADS state safely.
 func is_ads_active() -> bool:
-    return false
+	return false
 
 
 ## Shared sprint-motion hook so the container can stay out of local wieldable animations.
 func should_suspend_container_motion() -> bool:
-    return animation_player != null and animation_player.is_playing()
+	return animation_player != null and animation_player.is_playing()

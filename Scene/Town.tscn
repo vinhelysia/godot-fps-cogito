@@ -14,6 +14,8 @@
 [ext_resource type="PackedScene" uid="uid://bebw6gvua3ljl" path="res://Scene/Weapom/Firearms/Bolt-action/M700/pickup_m700.tscn" id="12_yhbxf"]
 [ext_resource type="Shader" uid="uid://d2axglu6nlfai" path="res://Assets/Textures/Grass/grass_pbr.gdshader" id="13_gi6o6"]
 [ext_resource type="Texture2D" uid="uid://dm7pxodtw082t" path="res://addons/kenney_prototype_textures/green/texture_08.png" id="14_hdm3a"]
+[ext_resource type="PackedScene" uid="uid://ckukvw522vy6q" path="res://Scene/Weapom/Firearms/Pistol/USP/pickup_usp.tscn" id="15_n5gl2"]
+[ext_resource type="PackedScene" uid="uid://wchwola8tvdh" path="res://Scene/Object/Deco/ksi_counter.tscn" id="16_emnm4"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_epm0u"]
 panorama = ExtResource("1_qvonb")
@@ -29,13 +31,12 @@ ambient_light_sky_contribution = 0.5
 ambient_light_energy = 0.8
 tonemap_mode = 3
 ssao_enabled = true
-ssao_quality = 1
 glow_enabled = true
 glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="Resource" id="Resource_hdm3a"]
+[sub_resource type="Resource" id="Resource_gi6o6"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
@@ -79,7 +80,7 @@ shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.175818, -27.005917)
-inventory_data = SubResource("Resource_hdm3a")
+inventory_data = SubResource("Resource_gi6o6")
 
 [node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]
 transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
@@ -148,3 +149,10 @@ shape = SubResource("ConvexPolygonShape3D_hdm3a")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Geometry" unique_id=803583386]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.32085, 0, 31.099411)
 shape = SubResource("ConvexPolygonShape3D_flngw")
+
+[node name="Pickup_usp" parent="." unique_id=1862161420 instance=ExtResource("15_n5gl2")]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 32.69835, 0.850376, -37.26477)
+freeze = true
+
+[node name="KSI_counter" parent="." unique_id=1168112705 instance=ExtResource("16_emnm4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.010532, 0.049999952, -36.48145)

@@ -78,6 +78,10 @@ enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
 ## Tween parameters (positions, rotations, durations) live in BoltAction_Resource.
 @export var bolt_part_node: NodePath
 
+@export_group("Pistol Parts")
+## Node mesh của hammer. Khi set + weapon_data là Pistol_Resource → chạy hammer tween khi bắn.
+@export var hammer_part_node: NodePath
+
 @export_group("Trigger Animation")
 ## Z-rotation (degrees) the trigger mesh rotates to when the mouse is held.
 @export var trigger_pull_rotation: float = -20.0
@@ -113,6 +117,8 @@ var _bolt_part: Node3D = null
 var _bolt_cycle_tween: Tween = null
 var _bolt_root_tween: Tween = null
 var _bolt_pre_cycle_rest_rot: Vector3 = Vector3.ZERO
+var _hammer_part: Node3D = null
+var _hammer_tween: Tween = null
 var _audio_reload: AudioStreamPlayer3D
 
 
@@ -134,6 +140,8 @@ func _ready() -> void:
 	_capture_rest_state()
 	if bolt_part_node != NodePath(""):
 		_bolt_part = get_node_or_null(bolt_part_node) as Node3D
+	if hammer_part_node != NodePath(""):
+		_hammer_part = get_node_or_null(hammer_part_node) as Node3D
 
 
 func _physics_process(delta: float) -> void:
@@ -182,6 +190,9 @@ func unequip() -> void:
 	if _bolt_root_tween:
 		_bolt_root_tween.kill()
 		_bolt_root_tween = null
+	if _hammer_tween:
+		_hammer_tween.kill()
+		_hammer_tween = null
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
 	_is_firing = false
@@ -352,6 +363,10 @@ func _try_fire() -> void:
 	if sound_shoot:
 		audio_stream_player_3d.stream = sound_shoot
 		audio_stream_player_3d.play()
+
+	# Pistol parts animation (hammer + slide)
+	if weapon_data is Pistol_Resource:
+		_run_pistol_parts_tween()
 
 	# Consume ammo
 	_item_ref.subtract(1)
@@ -658,6 +673,20 @@ func _run_bolt_tween() -> void:
 	)
 
 
+func _run_pistol_parts_tween() -> void:
+	var p_res := weapon_data as Pistol_Resource
+
+	if _hammer_part != null:
+		if _hammer_tween:
+			_hammer_tween.kill()
+		_hammer_tween = create_tween().set_trans(Tween.TRANS_SINE)
+		_hammer_tween.tween_property(_hammer_part, "rotation",
+			p_res.hammer_cocked_rotation, p_res.hammer_cock_duration)
+		_hammer_tween.tween_property(_hammer_part, "rotation",
+			p_res.hammer_rest_rotation, p_res.hammer_return_duration)
+		_hammer_tween.finished.connect(func(): _hammer_tween = null)
+
+
 func _get_bolt_cycle_animation_name(bolt_res: BoltAction_Resource) -> String:
 	if _ads.is_aiming and bolt_cycle_animation_ads != "" \
 			and animation_player.has_animation(bolt_cycle_animation_ads):
@@ -726,6 +755,11 @@ func _reset_state() -> void:
 		var bolt_res := weapon_data as BoltAction_Resource
 		_bolt_part.position = bolt_res.bolt_position_forward
 		_bolt_part.rotation = bolt_res.bolt_locked_rotation
+	if _hammer_tween:
+		_hammer_tween.kill()
+		_hammer_tween = null
+	if weapon_data is Pistol_Resource and _hammer_part != null:
+		_hammer_part.rotation = (weapon_data as Pistol_Resource).hammer_rest_rotation
 	_capture_rest_state()
 
 func _play_reload_sound() -> void:
