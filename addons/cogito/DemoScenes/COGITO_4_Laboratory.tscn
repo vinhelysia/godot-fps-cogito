@@ -23,6 +23,7 @@
 [ext_resource type="PackedScene" uid="uid://1p4vcn6myoet" path="res://addons/cogito/DemoScenes/DemoPrefabs/ksi_wall.tscn" id="21_6l7s2"]
 [ext_resource type="PackedScene" uid="uid://bwide2wobjajt" path="res://addons/cogito/DemoScenes/DemoPrefabs/ksi_wall_doorway_wide_painted.tscn" id="22_ymaj1"]
 [ext_resource type="PackedScene" uid="uid://cs6raqlyejqul" path="res://addons/cogito/DemoScenes/DemoPrefabs/generic_button.tscn" id="23_0rveh"]
+[ext_resource type="PackedScene" uid="uid://wchwola8tvdh" path="res://Scene/Object/Deco/ksi_counter.tscn" id="23_r8380"]
 [ext_resource type="FontFile" uid="uid://bu5on5evfoljs" path="res://addons/cogito/Assets/Fonts/Montserrat/Montserrat-Bold.ttf" id="24_u2ls4"]
 [ext_resource type="PackedScene" uid="uid://bho0nwh5rlnua" path="res://addons/cogito/PackedScenes/target_destructable.tscn" id="25_s7t53"]
 [ext_resource type="PackedScene" uid="uid://o0xgl5obc551" path="res://addons/cogito/PackedScenes/Pickups/pickup_pistol.tscn" id="26_gtpm7"]
@@ -94,7 +95,7 @@ volumetric_fog_ambient_inject = 0.1
 volumetric_fog_sky_affect = 0.1
 volumetric_fog_temporal_reprojection_amount = 0.85
 
-[sub_resource type="Resource" id="Resource_gshxf"]
+[sub_resource type="Resource" id="Resource_a6jus"]
 resource_local_to_scene = true
 script = ExtResource("5_fhmwi")
 grid = true
@@ -919,7 +920,7 @@ environment = SubResource("Environment_bftoa")
 
 [node name="Player" parent="." unique_id=2100783966 instance=ExtResource("3_ea58p")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 5.13854, 0.8, -5.43073)
-inventory_data = SubResource("Resource_gshxf")
+inventory_data = SubResource("Resource_a6jus")
 
 [node name="CONNECTOR_TO_LOBBY" type="Node3D" parent="." unique_id=1013085494]
 
@@ -3907,16 +3908,8 @@ transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, 3, 0, -1
 [node name="KSI_wall_doorway_wide_painted7" parent="NavigationRegion3D/SHOOTING_RANGE" unique_id=368059373 instance=ExtResource("22_ymaj1")]
 transform = Transform3D(1, 0, 1.74845e-07, 0, 1, 0, -1.74845e-07, 0, 1, -9, 0, -4)
 
-[node name="KSI_counter" type="StaticBody3D" parent="NavigationRegion3D/SHOOTING_RANGE" unique_id=953661475]
-transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 3.8, 0, -16)
-metadata/_edit_group_ = true
-
-[node name="object_054" type="MeshInstance3D" parent="NavigationRegion3D/SHOOTING_RANGE/KSI_counter" unique_id=430962867]
-mesh = SubResource("ArrayMesh_64oen")
-skeleton = NodePath("")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/SHOOTING_RANGE/KSI_counter" unique_id=575159839]
-shape = SubResource("ConcavePolygonShape3D_j3b43")
+[node name="KSI_counter" parent="NavigationRegion3D/SHOOTING_RANGE" unique_id=1168112705 instance=ExtResource("23_r8380")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.8, 0, -16)
 
 [node name="KSI_counter2" type="StaticBody3D" parent="NavigationRegion3D/SHOOTING_RANGE" unique_id=235596473]
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 2.4, 0, -16)
