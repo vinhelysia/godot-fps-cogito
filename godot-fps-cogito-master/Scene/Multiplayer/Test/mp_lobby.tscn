@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://bmy1eienv007g"]
+
+[ext_resource type="Script" uid="uid://bpfgyjexe3kmu" path="res://Scene/Multiplayer/Test/mp_lobby.gd" id="1_wa48v"]
+
+[node name="MPLobby" type="Control" unique_id=440770299]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wa48v")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1798385550]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.13, 0.17, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1897790928]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=558568937]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer" unique_id=983464603]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "PvP Multiplayer Test"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer" unique_id=1858824931]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="IpLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=163522271]
+layout_mode = 2
+text = "IP Address:"
+
+[node name="IpInput" type="LineEdit" parent="CenterContainer/VBoxContainer" unique_id=1929982232]
+unique_name_in_owner = true
+layout_mode = 2
+text = "127.0.0.1"
+placeholder_text = "127.0.0.1"
+
+[node name="PortLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=735555841]
+layout_mode = 2
+text = "Port:"
+
+[node name="PortInput" type="LineEdit" parent="CenterContainer/VBoxContainer" unique_id=2008869875]
+unique_name_in_owner = true
+layout_mode = 2
+text = "7777"
+placeholder_text = "7777"
+
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer" unique_id=1029136082]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="HostButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1215926508]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Host Game"
+
+[node name="JoinButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1556283173]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Join Game"
+
+[node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer" unique_id=990426072]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1245424269]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Idle."
+horizontal_alignment = 1
