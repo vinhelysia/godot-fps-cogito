@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Setup New Weapon - Cogito Main</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --paper: #fffaf1;
+      --ink: #1d1b19;
+      --muted: #60584e;
+      --line: #d4c7b5;
+      --accent: #8b3d1f;
+      --accent-soft: #f0dfd3;
+      --code: #27211c;
+      --code-bg: #f6eee1;
+      --good: #1f6b42;
+      --warn: #8a5b09;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Noto Sans", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #fff5dc 0, transparent 28rem),
+        linear-gradient(180deg, #e8dece 0, var(--bg) 18rem, #efe8dc 100%);
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1080px, calc(100% - 32px));
+      margin: 32px auto 64px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 20px 70px rgba(31, 21, 10, 0.08);
+      overflow: hidden;
+    }
+
+    header {
+      padding: 40px 40px 28px;
+      border-bottom: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(139, 61, 31, 0.14), rgba(139, 61, 31, 0.03)),
+        linear-gradient(180deg, #fff7eb, #fffaf1);
+    }
+
+    h1, h2, h3 {
+      line-height: 1.2;
+      margin: 0 0 16px;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      margin-top: 40px;
+      font-size: 1.7rem;
+      color: var(--accent);
+    }
+
+    h3 {
+      margin-top: 28px;
+      font-size: 1.2rem;
+    }
+
+    section {
+      padding: 0 40px 24px;
+    }
+
+    p, li {
+      font-size: 1rem;
+    }
+
+    .lede {
+      max-width: 78ch;
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 0;
+    }
+
+    .callout {
+      margin: 20px 0;
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      background: var(--accent-soft);
+    }
+
+    .callout.warn {
+      border-left-color: var(--warn);
+      background: #fff2db;
+    }
+
+    .callout.good {
+      border-left-color: var(--good);
+      background: #e9f5ee;
+    }
+
+    code, pre {
+      font-family: Consolas, "Courier New", monospace;
+    }
+
+    code {
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      color: var(--code);
+      background: var(--code-bg);
+      border: 1px solid #ead9c4;
+    }
+
+    pre {
+      margin: 16px 0;
+      padding: 16px 18px;
+      overflow-x: auto;
+      color: #f8f4ec;
+      background: #221d18;
+      border-radius: 14px;
+      border: 1px solid #3e3329;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      display: block;
+      overflow-x: auto;
+    }
+
+    thead {
+      background: #f7ecdf;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      min-width: 150px;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    ul, ol {
+      padding-left: 1.35rem;
+    }
+
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin: 18px 0 8px;
+    }
+
+    .path-card {
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fffdf9;
+    }
+
+    .path-card strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .checklist li {
+      margin-bottom: 8px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Documentation: Setup một weapon mới trong project này</h1>
+      <p class="lede">
+        Tài liệu này được viết dựa trên <strong>reference implementation AK47</strong> trong project, không dựa trên giả định chung chung về Cogito.
+        Mục tiêu là giúp bạn hiểu đúng <em>data flow</em>, <em>scene ownership</em> và <em>runtime contract</em> để thêm weapon mới mà không phải reverse-engineer lại toàn bộ hệ thống.
+      </p>
+    </header>
+
+    <section>
+      <h2>1. Tổng quan architecture</h2>
+      <p>
+        Trong repo này, weapon không chạy trực tiếp từ <code>addons/cogito/Wieldables</code>.
+        Thay vào đó, project có một <strong>project-local adapter</strong> là <code>res://Scripts/Weapons/cogito_weapon.gd</code>,
+        script này bridge giữa hệ inventory của Cogito và một hệ weapon data riêng của project.
+      </p>
+
+      <div class="callout good">
+        <strong>Flow thật của weapon:</strong><br>
+        <code>AmmoItemPD</code> / <code>WieldableItemPD</code> trong inventory -> player gọi <code>change_wieldable_to()</code> ->
+        scene weapon được instantiate vào <code>Body/Neck/Head/Wieldables</code> -> <code>CogitoWeapon</code> đọc <code>Weapon_Resource</code> ->
+        khi fire thì dùng <code>Bullet_Point</code>, camera collision và inventory ammo để bắn / reload.
+      </div>
+
+      <div class="path-grid">
+        <div class="path-card">
+          <strong>Weapon runtime script</strong>
+          <code>res://Scripts/Weapons/cogito_weapon.gd</code>
+        </div>
+        <div class="path-card">
+          <strong>Weapon base data</strong>
+          <code>res://Scripts/Weapons/Weapon_Resource.gd</code>
+        </div>
+        <div class="path-card">
+          <strong>Type-specific data</strong>
+          <code>res://Scripts/Weapons/Types/*.gd</code>
+        </div>
+        <div class="path-card">
+          <strong>Reference weapon folder</strong>
+          <code>res://Scene/Weapom/Firearms/AR/AK47/</code>
+        </div>
+        <div class="path-card">
+          <strong>Reference ammo folder</strong>
+          <code>res://Scene/Items/Bullets/</code>
+        </div>
+        <div class="path-card">
+          <strong>Player attachment point</strong>
+          <code>res://addons/cogito/PackedScenes/cogito_player.tscn</code>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. AK47 đang dùng những file nào</h2>
+      <p>
+        Nếu bạn muốn thêm một weapon mới nhanh nhất, hãy coi AK47 là <strong>template thực chiến</strong>.
+        Toàn bộ slice của nó gồm các file sau:
+      </p>
+
+      <ol>
+        <li><code>Scene/Weapom/Firearms/AR/AK47/AK47.tscn</code>: scene weapon được cầm trên tay.</li>
+        <li><code>Scene/Weapom/Firearms/AR/AK47/AK47.tres</code>: weapon data resource kiểu <code>AssaultRifle_Resource</code>.</li>
+        <li><code>Scene/Weapom/Firearms/AR/AK47/Ak-47_Wieldable.tres</code>: inventory item kiểu <code>WieldableItemPD</code>.</li>
+        <li><code>Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn</code>: mesh drop ngoài world.</li>
+        <li><code>Scene/Weapom/Firearms/AR/AK47/pickup_ak47.tscn</code>: pickup scene chứa interaction và slot data.</li>
+        <li><code>Scene/Items/Bullets/7.62x39mm_Item.tres</code>: ammo item kiểu <code>AmmoItemPD</code>.</li>
+        <li><code>Scene/Items/Bullets/7.62x39mm_Item.tscn</code>: pickup scene cho ammo.</li>
+        <li><code>Scene/Weapom/BulletProjectil&amp;shelle/7.62x39/7.62x39 projectile.tscn</code>: projectile scene.</li>
+      </ol>
+
+      <div class="callout">
+        <strong>Khuyến nghị thực dụng:</strong><br>
+        Khi tạo weapon mới, duplicate weapon gần giống nhất rồi đổi mesh, animation, resource và pickup data.
+        Làm vậy sẽ an toàn hơn nhiều so với việc dựng từ đầu một scene trắng.
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Player đang kỳ vọng điều gì</h2>
+      <p>
+        Weapon scene của bạn chỉ hoạt động đúng nếu nó được instantiate vào đúng chỗ trong player template của Cogito.
+        Scene <code>cogito_player.tscn</code> hiện đang expose các node path sau cho <code>PlayerInteractionComponent</code>:
+      </p>
+
+      <ul>
+        <li><code>interaction_raycast = ../Body/Neck/Head/Eyes/Camera/InteractionRaycast</code></li>
+        <li><code>carryable_position = ../Body/Neck/Head/Eyes/Camera/CarryablePosition</code></li>
+        <li><code>wieldable_container = ../Body/Neck/Head/Wieldables</code></li>
+        <li><code>CameraRecoil</code> nằm ở <code>Body/Neck/Head/CameraRecoil</code></li>
+      </ul>
+
+      <p>
+        <code>CogitoWeapon</code> đọc recoil node bằng path cứng <code>Body/Neck/Head/CameraRecoil</code>,
+        nên nếu bạn đổi structure player scene thì weapon script sẽ không tự tìm lại được.
+      </p>
+
+      <div class="callout warn">
+        <strong>Caveat quan trọng:</strong><br>
+        Project có file <code>res://Scripts/Player/player_interaction_component_delayed_reload.gd</code>,
+        nhưng scene <code>cogito_player.tscn</code> hiện vẫn instance
+        <code>res://addons/cogito/Components/PlayerInteractionComponent.tscn</code>.
+        Nghĩa là override reload local này hiện chưa được wire vào player mặc định.
+      </div>
+    </section>
+
+    <section>
+      <h2>4. Checklist setup weapon mới</h2>
+
+      <h3>Bước 1: Chọn fire model và type resource</h3>
+      <p>
+        Trước hết bạn phải quyết định weapon mới thuộc loại nào, vì <code>CogitoWeapon</code>
+        sẽ đọc behavior từ subclass của <code>Weapon_Resource</code>.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Type script</th>
+            <th>Dùng cho</th>
+            <th>Field đang được runtime sử dụng</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>AssaultRifle_Resource.gd</code></td>
+            <td>AR / auto rifle</td>
+            <td><code>fireRate</code></td>
+          </tr>
+          <tr>
+            <td><code>Pistol_Resource.gd</code></td>
+            <td>semi-auto pistol</td>
+            <td><code>triggerResetTime</code></td>
+          </tr>
+          <tr>
+            <td><code>BoltAction_Resource.gd</code></td>
+            <td>bolt-action rifle</td>
+            <td><code>boltCycleAnimation</code></td>
+          </tr>
+          <tr>
+            <td><code>Shotgun_Resource.gd</code></td>
+            <td>shotgun</td>
+            <td><code>pelletCount</code>, <code>spreadAngle</code>, <code>adsSpreadAngle</code>, <code>isPump</code>, <code>pumpAnimation</code></td>
+          </tr>
+          <tr>
+            <td><code>LMG_Resource.gd</code></td>
+            <td>LMG</td>
+            <td><code>fireRate</code>, heat / vent fields</td>
+          </tr>
+          <tr>
+            <td><code>MarksmanRifle_Resource.gd</code></td>
+            <td>DMR / scoped rifle</td>
+            <td><code>scopedFOV</code>, <code>scopeInTime</code></td>
+          </tr>
+          <tr>
+            <td><code>GrenadeLauncher_Resource.gd</code></td>
+            <td>grenade launcher</td>
+            <td><code>grenadeScene</code>, <code>launchAngle</code>, <code>launchVelocity</code>, <code>fuseDuration</code>, <code>blastRadius</code></td>
+          </tr>
+          <tr>
+            <td><code>Revolver_Resource.gd</code></td>
+            <td>revolver</td>
+            <td>Hiện tại mới khai báo data, chưa có logic đặc thù hoàn chỉnh trong <code>CogitoWeapon</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Bước 2: Tạo weapon data resource</h3>
+      <p>
+        Tạo một <code>.tres</code> mới dùng subclass phù hợp. Với AK47, file
+        <code>AK47.tres</code> đang set:
+      </p>
+
+      <pre>fireRate = 600
+weaponName = "AK 47"
+recoilVertical = 0.07
+recoilHorizontal = 0.08
+Type = 2
+bulletProjectileToLoad = 7.62x39 projectile
+weaponVelocity = 715</pre>
+
+      <p>
+        Ý nghĩa của phần base data:
+      </p>
+
+      <ul>
+        <li><code>weaponName</code>: tên data resource, hiện không phải field quyết định HUD/inventory name.</li>
+        <li><code>recoilVertical</code> và <code>recoilHorizontal</code>: hip-fire recoil mà weapon inject vào <code>CameraRecoil</code>.</li>
+        <li><code>Type</code>: cách bắn, <strong>1 = hitscan</strong>, <strong>2 = projectile</strong>.</li>
+        <li><code>bulletProjectileToLoad</code>: scene projectile nếu dùng projectile mode.</li>
+        <li><code>weaponVelocity</code>: tốc độ projectile.</li>
+      </ul>
+
+      <div class="callout warn">
+        <strong>Đừng bật cả hai flag của <code>Type</code>.</strong><br>
+        Dù field được khai báo bằng <code>@export_flags("Hitscan", "Projectile")</code>,
+        code hiện chỉ <code>match</code> giá trị <code>1</code> hoặc <code>2</code>.
+        Nếu bạn set thành <code>3</code>, weapon sẽ không đi vào branch bắn nào cả.
+      </div>
+
+      <div class="callout warn">
+        <strong><code>recoilRecovery</code> hiện chưa được dùng ở runtime.</strong><br>
+        Nó có trong <code>Weapon_Resource</code>, nhưng <code>weapon_recoil.gd</code> không đọc field này.
+        Hiện recovery thật đang do <code>returnSpeed</code> của node <code>CameraRecoil</code> quyết định.
+      </div>
+
+      <h3>Bước 3: Tạo scene weapon được cầm trên tay</h3>
+      <p>
+        Scene root phải là <code>Node3D</code> có attach <code>res://Scripts/Weapons/cogito_weapon.gd</code>.
+        Scene tối thiểu cần có:
+      </p>
+
+      <ul class="checklist">
+        <li><code>AnimationPlayer</code></li>
+        <li><code>AudioStreamPlayer3D</code></li>
+        <li><code>Marker3D</code> tên <code>Bullet_Point</code> và bật <code>unique_name_in_owner</code></li>
+        <li>mesh weapon</li>
+        <li>optional: child node tên <code>trigger</code> nếu muốn trigger animation</li>
+      </ul>
+
+      <p>
+        Ở AK47, root scene export các field chính:
+      </p>
+
+      <pre>weapon_data = AK47.tres
+sound_shoot = shoot.wav
+ads_fov = 40.0
+default_position = (0.722, -0.3, -0.973)
+ads_position = (0, -0.21, -0.8)
+aim_recoil_values = (0.04, 0.045, 0)
+wieldable_mesh = NodePath(".")</pre>
+
+      <p>
+        Với scene mới, bạn cần chỉnh ít nhất:
+      </p>
+
+      <ol>
+        <li><code>weapon_data</code> trỏ tới resource vừa tạo.</li>
+        <li><code>sound_shoot</code> và <code>sound_reload</code>.</li>
+        <li><code>default_position</code> và <code>ads_position</code> cho viewmodel alignment.</li>
+        <li><code>aim_recoil_values</code> nếu ADS recoil khác hip-fire.</li>
+        <li><code>wieldable_mesh</code> trỏ tới root mesh container cần hide/show khi equip.</li>
+      </ol>
+
+      <div class="callout">
+        <strong>Animation naming contract:</strong><br>
+        <code>CogitoWeapon</code> mặc định tìm các animation tên
+        <code>equip</code>, <code>unequip</code>, <code>action_primary</code>,
+        <code>action_primary_ads</code>, <code>reload</code>,
+        <code>reload_empty</code>, <code>reload_ads</code>, <code>reload_empty_ads</code>.
+        Nếu scene của bạn không có đủ những animation này, hãy đổi export string tương ứng trên root scene.
+      </div>
+
+      <h3>Bước 4: Tạo projectile scene nếu weapon dùng projectile</h3>
+      <p>
+        Nếu weapon của bạn bắn projectile, scene projectile nên derive từ
+        <code>res://addons/cogito/CogitoObjects/cogito_projectile.gd</code>.
+        AK47 đang dùng projectile <code>7.62x39 projectile.tscn</code> và <code>CogitoWeapon</code> sẽ:
+      </p>
+
+      <ol>
+        <li>instantiate projectile vào current scene,</li>
+        <li>spawn ở <code>Bullet_Point.global_position</code>,</li>
+        <li>set <code>damage_amount</code>,</li>
+        <li>set linear velocity theo <code>weaponVelocity</code>,</li>
+        <li>gán field <code>Direction</code> nếu projectile có field đó.</li>
+      </ol>
+
+      <p>
+        Nếu weapon là hitscan thì không cần projectile scene, chỉ cần set <code>Type = 1</code>.
+      </p>
+
+      <h3>Bước 5: Tạo inventory item cho weapon</h3>
+      <p>
+        Đây là bước rất dễ làm sai vì nhiều người nghĩ damage hoặc mag size nằm trong <code>Weapon_Resource</code>.
+        Với project này, các giá trị magazine và combat stat mà player/HUD/reload dùng lại nằm trong <code>WieldableItemPD</code>.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Bắt buộc</th>
+            <th>Ý nghĩa runtime</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>wieldable_scene</code></td>
+            <td>Có</td>
+            <td>Scene sẽ được instantiate khi player equip</td>
+          </tr>
+          <tr>
+            <td><code>charge_max</code></td>
+            <td>Có</td>
+            <td>Sức chứa magazine / charge max</td>
+          </tr>
+          <tr>
+            <td><code>charge_current</code></td>
+            <td>Có</td>
+            <td>Ammo đang có trong mag khi spawn item</td>
+          </tr>
+          <tr>
+            <td><code>ammo_item_name</code></td>
+            <td>Có nếu reload</td>
+            <td>Tên ammo item cần khớp 100% với <code>AmmoItemPD.name</code></td>
+          </tr>
+          <tr>
+            <td><code>wieldable_range</code></td>
+            <td>Nên có</td>
+            <td>Tầm raycast từ camera, cũng là target point cho projectile aiming</td>
+          </tr>
+          <tr>
+            <td><code>wieldable_damage</code></td>
+            <td>Nên có</td>
+            <td>Damage emit vào target hoặc gán lên projectile/grenade</td>
+          </tr>
+          <tr>
+            <td><code>drop_scene</code></td>
+            <td>Rất nên có</td>
+            <td>Scene world object khi item bị drop</td>
+          </tr>
+          <tr>
+            <td><code>no_reload</code></td>
+            <td>Optional</td>
+            <td>Dùng cho melee hoặc weapon không xài ammo</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        AK47 sample đang set:
+      </p>
+
+      <pre>wieldable_scene = AK47.tscn
+charge_max = 30
+charge_current = 30
+ammo_item_name = "7.62x39mm"
+name = "AK-47"
+drop_scene = AK47 pickup/drop uid
+item_size = (4, 2)</pre>
+
+      <div class="callout warn">
+        <strong>Điểm phải nhớ:</strong><br>
+        <code>ammo_item_name</code> và <code>AmmoItemPD.name</code> đang được match bằng string tuyệt đối.
+        Sai 1 ký tự là reload sẽ không ăn.
+      </div>
+
+      <h3>Bước 6: Tạo ammo item</h3>
+      <p>
+        Ammo dùng class <code>AmmoItemPD</code>. Với AK47:
+      </p>
+
+      <pre>name = "7.62x39mm"
+is_stackable = true
+stack_size = 70
+drop_scene = 7.62x39mm_Item.tscn</pre>
+
+      <p>
+        Field quan trọng nhất ở ammo là <code>reload_amount</code>.
+        Runtime reload trong <code>CogitoWeapon</code> đang tính lượng ammo nạp bằng công thức:
+      </p>
+
+      <pre>ammo_loaded += ammo_item.reload_amount * slot.quantity</pre>
+
+      <p>
+        Nghĩa là:
+      </p>
+
+      <ul>
+        <li>Nếu ammo của bạn là từng viên đạn rời, để <code>reload_amount = 1</code>.</li>
+        <li>Nếu ammo pickup đại diện cho cả magazine hoặc battery pack, bạn có thể set lớn hơn 1.</li>
+      </ul>
+
+      <h3>Bước 7: Tạo drop scene</h3>
+      <p>
+        <code>AK47_Drop.tscn</code> chỉ là world mesh representation của khẩu súng.
+        Nó không cần logic combat. Mục đích là để pickup scene có mesh hiển thị ngoài world mà không phải reuse nguyên viewmodel scene.
+      </p>
+
+      <h3>Bước 8: Tạo pickup scene cho weapon</h3>
+      <p>
+        Pickup scene của weapon nên follow đúng pattern của <code>pickup_ak47.tscn</code>:
+      </p>
+
+      <ul class="checklist">
+        <li>Root là <code>RigidBody3D</code> có script <code>CogitoObject</code></li>
+        <li>Instance drop mesh scene</li>
+        <li><code>ExtendedPickupInteraction</code> để hiện hold prompt kiểu <code>Wield</code></li>
+        <li><code>PickupComponent</code> với <code>slot_data.inventory_item</code> trỏ tới <code>WieldableItemPD</code></li>
+        <li><code>CarryableComponent</code> nếu muốn cầm nắm object ngoài world</li>
+        <li><code>CollisionShape3D</code></li>
+      </ul>
+
+      <p>
+        Khi player hold interaction trên pickup này, <code>ExtendedPickupInteraction</code> sẽ:
+      </p>
+
+      <ol>
+        <li>thử nhặt item vào inventory,</li>
+        <li>nếu đang cầm weapon khác thì put away,</li>
+        <li>sau đó gọi <code>wieldable.use(player)</code>,</li>
+        <li>weapon mới được equip ngay.</li>
+      </ol>
+
+      <h3>Bước 9: Tạo pickup scene cho ammo</h3>
+      <p>
+        Ammo pickup đơn giản hơn:
+      </p>
+
+      <ul class="checklist">
+        <li>Root là <code>RigidBody3D</code> có script <code>CogitoObject</code></li>
+        <li><code>PickupComponent</code> với slot data trỏ tới <code>AmmoItemPD</code></li>
+        <li>Collision + mesh đại diện cho ammo</li>
+      </ul>
+
+      <p>
+        Nếu player đang cầm weapon dùng đúng loại ammo, hệ pickup mặc định của Cogito sẽ update lại weapon HUD ngay sau khi nhặt.
+      </p>
+
+      <h3>Bước 10: Đặt weapon và ammo vào level</h3>
+      <p>
+        Cuối cùng, instance pickup scenes vào level.
+        Scene <code>Town.tscn</code> đang instance trực tiếp:
+      </p>
+
+      <ul>
+        <li><code>pickup_ak47.tscn</code></li>
+        <li><code>7.62x39mm_Item.tscn</code></li>
+      </ul>
+
+      <p>
+        Đây là cách đúng để test vòng đời hoàn chỉnh:
+        <strong>nhặt súng -> equip -> bắn -> reload -> nhặt ammo -> bắn lại</strong>.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Runtime flow chi tiết</h2>
+      <ol>
+        <li>Player dùng quickslot hoặc pickup interaction để dùng <code>WieldableItemPD</code>.</li>
+        <li><code>WieldableItemPD.use()</code> gọi <code>change_wieldable_to(self)</code> trên <code>PlayerInteractionComponent</code>.</li>
+        <li>Player instantiate <code>wieldable_scene</code> vào <code>Body/Neck/Head/Wieldables</code>.</li>
+        <li>Scene weapon được attach <code>CogitoWeapon</code>, nên weapon đọc <code>weapon_data</code>, setup recoil và chờ input.</li>
+        <li>Khi fire:
+          <ul>
+            <li><code>charge_current</code> bị trừ trên <code>WieldableItemPD</code>,</li>
+            <li>weapon chọn hitscan / projectile / shotgun / grenade branch,</li>
+            <li>damage lấy từ <code>wieldable_damage</code>.</li>
+          </ul>
+        </li>
+        <li>Khi reload:
+          <ul>
+            <li>weapon scan inventory theo <code>ammo_item_name</code>,</li>
+            <li>đợi reload animation finish,</li>
+            <li>sau đó mới trừ ammo item khỏi inventory và cộng lại vào <code>charge_current</code>.</li>
+          </ul>
+        </li>
+      </ol>
+
+      <div class="callout">
+        <strong>Kết luận quan trọng:</strong><br>
+        <code>Weapon_Resource</code> không giữ state runtime như số đạn trong mag.
+        State runtime thật nằm trong <code>WieldableItemPD</code>.
+      </div>
+    </section>
+
+    <section>
+      <h2>6. Common pitfalls</h2>
+      <ul class="checklist">
+        <li><strong>Sai tên ammo:</strong> <code>ammo_item_name</code> không khớp <code>AmmoItemPD.name</code>.</li>
+        <li><strong>Quên <code>Bullet_Point</code>:</strong> scene weapon không có marker tên đúng hoặc không bật <code>unique_name_in_owner</code>.</li>
+        <li><strong>Quên animation:</strong> root script đang gọi tên animation mặc định nhưng scene không có clip đó.</li>
+        <li><strong>Set sai <code>Type</code>:</strong> dùng combined flag <code>3</code> thay vì chỉ <code>1</code> hoặc <code>2</code>.</li>
+        <li><strong>Đặt damage ở sai chỗ:</strong> damage thực tế lấy từ <code>WieldableItemPD.wieldable_damage</code>, không phải <code>Weapon_Resource</code>.</li>
+        <li><strong>Đặt magazine size ở sai chỗ:</strong> mag size runtime là <code>charge_max</code> trên <code>WieldableItemPD</code>.</li>
+        <li><strong>Đổi player structure:</strong> nếu player không còn <code>Body/Neck/Head/CameraRecoil</code> hoặc <code>Body/Neck/Head/Wieldables</code>, <code>CogitoWeapon</code> sẽ mất recoil hoặc mất attachment point.</li>
+        <li><strong>Tin rằng mọi field type resource đều đã active:</strong> hiện có field được expose nhưng chưa có logic runtime đầy đủ, đặc biệt là revolver data.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>7. Quy trình khuyến nghị để thêm weapon mới</h2>
+      <ol>
+        <li>Duplicate folder của weapon gần giống nhất, ví dụ copy AK47 nếu làm rifle auto.</li>
+        <li>Đổi mesh trong <code>*.tscn</code> weapon và <code>*_Drop.tscn</code>.</li>
+        <li>Tạo hoặc chỉnh <code>Weapon_Resource</code> cho type đúng.</li>
+        <li>Chỉnh <code>WieldableItemPD</code> cho mag size, damage, range, ammo name, icon.</li>
+        <li>Tạo hoặc reuse <code>AmmoItemPD</code> phù hợp.</li>
+        <li>Wire lại pickup scene của weapon và ammo.</li>
+        <li>Đặt pickup vào level test.</li>
+        <li>Test đầy đủ: pickup, equip, ADS, fire, empty mag, reload, ammo pickup, drop, equip lại.</li>
+      </ol>
+
+      <div class="callout good">
+        <strong>Nếu mục tiêu là ship nhanh:</strong><br>
+        Đừng bắt đầu từ zero. Hãy duplicate AK47, đổi sang mesh mới, rồi chỉ chỉnh những phần sau:
+        <code>AK47.tres</code>, <code>AK47.tscn</code>, <code>Ak-47_Wieldable.tres</code>,
+        <code>AK47_Drop.tscn</code>, <code>pickup_ak47.tscn</code>, ammo resource/scene nếu cần.
+      </div>
+    </section>
+
+    <section>
+      <h2>8. Ghi chú implementation hiện tại</h2>
+      <ul class="checklist">
+        <li><code>recoilRecovery</code> mới là exposed data, chưa ảnh hưởng trực tiếp tới <code>weapon_recoil.gd</code>.</li>
+        <li><code>MarksmanRifle_Resource.useScopeOverlay</code> và <code>scopeOverlayTexture</code> hiện chưa thấy được <code>CogitoWeapon</code> consume trực tiếp.</li>
+        <li><code>GrenadeLauncher_Resource.explosionScene</code> hiện mới là data field, chưa được spawn trực tiếp trong <code>CogitoWeapon</code>.</li>
+        <li><code>Revolver_Resource</code> có field data nhưng chưa có custom reload / chamber logic hoàn chỉnh ở runtime weapon script.</li>
+        <li>Reload thật sự trừ ammo inventory ở cuối animation thông qua <code>_on_anim_finished()</code>.</li>
+      </ul>
+
+      <p class="small">
+        Nếu bạn muốn, bước tiếp theo hợp lý là viết thêm một tài liệu companion dạng “clone AK47 thành weapon mới trong 15 phút”
+        hoặc một “weapon setup checklist” ngắn gọn chỉ gồm các thao tác editor.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
