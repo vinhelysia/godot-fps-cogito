@@ -175,6 +175,17 @@ var last_velocity : Vector3= Vector3.ZERO
 var stand_after_roll : bool = false
 var is_movement_paused : bool = false
 var is_dead : bool = false
+## Multiplayer: remote footstep state (non-authority peers only)
+@export_group("Remote Footstep Audio")
+@export var remote_min_speed: float = 0.75
+@export var remote_teleport_reset_distance: float = 4.0
+@export var remote_walk_volume_db: float = -34.0
+@export var remote_sprint_volume_db: float = -26.0
+@export var remote_crouch_volume_db: float = -56.0
+@export_group("")
+var _remote_prev_position: Vector3
+var _remote_prev_valid: bool = false
+var _remote_step_cooldown: float = 0.0
 ## Multiplayer: path of the currently equipped wieldable scene, replicated so
 ## other peers can render the correct third-person weapon mesh.
 var current_tpp_weapon_path: String = "" :
@@ -938,6 +949,7 @@ func _physics_process(delta):
 				_mp_body.scale = Vector3(1.0, 1.0, 1.0)
 
 	if not is_multiplayer_authority():
+		_process_remote_footsteps(delta)
 		return
 	#if is_movement_paused:
 		#return
@@ -1280,23 +1292,75 @@ func _physics_process(delta):
 			if slide_audio_player:
 				slide_audio_player.stop()
 			
-			if can_play_footstep && wiggle_vector.y > 0.9:
-				#dynamic volume for footsteps
-				if is_walking:
-					footstep_player.volume_db = walk_volume_db
-				elif is_crouching:
-					footstep_player.volume_db = crouch_volume_db
-				elif is_sprinting:
-					footstep_player.volume_db = sprint_volume_db
-				footstep_player._play_interaction("footstep")
-					
-				can_play_footstep = false
-				
-			if !can_play_footstep && wiggle_vector.y < 0.9:
-				can_play_footstep = true
+			_process_local_footsteps()
 				
 	elif slide_audio_player:
 		slide_audio_player.stop()
+
+
+## Local authority footstep audio — wiggle-phase gated, unchanged from original.
+func _process_local_footsteps() -> void:
+	if can_play_footstep && wiggle_vector.y > 0.9:
+		if is_walking:
+			footstep_player.volume_db = walk_volume_db
+		elif is_crouching:
+			footstep_player.volume_db = crouch_volume_db
+		elif is_sprinting:
+			footstep_player.volume_db = sprint_volume_db
+		footstep_player._play_interaction("footstep")
+		can_play_footstep = false
+	if !can_play_footstep && wiggle_vector.y < 0.9:
+		can_play_footstep = true
+
+
+## Multiplayer: plays 3D footstep audio for remote player copies on the local peer.
+## Uses position-delta speed instead of wiggle phase (remote copy doesn't run movement loop).
+func _process_remote_footsteps(delta: float) -> void:
+	# Singleplayer safety — never runs when no peers exist.
+	if multiplayer.get_peers().is_empty():
+		return
+
+	# Bootstrap: record starting position, skip audio this frame.
+	if not _remote_prev_valid:
+		_remote_prev_position = global_position
+		_remote_prev_valid = true
+		return
+
+	var flat_delta := global_position - _remote_prev_position
+	flat_delta.y = 0.0
+
+	# Teleport / respawn guard: large jump means replicated position snap, not footstep.
+	if flat_delta.length() > remote_teleport_reset_distance:
+		_remote_prev_position = global_position
+		_remote_step_cooldown = walk_footstep_interval
+		return
+
+	# Always keep prev_position current so speed is frame-accurate.
+	_remote_prev_position = global_position
+
+	var horizontal_speed := flat_delta.length() / delta
+
+	# Dead or stationary: let cooldown bleed to zero, no audio.
+	if is_dead or horizontal_speed < remote_min_speed:
+		_remote_step_cooldown = maxf(0.0, _remote_step_cooldown - delta)
+		return
+
+	_remote_step_cooldown -= delta
+	if _remote_step_cooldown > 0.0:
+		return
+
+	# Pick cadence + volume, then fire.
+	if is_crouching:
+		_remote_step_cooldown = walk_footstep_interval
+		footstep_player.volume_db = remote_crouch_volume_db
+	elif horizontal_speed >= footstep_interval_change_velocity:
+		_remote_step_cooldown = sprint_footstep_interval
+		footstep_player.volume_db = remote_sprint_volume_db
+	else:
+		_remote_step_cooldown = walk_footstep_interval
+		footstep_player.volume_db = remote_walk_volume_db
+
+	footstep_player._play_interaction("footstep")
 
 
 func step_check(delta: float, is_jumping_: bool, step_result: StepResult):
