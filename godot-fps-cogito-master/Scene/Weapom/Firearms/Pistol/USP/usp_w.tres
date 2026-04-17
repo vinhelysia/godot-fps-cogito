@@ -3,10 +3,12 @@
 [ext_resource type="Texture2D" uid="uid://qavb4u01eo6f" path="res://Scene/Weapom/Firearms/Pistol/USP/icon_output.png" id="1_78j7u"]
 [ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="1_hs8se"]
 [ext_resource type="PackedScene" uid="uid://cvkcum00xbetq" path="res://Scene/Weapom/Firearms/Pistol/USP/USP.tscn" id="3_g6t70"]
+[ext_resource type="PackedScene" uid="uid://bxxow5b026wvr" path="res://Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn" id="3_txxr4"]
 
 [resource]
 script = ExtResource("1_hs8se")
 wieldable_scene = ExtResource("3_g6t70")
+tpp_weapon_scene = ExtResource("3_txxr4")
 charge_max = 14.0
 charge_current = 14.0
 wieldable_range = 200.0

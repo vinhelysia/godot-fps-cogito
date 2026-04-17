@@ -38,6 +38,13 @@ size = Vector3(0.6, 1.7, 0.6)
 [sub_resource type="BoxShape3D" id="BoxShape3D_ut3wm"]
 size = Vector3(0.6, 0.7, 0.6)
 
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_mp_body"]
+radius = 0.3
+height = 1.7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mp_body"]
+albedo_color = Color(0.2, 0.5, 0.8, 1)
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_bpb0d"]
 size = Vector3(0.1, 0.1, 0.1)
 
@@ -50,6 +57,29 @@ stream_3/stream = ExtResource("15_wtp0a")
 stream_4/stream = ExtResource("16_buq0c")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bpb0d"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_mp"]
+properties/0/path = NodePath(".:global_position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath("Body:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath("Body/Neck/Head:rotation")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath("HealthAttribute:value_current")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath(".:is_crouching")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath(".:is_dead")
+properties/5/spawn = true
+properties/5/replication_mode = 1
+properties/6/path = NodePath(".:current_tpp_weapon_path")
+properties/6/spawn = true
+properties/6/replication_mode = 1
 
 [node name="CogitoPlayer" type="CharacterBody3D" unique_id=220182115 node_paths=PackedStringArray("item_drop_shapecast") groups=["Player"]]
 script = ExtResource("1_87we8")
@@ -104,7 +134,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 target_position = Vector3(0, 1.6, 0)
 collision_mask = 3
 
+[node name="MPBodyMesh" type="MeshInstance3D" parent="." unique_id=1401055382]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("CapsuleMesh_mp_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_mp_body")
+
+[node name="MPNameTag" type="Label3D" parent="." unique_id=6886146]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+billboard = 1
+modulate = Color(1, 1, 1, 0.9)
+text = "Player"
+
 [node name="Body" type="Node3D" parent="." unique_id=1540690181]
+
+[node name="TPPWeaponMount" type="Node3D" parent="Body" unique_id=987654321]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.8, -0.3)
 
 [node name="Neck" type="Node3D" parent="Body" unique_id=1219214619]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
@@ -210,6 +254,9 @@ _player_interaction_component = NodePath("../PlayerInteractionComponent")
 [node name="HealthAutoConsume" parent="." unique_id=1941043664 instance=ExtResource("32_s725a")]
 
 [node name="StaminaAutoConsume" parent="." unique_id=444352153 instance=ExtResource("35_wx2rv")]
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="." unique_id=1118588234]
+replication_config = SubResource("SceneReplicationConfig_mp")
 
 [connection signal="mouse_movement" from="." to="Body/Neck/Head/Wieldables" method="sway"]
 [connection signal="player_state_loaded" from="." to="." method="_on_player_state_loaded"]

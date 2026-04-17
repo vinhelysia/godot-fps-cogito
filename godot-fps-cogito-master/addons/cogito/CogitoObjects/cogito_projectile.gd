@@ -28,10 +28,10 @@ func _ready():
 	self.add_to_group("Persist") #Adding object to group for persistence
 	find_interaction_nodes()
 	find_cogito_properties()
-	
+
 	if lifespan:
 		lifespan.timeout.connect(on_timeout)
-		
+
 	_pick_up_timer()
 
 
@@ -50,13 +50,23 @@ func on_timeout():
 ## Checking collision event for property tags.
 func _on_body_entered(collider: Node):
 	var collision_point = global_transform.origin
-	var bullet_direction = (collision_point - CogitoSceneManager._current_player_node.get_global_transform().origin).normalized() ##This is hacky TODO needs to be fixed for Multiplayer support
-	
+	var bullet_direction := Vector3.FORWARD
+	if CogitoSceneManager._current_player_node:
+		bullet_direction = (collision_point - CogitoSceneManager._current_player_node.get_global_transform().origin).normalized()
+
 	if stick_on_impact:
 		self.linear_velocity = Vector3.ZERO
 		self.angular_velocity = Vector3.ZERO
 		stick_to_object(collider)
-		
+
+	# Multiplayer: CogitoPlayer has no damage_received signal — use take_damage RPC directly.
+	# has_method check avoids class-name resolution issues across addon boundaries.
+	if collider.has_method("take_damage") and multiplayer.get_peers().size() > 0:
+		collider.take_damage.rpc(damage_amount)
+		if destroy_on_impact:
+			die()
+		return
+
 	if collider.has_signal("damage_received"):
 		if( !collider.cogito_properties && !cogito_properties): # Case where neither projectile nor the object hit have properties defined.
 			CogitoGlobals.debug_log(true, "CogitoProjectile", "Collider nor projectile have CogitoProperties, damaging as usual.")
@@ -109,7 +119,12 @@ func deal_damage(collider: Node,bullet_direction,bullet_position):
 	# bullet_direction = Direction
 	CogitoGlobals.debug_log(true, "CogitoProjectile", self.name + ": dealing damage amount " + str(damage_amount) + " on collider " + collider.name + " at " + str(bullet_position) + " in direction " + str(Direction) )
 
-	collider.damage_received.emit(damage_amount,bullet_direction,bullet_position)
+	# Multiplayer: CogitoPlayer has no damage_received signal — use take_damage RPC directly.
+	if collider.has_method("take_damage") and multiplayer.get_peers().size() > 0:
+		collider.take_damage.rpc(damage_amount)
+	else:
+		collider.damage_received.emit(damage_amount,bullet_direction,bullet_position)
+
 	if destroy_on_impact:
 		die()
 

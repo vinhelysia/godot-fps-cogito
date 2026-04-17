@@ -48,6 +48,7 @@ shadow_mesh = SubResource("ArrayMesh_py7uj")
 [node name="7_62x39Projectile" type="RigidBody3D" unique_id=844824024]
 contact_monitor = true
 max_contacts_reported = 4
+continuous_cd = true
 script = ExtResource("1_s8p08")
 destroy_on_impact = true
 cogito_name = "7_62x39Projectile"

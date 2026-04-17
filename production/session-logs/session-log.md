@@ -84449,3 +84449,756 @@ production/session-logs/agent-audit.log
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260416_121052
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+---
+
+## Session End: 20260416_121432
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_122015
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_122339
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_122543
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_122648
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_122856
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_123041
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_123233
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_123533
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_123749
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_124108
+### Commits
+010611f Multiplayer Intergration.
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_183934
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_192232
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_192546
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_192717
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_192839
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_193202
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260416_193812
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_081638
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_081936
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_082122
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_082831
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_083312
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_083556
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_083757
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_140732
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_141058
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_141337
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_141705
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_142522
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_142741
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_142937
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_143345
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_144023
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_144109
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_144352
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_144550
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51 projectile.tscn
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_144831
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51 projectile.tscn
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_144939
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51 projectile.tscn
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_172519
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51 projectile.tscn
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/PlayerInteractionComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_173027
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_lobby.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_player_input.gd
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_weapon.gd
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn
+godot-fps-cogito-master/Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51 projectile.tscn
+godot-fps-cogito-master/Scripts/Weapons/Weapon_Resource.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_projectile.gd
+godot-fps-cogito-master/addons/cogito/Components/Interactions/PickupComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/PlayerInteractionComponent.gd
+godot-fps-cogito-master/addons/cogito/Components/UI/UI_HoldComponent.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CogitoQuickSlots.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Scripts/player_hud_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+

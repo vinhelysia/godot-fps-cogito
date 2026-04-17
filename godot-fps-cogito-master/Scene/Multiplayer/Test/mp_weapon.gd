@@ -45,7 +45,9 @@ func server_fire() -> void:
 		return
 
 	if collider.has_method("apply_damage"):
-		collider.apply_damage.rpc(DAMAGE)
+		# Direct call — server is authoritative for damage.
+		# health is synced to clients via MultiplayerSynchronizer (ON_CHANGE).
+		collider.apply_damage(DAMAGE)
 		print("[Weapon] Server hit ", collider.name, " for ", DAMAGE)
 
 

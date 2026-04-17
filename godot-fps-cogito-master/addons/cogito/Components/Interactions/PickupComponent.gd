@@ -46,4 +46,24 @@ func pick_up(_player_interaction_component: PlayerInteractionComponent):
 	_player_interaction_component.send_hint(slot_data.inventory_item.icon, tr(slot_data.inventory_item.name) + " " + tr("INVENTORY_add_item") )
 	was_interacted_with.emit(interaction_text, input_map_action)
 	Audio.play_sound(slot_data.inventory_item.sound_pickup)
-	self.get_parent().queue_free()
+
+	# Multiplayer: disable immediately to block double-pickup during latency,
+	# then have the server queue_free() so WeaponSpawner despawns for all peers.
+	if multiplayer.get_peers().size() > 0:
+		is_disabled = true
+		if multiplayer.is_server():
+			get_parent().queue_free()
+		else:
+			_request_server_despawn.rpc_id(1)
+	else:
+		self.get_parent().queue_free()
+
+
+## Multiplayer: server-side despawn — WeaponSpawner propagates removal to all clients.
+@rpc("any_peer", "reliable")
+func _request_server_despawn() -> void:
+	if not multiplayer.is_server():
+		return
+	var pickup := get_parent()
+	if is_instance_valid(pickup):
+		pickup.queue_free()

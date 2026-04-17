@@ -345,6 +345,11 @@ func _on_player_damage_taken():
 
 # Function called when player dies.
 func _on_player_death():
+	if multiplayer.get_peers().size() > 0:
+		# Multiplayer: show respawn screen without pausing the game.
+		_on_external_ui_toggle(true)
+		$DeathScreen.open_mp_death_screen(player)
+		return
 	player._on_pause_movement()
 	$DeathScreen.open_death_screen()
 

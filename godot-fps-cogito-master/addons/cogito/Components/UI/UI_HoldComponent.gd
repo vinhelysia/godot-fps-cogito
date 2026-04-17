@@ -18,7 +18,9 @@ func _ready() -> void:
 	progress_wheel.current_value = 0.0
 	hold_timer.timeout.connect(_on_hold_complete)
 	await get_tree().process_frame
-	player_interaction_component = (CogitoSceneManager._current_player_node as CogitoPlayer).player_interaction_component
+	var _player := CogitoSceneManager._current_player_node as CogitoPlayer
+	if _player:
+		player_interaction_component = _player.player_interaction_component
 
 
 func _process(_delta: float) -> void:
