@@ -148,7 +148,7 @@ text = "Player"
 [node name="Body" type="Node3D" parent="." unique_id=1540690181]
 
 [node name="TPPWeaponMount" type="Node3D" parent="Body" unique_id=987654321]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25, 0.8, -0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.30621713, 0.33400095, -0.3)
 
 [node name="Neck" type="Node3D" parent="Body" unique_id=1219214619]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)

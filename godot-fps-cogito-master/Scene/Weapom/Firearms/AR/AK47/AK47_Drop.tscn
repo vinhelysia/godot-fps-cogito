@@ -418,7 +418,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_4hn0l")
 
 [node name="Ak47" type="Node3D" unique_id=920174355]
-transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, -5.9604645e-08, -0.01134868, -0.42743883)
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
 
 [node name="ak-47" type="Node3D" parent="." unique_id=903908469]
 transform = Transform3D(-4.3711374e-08, 0, 0.99999976, 0, 0.9999997, 0, -0.9999997, 0, -4.3711378e-08, 0, 0, 0)
