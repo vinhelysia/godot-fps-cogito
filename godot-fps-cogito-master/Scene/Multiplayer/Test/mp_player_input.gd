@@ -23,7 +23,7 @@ func _process(_delta: float) -> void:
 	direction = Input.get_vector("left", "right", "forward", "back")
 	if Input.is_action_just_pressed("jump"):
 		jump.rpc()
-	if Input.is_action_just_pressed("action_primary"):
+	if Input.is_action_just_pressed("mp_test_fire"):
 		fire.rpc()
 
 

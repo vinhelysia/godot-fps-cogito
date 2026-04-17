@@ -175,6 +175,12 @@ var last_velocity : Vector3= Vector3.ZERO
 var stand_after_roll : bool = false
 var is_movement_paused : bool = false
 var is_dead : bool = false
+## Multiplayer: path of the currently equipped wieldable scene, replicated so
+## other peers can render the correct third-person weapon mesh.
+var current_tpp_weapon_path: String = "" :
+	set(value):
+		current_tpp_weapon_path = value
+		_refresh_tpp_weapon()
 var slide_audio_player : AudioStreamPlayer3D
 var radius : float
 
@@ -214,16 +220,80 @@ var radius : float
 @onready var wieldables = %Wieldables
 #endregion
 
+## Multiplayer: spawn or clear the third-person weapon mesh visible to other players.
+## Runs on ALL peers whenever current_tpp_weapon_path changes (setter or sync delta).
+func _refresh_tpp_weapon() -> void:
+	var mount := get_node_or_null("Body/TPPWeaponMount")
+	if not mount:
+		mount = get_node_or_null("TPPWeaponMount")
+	if not mount:
+		return
+	# Remove previous weapon instance
+	for child in mount.get_children():
+		child.queue_free()
+	# Local (FPV authority) player never sees their own TPP mesh
+	if is_multiplayer_authority():
+		mount.visible = false
+		return
+	mount.visible = true
+	if current_tpp_weapon_path.is_empty():
+		return
+	var packed := load(current_tpp_weapon_path) as PackedScene
+	if not packed:
+		return
+	var inst := packed.instantiate()
+	# Some TPP references point at pickup scenes, so strip gameplay/physics behavior when needed.
+	if inst is RigidBody3D:
+		inst.freeze = true
+		inst.linear_velocity = Vector3.ZERO
+		inst.angular_velocity = Vector3.ZERO
+		inst.collision_layer = 0
+		inst.collision_mask = 0
+	for comp in inst.find_children("*", "InteractionComponent", true, false):
+		(comp as Node).process_mode = Node.PROCESS_MODE_DISABLED
+	mount.add_child(inst)
+
+
+func _enter_tree() -> void:
+	# Multiplayer: derive authority from node name (spawner sets name = str(peer_id)).
+	# In singleplayer name is "Player" → to_int() = 0 → skip → default authority 1 stays → always local.
+	var peer_id := str(name).to_int()
+	if peer_id > 0:
+		# Non-recursive: only this CharacterBody3D gets client authority.
+		set_multiplayer_authority(peer_id, false)
+		# Body sync gets CLIENT authority — client runs physics and sends position/rotation.
+		var body_sync := get_node_or_null("MultiplayerSynchronizer")
+		if body_sync:
+			body_sync.set_multiplayer_authority(peer_id)
+
+
 func _ready():
 	#Some Setup steps
-	CogitoSceneManager._current_player_node = self
+	# Only the local (authority) player registers as the current player node.
+	if is_multiplayer_authority():
+		CogitoSceneManager._current_player_node = self
 	player_interaction_component.exclude_player(get_rid())
-	
-	randomize() 
-	
+
+	randomize()
+
 	radius = _calculate_player_radius()
-	
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+	# Camera and mouse capture only for local player.
+	camera.current = is_multiplayer_authority()
+	$GUI.visible = is_multiplayer_authority()
+	if is_multiplayer_authority():
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+	# Multiplayer body mesh: hide for local player, show for remote players.
+	var mp_body := get_node_or_null("MPBodyMesh")
+	var mp_nametag := get_node_or_null("MPNameTag")
+	if mp_body:
+		mp_body.visible = not is_multiplayer_authority()
+	if mp_nametag:
+		mp_nametag.visible = not is_multiplayer_authority()
+		mp_nametag.text = "Player %s" % name
+	# TPP weapon mount: always hidden for local (FPV) player.
+	_refresh_tpp_weapon()
 
 	### NEW PLAYER ATTRIBUTE SETUP:
 	# Grabs all attached player attributes
@@ -244,6 +314,20 @@ func _ready():
 	if sanity_attribute and visibility_attribute:
 		visibility_attribute.attribute_changed.connect(sanity_attribute.on_visibility_changed)
 		visibility_attribute.check_current_visibility()
+
+	# Multiplayer: for NON-authority players (remote copies on other peers), disconnect
+	# the HUD death signal entirely — prevents the host from freezing when a remote player dies.
+	# Authority players keep the death signal so the MP death screen + Respawn button can show.
+	# Singleplayer safe: name "CogitoPlayer" → to_int() = 0 → skipped.
+	if str(name).to_int() > 0 and not is_multiplayer_authority():
+		await get_tree().process_frame  # Wait for HUD _setup_player call_deferred to finish.
+		var _health_attr = player_attributes.get("health")
+		var _hud := get_node_or_null(player_hud)
+		if _health_attr and _hud:
+			if _health_attr.death.is_connected(_hud._on_player_death):
+				_health_attr.death.disconnect(_hud._on_player_death)
+			if _health_attr.damage_taken.is_connected(_hud._on_player_damage_taken):
+				_health_attr.damage_taken.disconnect(_hud._on_player_damage_taken)
 
 
 	### CURRENCY SETUP
@@ -325,6 +409,51 @@ func decrease_currency(currency_name: String, value: float):
 func _on_death():
 	player_interaction_component.on_death()
 	is_dead = true
+	if multiplayer.get_peers().size() > 0 and is_multiplayer_authority():
+		var hud := get_node_or_null(player_hud)
+		var death_screen := hud.get_node_or_null("DeathScreen") if hud else null
+		if hud and death_screen and not death_screen.visible:
+			hud._on_player_death()
+	# Multiplayer: respawn is triggered by the Respawn button in the MP death screen.
+	# No automatic timer — player clicks the button when ready.
+
+
+## Multiplayer: any peer can call this to apply damage. Runs on all peers (call_local).
+@rpc("any_peer", "call_local", "reliable")
+func take_damage(amount: float) -> void:
+	decrease_attribute("health", amount)
+
+
+## Multiplayer: called via Respawn button on death screen. Runs on all peers.
+@rpc("any_peer", "call_local", "reliable")
+func respawn() -> void:
+	if not is_multiplayer_authority():
+		return
+	is_dead = false
+	is_movement_paused = false
+	is_showing_ui = false
+	# Safety: ensure tree is never left paused.
+	if get_tree().paused:
+		get_tree().paused = false
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	var hud := get_node_or_null(player_hud)
+	if hud and hud.has_method("_on_external_ui_toggle"):
+		hud._on_external_ui_toggle(false)
+	# Reset health to full.
+	var health_attr = player_attributes.get("health")
+	if health_attr:
+		health_attr.set_attribute(health_attr.value_max, health_attr.value_max)
+	main_velocity = Vector3.ZERO
+	velocity = Vector3.ZERO
+	gravity_vec = Vector3.ZERO
+	last_velocity = Vector3.ZERO
+	direction = Vector3.ZERO
+	# Teleport to a random spawn point.
+	var spawn_points := get_tree().get_nodes_in_group("mp_spawn_points")
+	if not spawn_points.is_empty():
+		global_position = (spawn_points.pick_random() as Node3D).global_position
+	else:
+		global_position = Vector3(0, 2, 0)
 
 
 # Methods to pause input (for Menu or Dialogues etc)
@@ -363,7 +492,15 @@ func _on_pause_menu_resume():
 
 
 func _input(event):
-	if event is InputEventMouseMotion and !is_movement_paused:
+	if not is_multiplayer_authority():
+		return
+	# Hold Alt to free the cursor without opening a menu (useful after alt-tab).
+	# Only toggles when alive and no UI/menu is already controlling the mouse.
+	if event.is_action_pressed("free_cursor") and not is_dead and not is_movement_paused:
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	elif event.is_action_released("free_cursor") and not is_dead and not is_movement_paused:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if event is InputEventMouseMotion and !is_movement_paused and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var look_movement: Vector2 = Vector2(0.0,0.0)
 		
 		#If players sitting & look marker is present, use sittable look handling
@@ -785,6 +922,23 @@ func _process_on_sittable(delta):
 
 
 func _physics_process(delta):
+	# Update remote player body mesh: hide when dead, match crouch height otherwise.
+	var _mp_body := get_node_or_null("MPBodyMesh") as MeshInstance3D
+	var _mp_tag := get_node_or_null("MPNameTag")
+	if _mp_body and not is_multiplayer_authority():
+		_mp_body.visible = not is_dead
+		if _mp_tag:
+			_mp_tag.visible = not is_dead
+		if not is_dead:
+			if is_crouching:
+				_mp_body.position.y = -0.45
+				_mp_body.scale = Vector3(1.0, 0.7 / 1.7, 1.0)
+			else:
+				_mp_body.position.y = 0.05
+				_mp_body.scale = Vector3(1.0, 1.0, 1.0)
+
+	if not is_multiplayer_authority():
+		return
 	#if is_movement_paused:
 		#return
 	if is_sitting:

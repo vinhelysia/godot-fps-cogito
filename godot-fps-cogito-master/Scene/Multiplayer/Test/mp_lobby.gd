@@ -6,7 +6,7 @@ extends Control
 @onready var _join_button: Button = %JoinButton
 @onready var _status_label: Label = %StatusLabel
 
-const ARENA_SCENE := "res://Scene/Multiplayer/Test/mp_arena.tscn"
+const ARENA_SCENE := "res://Scene/Multiplayer/Test/mp_cogito_arena.tscn"
 
 func _ready() -> void:
 	_host_button.pressed.connect(_on_host_pressed)

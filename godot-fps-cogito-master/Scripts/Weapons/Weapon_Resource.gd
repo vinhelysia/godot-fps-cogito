@@ -115,5 +115,10 @@ func _projectile_fire(ctx: Dictionary) -> void:
 
 
 static func _deal_damage(collider: Node, direction: Vector3, hit_position: Vector3, item_ref: WieldableItemPD) -> void:
+	# Multiplayer: CogitoPlayer hits use RPC so damage runs on all peers.
+	# Singleplayer safe: get_peers() is empty when no network peer is active.
+	if collider is CogitoPlayer and collider.multiplayer.get_peers().size() > 0:
+		collider.take_damage.rpc(item_ref.wieldable_damage)
+		return
 	if collider.has_signal("damage_received"):
 		collider.damage_received.emit(item_ref.wieldable_damage, direction, hit_position)

@@ -48,6 +48,7 @@ height = 0.05429077
 radius = 0.01171875
 
 [node name="7_62x39Projectile" type="RigidBody3D" unique_id=844824024]
+continuous_cd = true
 contact_monitor = true
 max_contacts_reported = 4
 script = ExtResource("1_usm1l")

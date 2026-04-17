@@ -82,12 +82,14 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 
-# Server → all clients: apply damage and check death.
-@rpc("authority", "call_local", "reliable")
+# Called directly by mp_weapon.gd on the server only.
+# health is synced to all clients via MultiplayerSynchronizer (ON_CHANGE).
 func apply_damage(amount: int) -> void:
+	if not multiplayer.is_server():
+		return
 	health -= amount
 	print("[Player %d] HP=%d (-%d)" % [player, health, amount])
-	if health <= 0 and multiplayer.is_server():
+	if health <= 0:
 		_server_respawn()
 
 

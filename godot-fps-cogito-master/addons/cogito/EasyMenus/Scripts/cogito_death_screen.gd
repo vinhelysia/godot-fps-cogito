@@ -11,6 +11,7 @@ signal back_to_main_pressed
 
 var playback : AudioStreamPlaybackPolyphonic
 var temp_screenshot : Image
+var _mp_player : CogitoPlayer  # Set during open_mp_death_screen, used by Respawn button.
 
 @onready var label_active_slot: Label = %Label_ActiveSlot
 @onready var load_button := %LoadButton
@@ -49,6 +50,36 @@ func _play_hover() -> void:
 
 func _play_pressed() -> void:
 	playback.play_stream(sound_click, 0, 0, 1)
+
+
+## Multiplayer variant: shows the death screen without pausing the game.
+## Reuses the load_button as a "RESPAWN" button.
+func open_mp_death_screen(mp_player: CogitoPlayer) -> void:
+	_mp_player = mp_player
+	label_active_slot.text = "You were eliminated"
+	hide_saved_slot_display()
+	# Repurpose the load/new-game button as a Respawn button.
+	if load_button.pressed.is_connected(_on_load_button_pressed):
+		load_button.pressed.disconnect(_on_load_button_pressed)
+	if load_button.pressed.is_connected(_on_new_game_button_pressed):
+		load_button.pressed.disconnect(_on_new_game_button_pressed)
+	load_button.text = tr("RESPAWN")
+	if not load_button.pressed.is_connected(_on_respawn_button_pressed):
+		load_button.pressed.connect(_on_respawn_button_pressed)
+	# Release mouse so the player can click the Respawn button.
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	show()
+	load_button.grab_focus.call_deferred()
+
+
+func _on_respawn_button_pressed() -> void:
+	var target_player := _mp_player
+	if not is_instance_valid(target_player) or not target_player.is_multiplayer_authority():
+		target_player = CogitoSceneManager._current_player_node as CogitoPlayer
+	if not is_instance_valid(target_player):
+		return
+	hide()
+	target_player.respawn.rpc()
 
 
 func open_death_screen():
