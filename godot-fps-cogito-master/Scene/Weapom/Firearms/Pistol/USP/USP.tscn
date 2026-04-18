@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_jc4jo"]
 [ext_resource type="Resource" uid="uid://c0a1piy7rpc46" path="res://Scene/Weapom/Firearms/Pistol/USP/usp.tres" id="2_tmght"]
 [ext_resource type="AudioStream" uid="uid://dlhdc05h58c13" path="res://Assets/SFX/Firearm/usp_fire_close.wav" id="3_tmght"]
+[ext_resource type="PackedScene" uid="uid://calgbn1slkmss" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/short_flash/short_flash_01.tscn" id="4_uspmfl"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o3x6l"]
 resource_name = "polymer"
@@ -692,6 +693,8 @@ visible = false
 script = ExtResource("1_jc4jo")
 weapon_data = ExtResource("2_tmght")
 sound_shoot = ExtResource("3_tmght")
+muzzle_flash_scene = ExtResource("4_uspmfl")
+muzzle_flash_scale = 0.7
 ads_fov = 45.0
 default_position = Vector3(0.45, -0.326, -0.685)
 ads_position = Vector3(0, -0.196, -0.819)

@@ -85238,3 +85238,587 @@ godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260417_194010
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+production/session-logs/compaction-log.txt
+---
+
+## Session End: 20260417_194403
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_194826
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_194957
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260417_201045
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_005945
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_011100
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_011829
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_013155
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_013320
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_013415
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_013630
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_013717
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_014104
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_014439
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_014743
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_015000
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_015139
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_015751
+### Commits
+10523a6 123
+4f0d864 111
+a4db1a0 feat(multiplayer): add Cogito arena and sync combat/respawn flow
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_122338
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_124103
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_cogito_arena.gd
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_button.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_door.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_snap_slot.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_switch.gd
+godot-fps-cogito-master/addons/cogito/Components/AutoPickUpZone.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/inventory_interface.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/cogito_inventory.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/SceneManagement/cogito_scene_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_124748
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_cogito_arena.gd
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_button.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_door.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_snap_slot.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_switch.gd
+godot-fps-cogito-master/addons/cogito/Components/AutoPickUpZone.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/inventory_interface.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/cogito_inventory.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/SceneManagement/cogito_scene_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_125246
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_cogito_arena.gd
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_button.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_door.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_snap_slot.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_switch.gd
+godot-fps-cogito-master/addons/cogito/Components/AutoPickUpZone.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/inventory_interface.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/cogito_inventory.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/SceneManagement/cogito_scene_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_130428
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_cogito_arena.gd
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_button.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_door.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_snap_slot.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_switch.gd
+godot-fps-cogito-master/addons/cogito/Components/AutoPickUpZone.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/inventory_interface.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/cogito_inventory.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/SceneManagement/cogito_scene_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_130608
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_cogito_arena.gd
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_button.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_door.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_snap_slot.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_switch.gd
+godot-fps-cogito-master/addons/cogito/Components/AutoPickUpZone.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/inventory_interface.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/cogito_inventory.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/SceneManagement/cogito_scene_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+
+## Session End: 20260418_131502
+### Uncommitted Changes
+godot-fps-cogito-master/Scene/Multiplayer/Test/mp_cogito_arena.gd
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/M700_Wieldable.tres
+godot-fps-cogito-master/Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP.tscn
+godot-fps-cogito-master/Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn
+godot-fps-cogito-master/Scripts/Weapons/cogito_weapon.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_button.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_door.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_player.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_snap_slot.gd
+godot-fps-cogito-master/addons/cogito/CogitoObjects/cogito_switch.gd
+godot-fps-cogito-master/addons/cogito/Components/AutoPickUpZone.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/cogito_death_screen.gd
+godot-fps-cogito-master/addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/InventoryUI.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/Slot.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/UiScenes/inventory_interface.gd
+godot-fps-cogito-master/addons/cogito/InventoryPD/cogito_inventory.gd
+godot-fps-cogito-master/addons/cogito/PackedScenes/cogito_player.tscn
+godot-fps-cogito-master/addons/cogito/SceneManagement/cogito_scene_manager.gd
+godot-fps-cogito-master/addons/cogito/Theme/Cogito_Theme_A.tres
+godot-fps-cogito-master/project.godot
+production/session-logs/agent-audit.log
+production/session-logs/compaction-log.txt
+production/session-logs/session-log.md
+---
+

@@ -73,13 +73,11 @@ func open_mp_death_screen(mp_player: CogitoPlayer) -> void:
 
 
 func _on_respawn_button_pressed() -> void:
-	var target_player := _mp_player
-	if not is_instance_valid(target_player) or not target_player.is_multiplayer_authority():
-		target_player = CogitoSceneManager._current_player_node as CogitoPlayer
-	if not is_instance_valid(target_player):
+	if not is_instance_valid(_mp_player):
+		push_error("[DeathScreen] _mp_player invalid — respawn aborted")
 		return
 	hide()
-	target_player.respawn.rpc()
+	_mp_player.respawn.rpc()
 
 
 func open_death_screen():
@@ -186,6 +184,8 @@ func _on_load_button_pressed() -> void:
 	
 	# Ensure the game resumes properly when loading after death
 	var player = CogitoSceneManager._current_player_node as CogitoPlayer
+	if not is_instance_valid(player):
+		return
 	player.is_dead = false
 	player._on_pause_menu_resume()
 	player.get_node(player.pause_menu).close_pause_menu()

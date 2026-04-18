@@ -5,6 +5,9 @@ extends Node3D
 @onready var _pickups: Node3D = $Pickups
 @onready var _weapon_spawner: MultiplayerSpawner = $WeaponSpawner
 
+var _dropped_items: Node3D
+var _dropped_items_spawner: MultiplayerSpawner
+
 const PLAYER_SCENE := preload("res://addons/cogito/PackedScenes/cogito_player.tscn")
 const PICKUP_USP  := preload("res://Scene/Weapom/Firearms/Pistol/USP/pickup_usp.tscn")
 const PICKUP_AK47 := preload("res://Scene/Weapom/Firearms/AR/AK47/pickup_ak47.tscn")
@@ -13,9 +16,28 @@ const PICKUP_AK47 := preload("res://Scene/Weapom/Firearms/AR/AK47/pickup_ak47.ts
 var _weapon_spawn_table: Array = []
 
 func _ready() -> void:
+	# Cogito's inventory_interface.gd parents dropped items under
+	# CogitoSceneManager._current_scene_root_node. That field is normally set by
+	# CogitoScene._enter_tree() but this arena extends Node3D, not CogitoScene.
+	CogitoSceneManager._current_scene_root_node = self
+
 	# Register spawn points for cogito_player respawn.
 	for sp in _spawn_points.get_children():
 		sp.add_to_group("mp_spawn_points")
+
+	# ── DroppedItems spawner (syncs inventory drops across all peers) ────────────
+	_dropped_items = Node3D.new()
+	_dropped_items.name = "DroppedItems"
+	add_child(_dropped_items)
+
+	_dropped_items_spawner = MultiplayerSpawner.new()
+	_dropped_items_spawner.name = "DroppedItemsSpawner"
+	add_child(_dropped_items_spawner)
+	# Set spawn_path AFTER the spawner is in the tree so get_node() can resolve it.
+	_dropped_items_spawner.spawn_path = _dropped_items.get_path()
+
+	# Register all droppable pickup scenes on EVERY peer so spawner indices match.
+	_register_droppable_scenes()
 
 	# Use a custom spawn function so position is baked into the spawn data
 	# and applied on ALL peers before the node enters the tree.
@@ -71,6 +93,33 @@ func _despawn_player(peer_id: int) -> void:
 	var player := _players.get_node_or_null(str(peer_id))
 	if player:
 		player.queue_free()
+
+
+## Recursively finds pickup_*.tscn files and registers them with the dropped-items
+## spawner.  Must run on ALL peers with identical results so spawner indices match.
+func _register_droppable_scenes() -> void:
+	var paths: Array = []
+	_collect_pickup_scenes("res://Scene/Items/", paths)
+	_collect_pickup_scenes("res://Scene/Weapom/", paths)
+	paths.sort()  # Deterministic order across all peers (alphabetical).
+	for path: String in paths:
+		_dropped_items_spawner.add_spawnable_scene(path)
+
+
+func _collect_pickup_scenes(dir_path: String, result: Array) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var full_path := dir_path + entry
+		if dir.current_is_dir() and not entry.begins_with("."):
+			_collect_pickup_scenes(full_path + "/", result)
+		elif entry.ends_with(".tscn") and entry.begins_with("pickup_"):
+			result.append(full_path)
+		entry = dir.get_next()
+	dir.list_dir_end()
 
 
 func _get_random_spawn() -> Vector3:

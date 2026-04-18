@@ -78,7 +78,11 @@ func _physics_process(delta: float) -> void:
 func interact(_player_interaction_component:PlayerInteractionComponent):
 	if cooldown > 0:
 		return
-		
+	# In MP, non-server peers forward the request to the server
+	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
+		_rpc_request_button_press.rpc_id(1)
+		return
+
 	player_interaction_component = _player_interaction_component
 	
 	# moved to press(), as currency should only be charged when press is valid
@@ -101,21 +105,26 @@ func press():
 	# only run the currency check once the press is validated and triggered
 	# otherwise you can charge for a transaction and still not press the button
 	if currency_check and currency_check.currency_cost != 0:
-		if not currency_check.check_for_currency(player_interaction_component.get_parent()):
-			player_interaction_component.send_hint(null, currency_check.not_enough_currency_hint)
-			return
+		if is_instance_valid(player_interaction_component):
+			if not currency_check.check_for_currency(player_interaction_component.get_parent()):
+				player_interaction_component.send_hint(null, currency_check.not_enough_currency_hint)
+				return
 
 	pressed.emit()
 	pressed_ref.emit(self)
 	Audio.play_sound_3d(press_sound).global_position = global_position
-	
+
 	if !allows_repeated_interaction:
 		has_been_used = true
 		interaction_text = unusable_interaction_text
 		object_state_updated.emit(interaction_text)
 	else:
 		cooldown = press_cooldown_time
-	
+
+	# Broadcast state to all non-server peers in MP
+	if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
+		_mp_sync_button_state.rpc(has_been_used, interaction_text)
+
 	if !objects_call_interact:
 		return
 	for nodepath in objects_call_interact:
@@ -126,7 +135,9 @@ func press():
 
 
 func _on_damage_received(_damage,_bullet_direction,_bullet_position):
-	interact(CogitoSceneManager._current_player_node.player_interaction_component)
+	var _p := CogitoSceneManager._current_player_node
+	if is_instance_valid(_p):
+		interact(_p.player_interaction_component)
 
 
 func check_for_item() -> bool:
@@ -143,6 +154,21 @@ func check_for_item() -> bool:
 		player_interaction_component.send_hint(null,item_hint) # Sends the key hint with the default hint icon.
 	return false
 	
+
+@rpc("any_peer", "reliable")
+func _rpc_request_button_press() -> void:
+	if not multiplayer.is_server(): return
+	if cooldown > 0: return
+	if not allows_repeated_interaction and has_been_used: return
+	press()
+
+
+@rpc("authority", "reliable")
+func _mp_sync_button_state(used: bool, text: String) -> void:
+	has_been_used = used
+	interaction_text = text
+	object_state_updated.emit(interaction_text)
+
 
 func set_state():
 	if has_been_used:

@@ -465,6 +465,65 @@ func respawn() -> void:
 		global_position = (spawn_points.pick_random() as Node3D).global_position
 	else:
 		global_position = Vector3(0, 2, 0)
+	# Re-initialize wieldable system: rebuilds the weapon node, resets is_being_wielded,
+	# and re-emits updated_wieldable_data so the ammo HUD and wieldable_hud become visible again.
+	player_interaction_component.set_state.call_deferred()
+	# Force inventory hotbar to refresh so quickslot icons are correct.
+	if inventory_data:
+		inventory_data.force_inventory_update.call_deferred()
+
+
+## Multiplayer: broadcast to all peers so they play remote fire FX on this player's TPP weapon.
+## Called by cogito_weapon.gd after a confirmed shot.  Authority fires this; non-authority
+## instances run the FX on their local copy of the TPP weapon mesh.
+@rpc("any_peer", "call_local", "unreliable_ordered")
+func rpc_play_remote_fire_fx() -> void:
+	# The authority player never shows their own TPP mesh, so skip FX locally.
+	if is_multiplayer_authority():
+		return
+	var mount := get_node_or_null("Body/TPPWeaponMount")
+	if not mount:
+		mount = get_node_or_null("TPPWeaponMount")
+	if not mount:
+		return
+	for weapon_inst in mount.get_children():
+		var anchor := weapon_inst.find_child("RemoteWeaponFxAnchor", true, false)
+		if anchor and anchor.has_method("play_remote_fire_fx"):
+			anchor.play_remote_fire_fx()
+			break
+
+
+## Server-authoritative item drop.  Called by the dropping peer; server
+## instantiates the pickup scene under the DroppedItems node so the
+## MultiplayerSpawner replicates it to all connected peers.
+@rpc("any_peer", "call_local", "reliable")
+func request_drop_item(scene_path: String, pos: Vector3, rot: Vector3, quantity: int, charge: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var scene: PackedScene = load(scene_path)
+	if scene == null:
+		push_warning("[MP] request_drop_item: cannot load scene '%s'" % scene_path)
+		return
+	var item: Node = scene.instantiate()
+	item.global_position = pos
+	item.global_rotation = rot
+	# Best-effort: restore quantity/charge on the pickup's interaction nodes.
+	if item.has_method("find_interaction_nodes"):
+		item.call("find_interaction_nodes")
+		if "interaction_nodes" in item:
+			for node in item.interaction_nodes:
+				if "slot_data" in node and node.slot_data != null:
+					if "quantity" in node.slot_data:
+						node.slot_data.quantity = quantity
+					var inv_item = node.slot_data.get("inventory_item")
+					if inv_item != null and "charge_current" in inv_item:
+						inv_item.charge_current = charge
+	var dropped_container := get_tree().root.find_child("DroppedItems", true, false)
+	if dropped_container:
+		dropped_container.add_child(item, true)
+	else:
+		push_warning("[MP] request_drop_item: DroppedItems node missing — item freed")
+		item.queue_free()
 
 
 # Methods to pause input (for Menu or Dialogues etc)

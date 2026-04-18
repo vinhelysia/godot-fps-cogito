@@ -30,6 +30,10 @@ enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
 @export_group("Muzzle")
 ## Marker3D where bullets/projectiles spawn. Set via unique name %Bullet_Point.
 @onready var bullet_point: Marker3D = %Bullet_Point
+## Muzzle flash scene to spawn on each shot (first-person view).
+## Use any muzzle_flash_0N.tscn or short_flash_0N.tscn from Scene/VFX/MuzzleFlash.
+@export var muzzle_flash_scene: PackedScene
+@export var muzzle_flash_scale: float = 1.0
 
 @export_group("Audio")
 @export var sound_shoot: AudioStream
@@ -370,6 +374,9 @@ func _try_fire() -> void:
 		audio_stream_player_3d.stream = sound_shoot
 		audio_stream_player_3d.play()
 
+	# Muzzle flash (first-person view)
+	_spawn_muzzle_flash_fpv()
+
 	# Pistol parts animation (hammer)
 	if weapon_data is Pistol_Resource:
 		_run_pistol_parts_tween()
@@ -380,6 +387,8 @@ func _try_fire() -> void:
 	# Delegate fire to resource (polymorphic dispatch)
 	var ctx := _build_fire_context()
 	weapon_data.fire(ctx)
+	# Broadcast remote firing effects to all other clients.
+	_emit_remote_fire_fx()
 	var _bolt_tween_active := weapon_data is BoltAction_Resource and _bolt_part != null
 	if shell_eject_timing == ShellEjectTiming.ON_FIRE and not _bolt_tween_active:
 		_spawn_shell_casing()
@@ -777,6 +786,27 @@ func _play_reload_sound() -> void:
 	_audio_reload.play()
 
 
+func _spawn_muzzle_flash_fpv() -> void:
+	if muzzle_flash_scene == null or bullet_point == null:
+		return
+	var flash := muzzle_flash_scene.instantiate() as Node3D
+	if flash == null:
+		return
+	flash.scale = Vector3.ONE * muzzle_flash_scale
+	# Parent under the muzzle marker so the flash follows the gun.
+	bullet_point.add_child(flash)
+	flash.transform = Transform3D.IDENTITY
+	# ~7 frames at 60 fps — long enough for GPUParticles3D to emit + render a visible burst,
+	# short enough to avoid catching VFXController's second loop cycle (stale particles).
+	# weakref prevents "lambda capture freed" error if weapon is unequipped before timeout.
+	var flash_ref: WeakRef = weakref(flash)
+	get_tree().create_timer(0.05, false).timeout.connect(func():
+		var f: Object = flash_ref.get_ref()
+		if f != null:
+			f.call("queue_free")
+	)
+
+
 func _spawn_shell_casing() -> void:
 	if shell_casing_scene == null or shell_eject_point == null:
 		return
@@ -802,3 +832,17 @@ func _spawn_shell_casing() -> void:
 	var active_shells := get_tree().get_nodes_in_group("shell_casings")
 	if active_shells.size() > max_shell_casings:
 		active_shells[0].queue_free()
+
+
+## Multiplayer: tell all peers to play remote fire FX on this shooter's TPP weapon mesh.
+## No-op in single-player (no peers) or when not the local authority.
+func _emit_remote_fire_fx() -> void:
+	if not player_interaction_component:
+		return
+	if multiplayer.get_peers().is_empty():
+		return
+	var player := player_interaction_component.get_parent()
+	if not player or not player.is_multiplayer_authority():
+		return
+	if player.has_method("rpc_play_remote_fire_fx"):
+		player.rpc_play_remote_fire_fx.rpc()

@@ -87,6 +87,10 @@ func find_cogito_properties():
 
 func interact(_player_interaction_component):
 	player_interaction_component = _player_interaction_component
+	# In MP, non-server peers forward the request to the server
+	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
+		_rpc_request_switch_toggle.rpc_id(1)
+		return
 	if !allows_repeated_interaction and is_on:
 		player_interaction_component.send_hint(null, has_been_used_hint)
 		return
@@ -118,14 +122,18 @@ func interact(_player_interaction_component):
 func switch():
 	audio_stream_player_3d.play()
 	if needs_item_to_operate and !is_holding_item:
-		if !check_for_item():
+		if not is_instance_valid(player_interaction_component) or not check_for_item():
 			return
-	
+
 	if !is_on:
 		switch_on()
 	else:
 		switch_off()
-	
+
+	# Broadcast new state to all non-server peers in MP
+	if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
+		_mp_sync_switch_state.rpc(is_on, interaction_text)
+
 	call_interact_on_objects()
 
 
@@ -185,7 +193,31 @@ func check_for_item() -> bool:
 
 
 func _on_damage_received(_damage,_bullet_direction,_bullet_position):
-	interact(CogitoSceneManager._current_player_node.player_interaction_component)
+	var _p := CogitoSceneManager._current_player_node
+	if is_instance_valid(_p):
+		interact(_p.player_interaction_component)
+
+@rpc("any_peer", "reliable")
+func _rpc_request_switch_toggle() -> void:
+	if not multiplayer.is_server(): return
+	switch()
+
+
+@rpc("authority", "reliable")
+func _mp_sync_switch_state(new_is_on: bool, text: String) -> void:
+	is_on = new_is_on
+	interaction_text = text
+	object_state_updated.emit(interaction_text)
+	switched.emit(is_on)
+	for node in nodes_to_show_when_on:
+		node.visible = new_is_on
+	for node in nodes_to_hide_when_on:
+		node.visible = not new_is_on
+	if animation_player:
+		var anim_name: String = anim_when_switched_on if new_is_on else anim_when_switched_off
+		if anim_name != "":
+			animation_player.play(anim_name, -1, animation_speed)
+
 
 func set_state():
 	if is_on:
