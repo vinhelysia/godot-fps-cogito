@@ -30,6 +30,11 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
+	# In multiplayer each player instance exists on all peers, but only the
+	# authority peer should trigger the pickup — PickupComponent's RPC handles
+	# the server-side despawn so all peers see the item disappear.
+	if multiplayer.has_multiplayer_peer() and not player.is_multiplayer_authority():
+		return
 	if body is CogitoObject:
 		pickup_item_pool.append(body)
 		is_processing_queue = true

@@ -237,7 +237,9 @@ func pick_up_slot_data(slot_data: InventorySlotPD) -> bool:
 			picked_up_new_inventory_item.emit(slot_data)
 			return true
 	
-	CogitoSceneManager._current_player_node.player_interaction_component.send_hint(null, "Unable to pick up item.")	
+	var _p := CogitoSceneManager._current_player_node
+	if is_instance_valid(_p) and is_instance_valid(_p.player_interaction_component):
+		_p.player_interaction_component.send_hint(null, "Unable to pick up item.")
 	return false
 
 

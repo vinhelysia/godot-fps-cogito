@@ -213,6 +213,9 @@ func load_player_state(player, passed_slot:String) -> void:
 
 
 func save_player_state(player, slot:String) -> void:
+	if multiplayer.has_multiplayer_peer():
+		push_warning("[CogitoSave] Save disabled during multiplayer session.")
+		return
 	if !_player_state:
 		CogitoGlobals.debug_log(true,"CSM","State doesn't exist. Creating for slot " + slot + "...")
 		_player_state = CogitoPlayerState.new()
@@ -384,6 +387,9 @@ func load_scene_state(_scene_name_to_load:String, slot:String) -> void:
 
 
 func save_scene_state(_scene_name_to_save, slot: String) -> void:
+	if multiplayer.has_multiplayer_peer():
+		push_warning("[CogitoSave] Scene save disabled during multiplayer session.")
+		return
 	if !_scene_state:
 		CogitoGlobals.debug_log(true,"CSM","CSM: Save doesn't exist. Creating...")
 		_scene_state = CogitoSceneState.new()
@@ -571,6 +577,8 @@ func _exit_tree() -> void:
 
 
 func _save_autosave_state() -> void:
+	if multiplayer.has_multiplayer_peer():
+		return
 	_current_scene_name = get_tree().get_current_scene().get_name()
 	_current_scene_path = get_tree().current_scene.scene_file_path
 	# Use the class variable instead of creating a new local variable

@@ -110,8 +110,16 @@ func apply_item_icons(item_data : InventoryItemPD, origin_index: int):
 	var icon_slot_size = item_data.item_size
 	for x in icon_slot_size.x:
 		for y in icon_slot_size.y:
+			var target_idx: int = origin_index + x + (y * grid_container.columns)
+			if target_idx >= slot_array.size():
+				continue
+			var target_slot: SlotPanel = slot_array[target_idx]
+			# Adjacent slots may miss set_slot_data if inventory updated mid-stack (MP edge case).
+			# Propagate the item_data reference so set_icon_region has something to work with.
+			if target_slot.item_data == null:
+				target_slot.item_data = item_data
 			CogitoGlobals.debug_log(true,"InventoryUI.gd","apply_item_icons: item_data=" + item_data.name + " set_icon_region(" + str(x) + "," + str(y) + ")")
-			slot_array[origin_index + x + (y*grid_container.columns)].set_icon_region(x, y)
+			target_slot.set_icon_region(x, y)
 
 
 func detach_grabbed_slot():

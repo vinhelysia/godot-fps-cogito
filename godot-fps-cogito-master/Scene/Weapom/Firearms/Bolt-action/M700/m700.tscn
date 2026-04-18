@@ -5,6 +5,7 @@
 [ext_resource type="Resource" uid="uid://dexbuqmkgsldx" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700.tres" id="2_vsell"]
 [ext_resource type="PackedScene" uid="uid://dexvig8rxjq74" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51shell_casing_fx.tscn.tscn" id="3_k8wy1"]
 [ext_resource type="AudioStream" uid="uid://cyxri4aax672l" path="res://Assets/SFX/Firearm/M700/308 Single.mp3" id="4_n1hoc"]
+[ext_resource type="PackedScene" uid="uid://e8ign5dedg53" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/muzzle_flash/muzzle_flash_05.tscn" id="4_qn1aq"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vsed6"]
 resource_name = "2b"
@@ -441,6 +442,7 @@ weapon_data = ExtResource("2_vsell")
 shell_casing_scene = ExtResource("3_k8wy1")
 shell_eject_timing = 1
 max_shell_casings = 2
+muzzle_flash_scene = ExtResource("4_qn1aq")
 sound_shoot = ExtResource("4_n1hoc")
 ads_fov = 45.0
 default_position = Vector3(0.557, -0.308, -0.897)

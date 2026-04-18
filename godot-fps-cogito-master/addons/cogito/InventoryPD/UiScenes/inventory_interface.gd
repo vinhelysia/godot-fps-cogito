@@ -421,17 +421,34 @@ func _drop_item(slot_data: InventorySlotPD) -> bool:
 		if safe_drop_distance < item_length:
 			return false
 			
+	# Compute final drop position once (branches differ only by player_radius offset).
+	var final_drop_pos: Vector3
+	if item_length < player_radius:
+		final_drop_pos = shape_cast.global_position + (safe_drop_distance - item_length / 2) * -camera_basis_z
+	else:
+		final_drop_pos = shape_cast.global_position + (safe_drop_distance - item_length / 2 + player_radius) * -camera_basis_z
+
+	# ── Multiplayer path ────────────────────────────────────────────────────────
+	# Route through server RPC so all peers see the dropped item.
+	# The local temp instance was only needed for shapecast geometry — free it.
+	if multiplayer.has_multiplayer_peer():
+		var scene_path: String = slot_data.inventory_item.drop_scene
+		var drop_rot: Vector3 = player.body.global_rotation
+		var qty: int = slot_data.quantity
+		var charge: int = slot_data.inventory_item.charge_current \
+			if "charge_current" in slot_data.inventory_item else 0
+		dropped_item.queue_free()
+		player.request_drop_item.rpc_id(1, scene_path, final_drop_pos, drop_rot, qty, charge)
+		Audio.play_sound(slot_data.inventory_item.sound_drop)
+		return true
+
+	# ── Single-player path (unchanged behaviour) ────────────────────────────────
 	CogitoSceneManager._current_scene_root_node.add_child(dropped_item)
 	dropped_item.global_rotation = player.body.global_rotation
-	dropped_item.position = shape_cast.global_position + (safe_drop_distance - item_length / 2) * -camera_basis_z
-		
+	dropped_item.position = final_drop_pos
+
 	Audio.play_sound(slot_data.inventory_item.sound_drop)
-	
-	if item_length < player_radius:
-		dropped_item.position = shape_cast.global_position + (safe_drop_distance - item_length / 2) * -camera_basis_z
-	else:
-		dropped_item.position = shape_cast.global_position + (safe_drop_distance - item_length / 2 + player_radius) * -camera_basis_z
-		
+
 	dropped_item.find_interaction_nodes()
 	for node in dropped_item.interaction_nodes:
 		if node.has_method("get_item_type"):

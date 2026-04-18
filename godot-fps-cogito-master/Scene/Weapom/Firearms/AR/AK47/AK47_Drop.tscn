@@ -1,5 +1,10 @@
 [gd_scene format=4 uid="uid://c2o5c3td65lqn"]
 
+[ext_resource type="Script" uid="uid://0tyobwpftig5" path="res://Scripts/Weapons/RemoteWeaponFxAnchor.gd" id="1_rfxanchor"]
+[ext_resource type="PackedScene" uid="uid://dd7uf7xlh4l1w" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/muzzle_flash/muzzle_flash_01.tscn" id="2_rqloe"]
+[ext_resource type="AudioStream" uid="uid://bt13lvujeulm7" path="res://Assets/SFX/Firearm/AK-47/shoot.wav" id="3_rgguw"]
+[ext_resource type="PackedScene" uid="uid://f0lviuikv26i" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39shell_casing_fx.tscn.tscn" id="4_0hnyc"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yca1f"]
 resource_name = "anodised aluminium"
 cull_mode = 2
@@ -467,3 +472,19 @@ skeleton = NodePath("")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.42475653, -0.31738266, 0)
 mesh = SubResource("ArrayMesh_g6a2n")
 skeleton = NodePath("")
+
+[node name="Bullet_Point" type="Marker3D" parent="." unique_id=700100002]
+unique_name_in_owner = true
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0, 0.19999999, -4.392451)
+
+[node name="shell_eject_point" type="Marker3D" parent="." unique_id=700100003]
+unique_name_in_owner = true
+transform = Transform3D(0.99999994, 0, 0, 0, 0.99999994, 0, 0, 0, 0.99999994, 0.14999999, 0.34211594, -0.19999999)
+
+[node name="RemoteWeaponFxAnchor" type="Node3D" parent="." unique_id=700100001 node_paths=PackedStringArray("muzzle_socket", "shell_socket")]
+script = ExtResource("1_rfxanchor")
+muzzle_socket = NodePath("../Bullet_Point")
+shell_socket = NodePath("../shell_eject_point")
+muzzle_flash_scene = ExtResource("2_rqloe")
+shot_sound = ExtResource("3_rgguw")
+shell_casing_scene = ExtResource("4_0hnyc")
