@@ -58,6 +58,40 @@ func on_reload(_ctx: Dictionary) -> bool:
 	return false
 
 
+# ── Virtual: Per-frame tick ───────────────────────────────────────────────────
+## Called every physics frame from the weapon. Used for heat decay, etc.
+func tick(_weapon: Node, _delta: float) -> void:
+	pass
+
+
+# ── Virtual: Post-fire visual ─────────────────────────────────────────────────
+## Called after a confirmed shot. Run any type-specific visual side-effects
+## (bolt root tween, hammer tween, slide-lock detection).
+func play_post_fire_visual(_weapon: Node) -> void:
+	pass
+
+
+# ── Virtual: Animation finished ───────────────────────────────────────────────
+## Called from the weapon's _on_anim_finished. Use to react to bolt/pump/vent
+## animations completing without polluting the orchestrator with type checks.
+func on_anim_finished(_weapon: Node, _anim_name: StringName) -> void:
+	pass
+
+
+# ── Virtual: Reset state on equip ─────────────────────────────────────────────
+## Called from the weapon's _reset_state. Snap mechanical parts to rest pose.
+func on_reset(_weapon: Node) -> void:
+	pass
+
+
+# ── Virtual: Shell ejection ownership ─────────────────────────────────────────
+## True if this resource drives its own shell-eject timing (e.g. bolt-action
+## with a timed shell_eject_delay). When true, the orchestrator skips its
+## ON_FIRE shell spawn so the resource can do it at the right moment.
+func handles_own_shell_eject() -> bool:
+	return false
+
+
 # ── Virtual: ADS overrides ────────────────────────────────────────────────────
 ## Negative = use weapon's ads_fov export.
 func get_ads_fov_override() -> float:

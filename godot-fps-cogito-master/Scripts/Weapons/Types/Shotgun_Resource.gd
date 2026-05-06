@@ -50,10 +50,44 @@ func fire(ctx: Dictionary) -> void:
 		if hit:
 			_deal_damage(hit.collider, (hit.position - ray_origin).normalized(), hit.position, item_ref)
 
-func on_post_fire(ctx: Dictionary) -> bool:
+func play_post_fire_visual(weapon: Node) -> void:
 	if not isPump:
-		return false
-	ctx["needs_pump_cycle"] = true
-	ctx["pump_animation"] = pumpAnimation
-	ctx["pump_duration"] = pumpDuration
-	return true
+		return
+	var firearm := weapon as CogitoFirearm
+	firearm._state = CogitoFirearm.WeaponState.CYCLING
+	# Animation-shoot-motion mode chains pump in on_anim_finished instead.
+	if firearm._uses_animation_shoot_motion():
+		return
+	firearm._schedule_post_fire_cycle(firearm._get_shoot_visual_duration(),
+			_start_pump.bind(firearm))
+
+
+func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
+	if not isPump:
+		return
+	var firearm := weapon as CogitoFirearm
+	# Shoot animation finished → start pump (animation shoot mode).
+	if firearm._uses_animation_shoot_motion() and firearm._is_shoot_animation_name(anim_name):
+		_start_pump(firearm)
+		return
+	# Pump animation finished → ready for next shot.
+	if pumpAnimation != "" and anim_name == pumpAnimation:
+		firearm._state = CogitoFirearm.WeaponState.IDLE
+		firearm._capture_rest_state()
+
+
+# ── Internal ─────────────────────────────────────────────────────────────────
+
+func _start_pump(firearm: CogitoFirearm) -> void:
+	firearm._post_fire_cycle_tween = null
+	if pumpAnimation != "" and firearm.animation_player.has_animation(pumpAnimation):
+		firearm.animation_player.play(pumpAnimation)
+	else:
+		firearm._complete_cycle_after_delay(pumpDuration,
+				_finish_pump.bind(firearm))
+
+
+func _finish_pump(firearm: CogitoFirearm) -> void:
+	firearm._post_fire_cycle_tween = null
+	firearm._state = CogitoFirearm.WeaponState.IDLE
+	firearm._capture_rest_state()
