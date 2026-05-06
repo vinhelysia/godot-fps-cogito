@@ -85827,3 +85827,19 @@ production/session-logs/session-log.md
 628e0ef fix(weapons): harden cogito_weapon lifecycle + bolt tween config
 ---
 
+## Session End: 20260506_014702
+### Commits
+094886e refactor(weapons): collapse 5 state flags into WeaponState enum (H2)
+8c816fe refactor(weapons): push type-specific logic into resource virtuals (H1)
+628e0ef fix(weapons): harden cogito_weapon lifecycle + bolt tween config
+---
+
+## Session End: 20260506_014926
+### Commits
+094886e refactor(weapons): collapse 5 state flags into WeaponState enum (H2)
+8c816fe refactor(weapons): push type-specific logic into resource virtuals (H1)
+628e0ef fix(weapons): harden cogito_weapon lifecycle + bolt tween config
+### Uncommitted Changes
+production/session-logs/session-log.md
+---
+
