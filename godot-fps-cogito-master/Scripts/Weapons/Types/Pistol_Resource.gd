@@ -25,3 +25,27 @@ func get_fire_mode() -> FireMode:
 
 func get_fire_cooldown() -> float:
 	return triggerResetTime
+
+
+func play_post_fire_visual(weapon: Node) -> void:
+	var firearm := weapon as CogitoFirearm
+	# Slide-lock on last round.  Tells ShootMotionController to keep the
+	# fire_part at its forward offset until reload completes.
+	firearm._shoot_motion.fire_part_locked = slide_lock_enabled \
+			and firearm._item_ref != null and firearm._item_ref.charge_current <= 0
+	# Hammer cock-and-return tween.
+	if firearm._hammer_part != null:
+		firearm._run_pistol_parts_tween()
+
+
+func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
+	# Release the slide-lock once reload finishes — fire_part returns to rest.
+	var firearm := weapon as CogitoFirearm
+	if firearm._is_reload_animation(anim_name):
+		firearm._shoot_motion.release_fire_part_lock()
+
+
+func on_reset(weapon: Node) -> void:
+	var firearm := weapon as CogitoFirearm
+	if firearm._hammer_part != null:
+		firearm._hammer_part.rotation = hammer_rest_rotation

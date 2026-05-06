@@ -1,6 +1,8 @@
 extends CogitoWieldable
+class_name CogitoFirearm
 ## Thin orchestrator bridging Weapon_Resource types into Cogito's wieldable system.
-## Delegates fire logic to weapon_data virtuals and motion to helper objects.
+## Delegates fire logic, post-fire visuals, anim transitions, and reset to
+## weapon_data virtuals; motion to helper RefCounted objects.
 ##
 ## Usage:
 ## 1. Create a wieldable scene (Node3D root with AnimationPlayer + AudioStreamPlayer3D + mesh).
@@ -164,16 +166,8 @@ func _physics_process(delta: float) -> void:
 		else:
 			_is_firing = false
 
-	# LMG passive heat cooldown
-	if weapon_data is LMG_Resource:
-		var lmg := weapon_data as LMG_Resource
-		if not _is_firing and not _is_venting:
-			_current_heat = maxf(0.0, _current_heat - lmg.cooldownRate * delta)
-		if _is_venting:
-			_current_heat = maxf(0.0, _current_heat - lmg.ventRate * delta)
-			if _current_heat <= 0.0:
-				_is_venting = false
-				_is_reloading = false
+	# Per-type per-frame work (e.g. LMG heat decay).
+	weapon_data.tick(self, delta)
 
 
 # ── CogitoWieldable interface ────────────────────────────────────────────────
@@ -371,14 +365,8 @@ func _try_fire() -> void:
 
 	# ── Execute shot ─────────────────────────────────────────────────────────
 
-	# Pistol slide-lock: lock fire_part at offset if this is the last bullet
-	if weapon_data is Pistol_Resource:
-		var p_res := weapon_data as Pistol_Resource
-		_shoot_motion.fire_part_locked = p_res.slide_lock_enabled \
-			and _item_ref != null and _item_ref.charge_current <= 1
-
 	# Visual
-	var used_animation_shot: bool = _play_shoot_visual()
+	_play_shoot_visual()
 
 	# Sound
 	if sound_shoot:
@@ -388,10 +376,6 @@ func _try_fire() -> void:
 	# Muzzle flash (first-person view)
 	_spawn_muzzle_flash_fpv()
 
-	# Pistol parts animation (hammer)
-	if weapon_data is Pistol_Resource:
-		_run_pistol_parts_tween()
-
 	# Consume ammo
 	_item_ref.subtract(1)
 
@@ -400,8 +384,7 @@ func _try_fire() -> void:
 	weapon_data.fire(ctx)
 	# Broadcast remote firing effects to all other clients.
 	_emit_remote_fire_fx()
-	var _bolt_tween_active := weapon_data is BoltAction_Resource and _bolt_part != null
-	if shell_eject_timing == ShellEjectTiming.ON_FIRE and not _bolt_tween_active:
+	if shell_eject_timing == ShellEjectTiming.ON_FIRE and not weapon_data.handles_own_shell_eject(self):
 		_spawn_shell_casing()
 
 	# Recoil
@@ -410,24 +393,9 @@ func _try_fire() -> void:
 	# Cooldown (polymorphic)
 	_fire_cooldown = weapon_data.get_fire_cooldown()
 
-	# Post-fire (bolt cycle, pump — polymorphic)
-	var post_ctx := {"used_animation_shot": used_animation_shot}
-	if weapon_data.on_post_fire(post_ctx):
-		if post_ctx.get("needs_bolt_cycle", false):
-			_bolt_is_cycled = false
-			if not used_animation_shot:
-				_schedule_post_fire_cycle(_get_shoot_visual_duration(), "bolt")
-		if post_ctx.get("needs_pump_cycle", false):
-			_pump_ready = false
-			if not used_animation_shot:
-				_schedule_post_fire_cycle(_get_shoot_visual_duration(), "pump")
-
-	# LMG heat accumulation
-	if weapon_data is LMG_Resource:
-		var lmg := weapon_data as LMG_Resource
-		_current_heat = minf(1.0, _current_heat + lmg.heatPerShot)
-		if _current_heat >= 1.0:
-			_is_firing = false
+	# Type-specific post-fire visuals + state (bolt cycle, pump, hammer, slide-lock,
+	# LMG heat).  Each Weapon_Resource subclass overrides play_post_fire_visual.
+	weapon_data.play_post_fire_visual(self)
 
 
 func _build_fire_context() -> Dictionary:
@@ -463,102 +431,41 @@ func _get_shoot_visual_duration() -> float:
 
 
 # ── Post-fire cycling ────────────────────────────────────────────────────────
-
-func _schedule_post_fire_cycle(delay: float, cycle_type: String) -> void:
+## Schedule a post-fire callback after a delay (e.g. shoot-tween duration).
+## Resources call this to start their bolt/pump cycle when shoot motion finishes.
+func _schedule_post_fire_cycle(delay: float, on_cycle: Callable) -> void:
 	if _post_fire_cycle_tween:
 		_post_fire_cycle_tween.kill()
 	_post_fire_cycle_tween = create_tween()
 	if delay > 0.0:
 		_post_fire_cycle_tween.tween_interval(delay)
-	_post_fire_cycle_tween.finished.connect(_start_post_fire_cycle.bind(cycle_type))
+	_post_fire_cycle_tween.finished.connect(on_cycle)
 
 
-func _start_post_fire_cycle(cycle_type: String) -> void:
-	_post_fire_cycle_tween = null
-	if weapon_data == null:
-		return
-
-	if cycle_type == "bolt" and weapon_data is BoltAction_Resource:
-		var bolt_res := weapon_data as BoltAction_Resource
-		if _bolt_part != null:
-			# Shell ejection is timed inside _run_bolt_tween via shell_eject_delay.
-			_run_bolt_tween()
-		else:
-			# No bolt tween — spawn shell here for animation/fallback path.
-			if shell_eject_timing == ShellEjectTiming.ON_CYCLE:
-				_spawn_shell_casing()
-			var anim := _get_bolt_cycle_animation_name(bolt_res)
-			if anim != "" and animation_player.has_animation(anim):
-				animation_player.play(anim)
-			else:
-				_complete_cycle_after_delay("bolt", bolt_res.boltCycleDuration)
-	elif cycle_type == "pump" and weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
-		var sg := weapon_data as Shotgun_Resource
-		if sg.pumpAnimation != "" and animation_player.has_animation(sg.pumpAnimation):
-			animation_player.play(sg.pumpAnimation)
-		else:
-			_complete_cycle_after_delay("pump", sg.pumpDuration)
-
-
-func _complete_cycle_after_delay(cycle_type: String, delay: float) -> void:
+## Wait `delay` seconds, then call `on_done`.  Used by resources whose cycle
+## animation is missing (fallback to a timed completion).
+func _complete_cycle_after_delay(delay: float, on_done: Callable) -> void:
 	if delay <= 0.0:
-		_finalize_cycle(cycle_type)
+		on_done.call()
 		return
 	_post_fire_cycle_tween = create_tween()
 	_post_fire_cycle_tween.tween_interval(delay)
-	_post_fire_cycle_tween.finished.connect(func():
-		_post_fire_cycle_tween = null
-		_finalize_cycle(cycle_type)
-	)
-
-
-func _finalize_cycle(cycle_type: String) -> void:
-	if cycle_type == "bolt":
-		_bolt_is_cycled = true
-	elif cycle_type == "pump":
-		_pump_ready = true
-	_capture_rest_state()
+	_post_fire_cycle_tween.finished.connect(on_done)
 
 
 # ── Animation callbacks ──────────────────────────────────────────────────────
 
 func _on_anim_finished(anim_name: StringName) -> void:
-	# Reload finished
+	# Reload finished — restock magazine and clear state.
 	if _is_reload_animation(anim_name):
 		_ammo.finish_reload(_item_ref)
 		_is_reloading = false
 		_capture_rest_state()
-		if weapon_data is Pistol_Resource:
-			_shoot_motion.release_fire_part_lock()
 
-	# Shoot animation finished — chain bolt/pump cycle
-	if _uses_animation_shoot_motion() and _is_shoot_animation_name(anim_name):
-		if weapon_data is BoltAction_Resource:
-			if _bolt_part != null:
-				_run_bolt_tween()
-			else:
-				var bolt_res := weapon_data as BoltAction_Resource
-				var bolt_anim := _get_bolt_cycle_animation_name(bolt_res)
-				if bolt_anim != "" and animation_player.has_animation(bolt_anim):
-					animation_player.play(bolt_anim)
-		if weapon_data is Shotgun_Resource and (weapon_data as Shotgun_Resource).isPump:
-			var pump_anim: String = (weapon_data as Shotgun_Resource).pumpAnimation
-			if pump_anim != "" and animation_player.has_animation(pump_anim):
-				animation_player.play(pump_anim)
-
-	# Bolt/pump cycle animations finished
-	if _is_bolt_cycle_animation_name(anim_name):
-		_bolt_is_cycled = true
-		_capture_rest_state()
-	if weapon_data is Shotgun_Resource and anim_name == (weapon_data as Shotgun_Resource).pumpAnimation:
-		_pump_ready = true
-		_capture_rest_state()
-
-	# LMG vent finished
-	if weapon_data is LMG_Resource and anim_name == (weapon_data as LMG_Resource).ventAnimation:
-		_is_venting = false
-		_is_reloading = false
-		_capture_rest_state()
+	# Per-type anim transitions (bolt cycle, pump cycle, vent finished,
+	# slide-lock release, etc.).  Subclasses of Weapon_Resource handle their own.
+	if weapon_data:
+		weapon_data.on_anim_finished(self, anim_name)
 
 	# Equip finished
 	if anim_name == anim_equip:
@@ -697,7 +604,8 @@ func _run_bolt_tween() -> void:
 			_bolt_root_tween = null
 		# Restore rotation to pre-cycle rest value before _capture_rest_state() reads it
 		rotation_degrees = _bolt_pre_cycle_rest_rot
-		_finalize_cycle("bolt")
+		_bolt_is_cycled = true
+		_capture_rest_state()
 	)
 
 
@@ -712,21 +620,6 @@ func _run_pistol_parts_tween() -> void:
 		_hammer_tween.tween_property(_hammer_part, "rotation",
 			p_res.hammer_rest_rotation, p_res.hammer_return_duration)
 		_hammer_tween.finished.connect(func(): _hammer_tween = null)
-
-
-func _get_bolt_cycle_animation_name(bolt_res: BoltAction_Resource) -> String:
-	if _ads.is_aiming and bolt_cycle_animation_ads != "" \
-			and animation_player.has_animation(bolt_cycle_animation_ads):
-		return bolt_cycle_animation_ads
-	return bolt_res.boltCycleAnimation
-
-
-func _is_bolt_cycle_animation_name(anim_name: StringName) -> bool:
-	if not (weapon_data is BoltAction_Resource):
-		return false
-	var bolt_res := weapon_data as BoltAction_Resource
-	return anim_name == bolt_res.boltCycleAnimation \
-		or (bolt_cycle_animation_ads != "" and anim_name == bolt_cycle_animation_ads)
 
 
 func _sync_shoot_motion_config() -> void:
@@ -778,15 +671,12 @@ func _reset_state() -> void:
 	if _bolt_root_tween:
 		_bolt_root_tween.kill()
 		_bolt_root_tween = null
-	if _bolt_part != null and weapon_data is BoltAction_Resource:
-		var bolt_res := weapon_data as BoltAction_Resource
-		_bolt_part.position = bolt_res.bolt_position_forward
-		_bolt_part.rotation = bolt_res.bolt_locked_rotation
 	if _hammer_tween:
 		_hammer_tween.kill()
 		_hammer_tween = null
-	if weapon_data is Pistol_Resource and _hammer_part != null:
-		_hammer_part.rotation = (weapon_data as Pistol_Resource).hammer_rest_rotation
+	# Per-type rest snap (bolt forward+locked, hammer rest, etc.).
+	if weapon_data:
+		weapon_data.on_reset(self)
 	_shoot_motion.fire_part_locked = false
 	_capture_rest_state()
 

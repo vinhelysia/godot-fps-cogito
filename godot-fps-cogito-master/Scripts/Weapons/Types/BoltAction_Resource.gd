@@ -41,8 +41,73 @@ class_name BoltAction_Resource
 func get_fire_mode() -> FireMode:
 	return FireMode.BOLT_ACTION
 
-func on_post_fire(ctx: Dictionary) -> bool:
-	ctx["needs_bolt_cycle"] = true
-	ctx["bolt_cycle_animation"] = boltCycleAnimation
-	ctx["bolt_cycle_duration"] = boltCycleDuration
-	return true
+
+func handles_own_shell_eject(weapon: Node) -> bool:
+	# Bolt-action always handles its own eject — either through the bolt-tween
+	# shell_eject_delay path or through the cycle animation. The orchestrator's
+	# ON_FIRE eject would fire too early.
+	return (weapon as CogitoFirearm)._bolt_part != null
+
+
+func play_post_fire_visual(weapon: Node) -> void:
+	var firearm := weapon as CogitoFirearm
+	firearm._bolt_is_cycled = false
+	# Animation-shoot-motion mode chains the cycle in on_anim_finished instead.
+	if firearm._uses_animation_shoot_motion():
+		return
+	firearm._schedule_post_fire_cycle(firearm._get_shoot_visual_duration(),
+			_start_cycle.bind(firearm))
+
+
+func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
+	var firearm := weapon as CogitoFirearm
+	# Shoot animation finished → kick off the bolt cycle (animation shoot mode).
+	if firearm._uses_animation_shoot_motion() and firearm._is_shoot_animation_name(anim_name):
+		_start_cycle(firearm)
+		return
+	# Bolt-cycle animation finished → ready for next shot.
+	if _is_bolt_cycle_anim(firearm, anim_name):
+		firearm._bolt_is_cycled = true
+		firearm._capture_rest_state()
+
+
+func on_reset(weapon: Node) -> void:
+	var firearm := weapon as CogitoFirearm
+	if firearm._bolt_part != null:
+		firearm._bolt_part.position = bolt_position_forward
+		firearm._bolt_part.rotation = bolt_locked_rotation
+
+
+# ── Internal ─────────────────────────────────────────────────────────────────
+
+func _start_cycle(firearm: CogitoFirearm) -> void:
+	firearm._post_fire_cycle_tween = null
+	if firearm._bolt_part != null:
+		firearm._run_bolt_tween()
+		return
+	if firearm.shell_eject_timing == CogitoFirearm.ShellEjectTiming.ON_CYCLE:
+		firearm._spawn_shell_casing()
+	var anim := _get_cycle_anim_name(firearm)
+	if anim != "" and firearm.animation_player.has_animation(anim):
+		firearm.animation_player.play(anim)
+	else:
+		firearm._complete_cycle_after_delay(boltCycleDuration,
+				_finish_cycle.bind(firearm))
+
+
+func _finish_cycle(firearm: CogitoFirearm) -> void:
+	firearm._post_fire_cycle_tween = null
+	firearm._bolt_is_cycled = true
+	firearm._capture_rest_state()
+
+
+func _get_cycle_anim_name(firearm: CogitoFirearm) -> String:
+	if firearm._ads.is_aiming and firearm.bolt_cycle_animation_ads != "" \
+			and firearm.animation_player.has_animation(firearm.bolt_cycle_animation_ads):
+		return firearm.bolt_cycle_animation_ads
+	return boltCycleAnimation
+
+
+func _is_bolt_cycle_anim(firearm: CogitoFirearm, anim_name: StringName) -> bool:
+	return anim_name == boltCycleAnimation \
+		or (firearm.bolt_cycle_animation_ads != "" and anim_name == firearm.bolt_cycle_animation_ads)
