@@ -29,7 +29,7 @@ enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
 @onready var shell_eject_point: Marker3D = get_node_or_null("%shell_eject_point") as Marker3D
 @export_group("Muzzle")
 ## Marker3D where bullets/projectiles spawn. Set via unique name %Bullet_Point.
-@onready var bullet_point: Marker3D = %Bullet_Point
+@onready var bullet_point: Marker3D = get_node_or_null("%Bullet_Point") as Marker3D
 ## Muzzle flash scene to spawn on each shot (first-person view).
 ## Use any muzzle_flash_0N.tscn or short_flash_0N.tscn from Scene/VFX/MuzzleFlash.
 @export var muzzle_flash_scene: PackedScene
@@ -140,6 +140,7 @@ func _ready() -> void:
 	_ads = ADSController.new(self)
 	_shoot_motion = ShootMotionController.new(self)
 	_shoot_motion.shoot_visual_finished.connect(_on_shoot_visual_finished)
+	_ammo = AmmoManager.new(null)
 	_sync_shoot_motion_config()
 	_capture_rest_state()
 	if bolt_part_node != NodePath(""):
@@ -180,7 +181,9 @@ func _physics_process(delta: float) -> void:
 func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 	player_interaction_component = _player_interaction_component
 	_item_ref = item_reference
-	_ammo = AmmoManager.new(player_interaction_component)
+	_ammo.set_pic(player_interaction_component)
+	if bullet_point == null:
+		push_error("cogito_weapon: %%Bullet_Point Marker3D missing on weapon scene %s" % name)
 	_reset_state()
 	_shoot_motion.cancel(false)
 	animation_player.play(anim_equip)
@@ -197,9 +200,17 @@ func unequip() -> void:
 	if _hammer_tween:
 		_hammer_tween.kill()
 		_hammer_tween = null
+	if _post_fire_cycle_tween:
+		_post_fire_cycle_tween.kill()
+		_post_fire_cycle_tween = null
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
 	_is_firing = false
+	_is_reloading = false
+	_is_venting = false
+	_bolt_is_cycled = true
+	_pump_ready = true
+	_sprint_blocked_press = false
 	if _ads.is_aiming:
 		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, true,
@@ -648,11 +659,11 @@ func _run_bolt_tween() -> void:
 	# Root viewmodel motion — eases to offset as bolt pulls back, returns as it closes
 	_bolt_root_tween = create_tween().set_trans(Tween.TRANS_SINE)
 	_bolt_root_tween.tween_property(self, "position",
-		base_pos + bolt_res.bolt_root_position_offset, 0.5)
+		base_pos + bolt_res.bolt_root_position_offset, bolt_res.bolt_root_out_duration)
 	_bolt_root_tween.parallel().tween_property(self, "rotation",
-		base_rot + bolt_res.bolt_root_rotation_offset, 0.5)
-	_bolt_root_tween.tween_property(self, "position", base_pos, 0.7)
-	_bolt_root_tween.parallel().tween_property(self, "rotation", base_rot, 0.7)
+		base_rot + bolt_res.bolt_root_rotation_offset, bolt_res.bolt_root_out_duration)
+	_bolt_root_tween.tween_property(self, "position", base_pos, bolt_res.bolt_root_return_duration)
+	_bolt_root_tween.parallel().tween_property(self, "rotation", base_rot, bolt_res.bolt_root_return_duration)
 
 	# Shell ejection timed to bolt pull-back moment — always handled here for bolt tween.
 	var shell_timer := create_tween()

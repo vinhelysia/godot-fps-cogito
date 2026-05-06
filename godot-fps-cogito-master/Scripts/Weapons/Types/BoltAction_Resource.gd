@@ -27,6 +27,10 @@ class_name BoltAction_Resource
 @export var bolt_root_position_offset: Vector3 = Vector3(-0.137, -0.032, 0.032)
 ## Root viewmodel rotation offset at peak of bolt cycle (radians, applied relative to current rotation).
 @export var bolt_root_rotation_offset: Vector3 = Vector3(-0.2617994, 0.0174532, 0.034906585)
+## Time to ease the viewmodel out to the bolt-cycle peak offset.
+@export var bolt_root_out_duration: float = 0.5
+## Time to ease the viewmodel back to its rest pose after the bolt closes.
+@export var bolt_root_return_duration: float = 0.7
 
 @export_group("Shell Ejection Timing")
 ## Seconds after bolt cycle starts before the shell casing is ejected.
