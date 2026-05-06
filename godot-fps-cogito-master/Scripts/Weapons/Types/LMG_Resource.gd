@@ -31,3 +31,33 @@ func on_reload(ctx: Dictionary) -> bool:
 	ctx["start_venting"] = true
 	ctx["vent_animation"] = ventAnimation
 	return true
+
+
+func tick(weapon: Node, delta: float) -> void:
+	var firearm := weapon as CogitoFirearm
+	# Passive cooling while trigger released and not actively venting.
+	if not firearm._is_firing and not firearm._is_venting:
+		firearm._current_heat = maxf(0.0, firearm._current_heat - cooldownRate * delta)
+	# Active venting (Reload-held).
+	if firearm._is_venting:
+		firearm._current_heat = maxf(0.0, firearm._current_heat - ventRate * delta)
+		if firearm._current_heat <= 0.0:
+			firearm._is_venting = false
+			firearm._is_reloading = false
+
+
+func play_post_fire_visual(weapon: Node) -> void:
+	# Heat accumulation runs after every shot.  No tween required.
+	var firearm := weapon as CogitoFirearm
+	firearm._current_heat = minf(1.0, firearm._current_heat + heatPerShot)
+	if firearm._current_heat >= 1.0:
+		firearm._is_firing = false
+
+
+func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
+	if anim_name != ventAnimation:
+		return
+	var firearm := weapon as CogitoFirearm
+	firearm._is_venting = false
+	firearm._is_reloading = false
+	firearm._capture_rest_state()

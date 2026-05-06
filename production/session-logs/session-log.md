@@ -85822,3 +85822,8 @@ production/session-logs/compaction-log.txt
 production/session-logs/session-log.md
 ---
 
+## Session End: 20260506_013101
+### Commits
+628e0ef fix(weapons): harden cogito_weapon lifecycle + bolt tween config
+---
+
