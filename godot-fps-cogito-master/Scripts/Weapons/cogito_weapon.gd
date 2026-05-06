@@ -19,6 +19,10 @@ class_name CogitoFirearm
 
 enum ShootMotionMode { ANIMATION, TWEEN }
 enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
+## Mutually-exclusive action states. CYCLING covers both bolt-action and pump
+## (no weapon is both). VENTING is the LMG heat-vent path (formerly _is_venting
+## with _is_reloading held true alongside).
+enum WeaponState { IDLE, CYCLING, RELOADING, VENTING }
 # ── EXPORTS (names preserved for .tscn compatibility) ────────────────────────
 
 @export_group("Weapon Configuration")
@@ -108,13 +112,10 @@ var _ammo: AmmoManager
 
 # ── INTERNAL STATE ───────────────────────────────────────────────────────────
 
-var _is_firing: bool = false
+var _state: WeaponState = WeaponState.IDLE
+var _trigger_held: bool = false
 var _fire_cooldown: float = 0.0
-var _is_reloading: bool = false
-var _bolt_is_cycled: bool = true
-var _pump_ready: bool = true
 var _current_heat: float = 0.0
-var _is_venting: bool = false
 var _sprint_blocked_press: bool = false
 var _item_ref: WieldableItemPD
 var _rest_rotation_degrees: Vector3 = Vector3.ZERO
@@ -157,14 +158,14 @@ func _physics_process(delta: float) -> void:
 
 	_fire_cooldown = maxf(0.0, _fire_cooldown - delta)
 
-	# Auto-fire loop
-	if _is_firing and not _is_reloading and _fire_cooldown <= 0.0:
+	# Auto-fire loop — only when state is IDLE (not reloading/venting/cycling).
+	if _trigger_held and _state == WeaponState.IDLE and _fire_cooldown <= 0.0:
 		if _is_player_sprinting():
-			_is_firing = false
+			_trigger_held = false
 		elif _item_ref and _item_ref.charge_current > 0:
 			_try_fire()
 		else:
-			_is_firing = false
+			_trigger_held = false
 
 	# Per-type per-frame work (e.g. LMG heat decay).
 	weapon_data.tick(self, delta)
@@ -199,11 +200,8 @@ func unequip() -> void:
 		_post_fire_cycle_tween = null
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
-	_is_firing = false
-	_is_reloading = false
-	_is_venting = false
-	_bolt_is_cycled = true
-	_pump_ready = true
+	_trigger_held = false
+	_state = WeaponState.IDLE
 	_sprint_blocked_press = false
 	if _ads.is_aiming:
 		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
@@ -220,7 +218,7 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 		return
 
 	if _is_released:
-		_is_firing = false
+		_trigger_held = false
 		if not _sprint_blocked_press:
 			var elapsed: float = Time.get_ticks_msec() / 1000.0 - _trigger.press_time
 			var delay: float = maxf(0.0, trigger_min_hold_time - elapsed)
@@ -243,7 +241,7 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 		if _item_ref and _item_ref.charge_current <= 0:
 			_item_ref.send_empty_hint()
 			return
-		_is_firing = true
+		_trigger_held = true
 		_try_fire()
 		return
 
@@ -273,15 +271,9 @@ func action_secondary(_is_released: bool) -> void:
 
 
 func reload() -> void:
-	if weapon_data == null or _is_reloading or animation_player.is_playing():
+	if weapon_data == null or _state != WeaponState.IDLE or animation_player.is_playing():
 		return
 	if _item_ref == null:
-		return
-
-	var mode := weapon_data.get_fire_mode()
-	if mode == Weapon_Resource.FireMode.BOLT_ACTION and not _bolt_is_cycled:
-		return
-	if mode == Weapon_Resource.FireMode.PUMP and not _pump_ready:
 		return
 
 	# Let resource handle special reload (LMG vent)
@@ -290,8 +282,7 @@ func reload() -> void:
 		_shoot_motion.cancel(true)
 		_apply_rest_pose()
 		if reload_ctx.get("start_venting", false):
-			_is_venting = true
-			_is_reloading = true
+			_state = WeaponState.VENTING
 			var vent_anim: String = reload_ctx.get("vent_animation", "")
 			if vent_anim != "":
 				animation_player.play(vent_anim)
@@ -304,7 +295,7 @@ func reload() -> void:
 
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
-	_is_reloading = true
+	_state = WeaponState.RELOADING
 	animation_player.play(_get_reload_animation_name())
 	_play_reload_sound()
 
@@ -328,8 +319,8 @@ func is_ads_active() -> bool:
 
 func should_suspend_container_motion() -> bool:
 	return animation_player.is_playing() \
-		or _is_reloading \
-		or _is_firing \
+		or _state != WeaponState.IDLE \
+		or _trigger_held \
 		or (_shoot_motion != null and _shoot_motion.is_active)
 
 
@@ -337,27 +328,23 @@ func should_suspend_container_motion() -> bool:
 
 func _try_fire() -> void:
 	if _is_player_sprinting():
-		_is_firing = false
+		_trigger_held = false
 		return
-	if weapon_data == null or _is_reloading or _fire_cooldown > 0.0:
+	# State gate replaces the old _is_reloading + _bolt_is_cycled + _pump_ready
+	# guard chain: any non-IDLE state blocks fire.
+	if weapon_data == null or _state != WeaponState.IDLE or _fire_cooldown > 0.0:
 		return
 	if _item_ref == null or _item_ref.charge_current <= 0:
 		if _item_ref:
 			_item_ref.send_empty_hint()
-		_is_firing = false
+		_trigger_held = false
 		return
 
 	var mode := weapon_data.get_fire_mode()
 
-	# Type-specific guards
-	if mode == Weapon_Resource.FireMode.BOLT_ACTION and not _bolt_is_cycled:
-		return
-	if mode == Weapon_Resource.FireMode.PUMP and not _pump_ready:
-		return
-
 	var fire_state := {"current_heat": _current_heat}
 	if not weapon_data.can_fire(fire_state):
-		_is_firing = false
+		_trigger_held = false
 		return
 
 	if _uses_animation_shoot_motion() and mode != Weapon_Resource.FireMode.AUTO and _is_shoot_animation_playing():
@@ -459,7 +446,7 @@ func _on_anim_finished(anim_name: StringName) -> void:
 	# Reload finished — restock magazine and clear state.
 	if _is_reload_animation(anim_name):
 		_ammo.finish_reload(_item_ref)
-		_is_reloading = false
+		_state = WeaponState.IDLE
 		_capture_rest_state()
 
 	# Per-type anim transitions (bolt cycle, pump cycle, vent finished,
@@ -604,7 +591,7 @@ func _run_bolt_tween() -> void:
 			_bolt_root_tween = null
 		# Restore rotation to pre-cycle rest value before _capture_rest_state() reads it
 		rotation_degrees = _bolt_pre_cycle_rest_rot
-		_bolt_is_cycled = true
+		_state = WeaponState.IDLE
 		_capture_rest_state()
 	)
 
@@ -656,13 +643,10 @@ func _apply_rest_pose() -> void:
 
 
 func _reset_state() -> void:
+	_state = WeaponState.IDLE
 	_fire_cooldown = 0.0
-	_bolt_is_cycled = true
-	_pump_ready = true
 	_current_heat = 0.0
-	_is_venting = false
-	_is_reloading = false
-	_is_firing = false
+	_trigger_held = false
 	_sprint_blocked_press = false
 	_ads.is_aiming = false
 	if _bolt_cycle_tween:

@@ -51,7 +51,7 @@ func handles_own_shell_eject(weapon: Node) -> bool:
 
 func play_post_fire_visual(weapon: Node) -> void:
 	var firearm := weapon as CogitoFirearm
-	firearm._bolt_is_cycled = false
+	firearm._state = CogitoFirearm.WeaponState.CYCLING
 	# Animation-shoot-motion mode chains the cycle in on_anim_finished instead.
 	if firearm._uses_animation_shoot_motion():
 		return
@@ -67,7 +67,7 @@ func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
 		return
 	# Bolt-cycle animation finished → ready for next shot.
 	if _is_bolt_cycle_anim(firearm, anim_name):
-		firearm._bolt_is_cycled = true
+		firearm._state = CogitoFirearm.WeaponState.IDLE
 		firearm._capture_rest_state()
 
 
@@ -97,7 +97,7 @@ func _start_cycle(firearm: CogitoFirearm) -> void:
 
 func _finish_cycle(firearm: CogitoFirearm) -> void:
 	firearm._post_fire_cycle_tween = null
-	firearm._bolt_is_cycled = true
+	firearm._state = CogitoFirearm.WeaponState.IDLE
 	firearm._capture_rest_state()
 
 
