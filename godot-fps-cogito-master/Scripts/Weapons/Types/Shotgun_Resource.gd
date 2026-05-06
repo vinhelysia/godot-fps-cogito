@@ -54,7 +54,7 @@ func play_post_fire_visual(weapon: Node) -> void:
 	if not isPump:
 		return
 	var firearm := weapon as CogitoFirearm
-	firearm._pump_ready = false
+	firearm._state = CogitoFirearm.WeaponState.CYCLING
 	# Animation-shoot-motion mode chains pump in on_anim_finished instead.
 	if firearm._uses_animation_shoot_motion():
 		return
@@ -72,7 +72,7 @@ func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
 		return
 	# Pump animation finished → ready for next shot.
 	if pumpAnimation != "" and anim_name == pumpAnimation:
-		firearm._pump_ready = true
+		firearm._state = CogitoFirearm.WeaponState.IDLE
 		firearm._capture_rest_state()
 
 
@@ -89,5 +89,5 @@ func _start_pump(firearm: CogitoFirearm) -> void:
 
 func _finish_pump(firearm: CogitoFirearm) -> void:
 	firearm._post_fire_cycle_tween = null
-	firearm._pump_ready = true
+	firearm._state = CogitoFirearm.WeaponState.IDLE
 	firearm._capture_rest_state()
