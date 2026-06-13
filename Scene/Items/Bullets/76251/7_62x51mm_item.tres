@@ -11,5 +11,5 @@ icon = ExtResource("1_pfrcw")
 slot_background_preset = 1
 is_stackable = true
 stack_size = 50
-drop_scene = null
+drop_scene = "uid://u7tvrbwfpvb2"
 metadata/_custom_type_script = "uid://6vgnb68cqtwh"

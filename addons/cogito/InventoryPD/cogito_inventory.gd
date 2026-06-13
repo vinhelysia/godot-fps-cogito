@@ -75,11 +75,12 @@ func grab_slot_data(index: int) -> InventorySlotPD:
 func grab_single_slot_data(index: int) -> InventorySlotPD:
 	var slot_data = inventory_slots[index]
 	if slot_data:
+		var single_slot = slot_data.create_single_slot_data_gamepad_drop(index)
 		slot_data.quantity -= 1
 		if slot_data.quantity < 1:
 			null_out_slots(slot_data)
 		inventory_updated.emit(self)
-		return slot_data
+		return single_slot
 	else:
 		return null
 
@@ -220,23 +221,59 @@ func drop_single_slot_data(grabbed_slot_data: InventorySlotPD, index: int) -> In
 
 
 func pick_up_slot_data(slot_data: InventorySlotPD) -> bool:
-	for index in inventory_slots.size():
-		slot_data.origin_index = index
-		if inventory_slots[index] and inventory_slots[index].can_fully_merge_with(slot_data):
-			slot_data.origin_index = index
-			inventory_slots[index].fully_merge_with(slot_data)
-			inventory_updated.emit(self)
-			return true
+	if not slot_data or not slot_data.inventory_item:
+		return false
+		
+	var original_quantity = slot_data.quantity
 	
+	# Step 1: Try to merge with existing stacks (only if the item is stackable)
+	if slot_data.inventory_item.is_stackable:
+		for index in inventory_slots.size():
+			var current_slot = inventory_slots[index]
+			# Check if we can merge with this slot (same item name/resource)
+			if current_slot and (current_slot.inventory_item == slot_data.inventory_item or current_slot.inventory_item.name == slot_data.inventory_item.name):
+				var max_stack = current_slot.inventory_item.stack_size
+				if current_slot.quantity < max_stack:
+					var room = max_stack - current_slot.quantity
+					var to_add = min(room, slot_data.quantity)
+					current_slot.quantity += to_add
+					slot_data.quantity -= to_add
+					if slot_data.quantity == 0:
+						inventory_updated.emit(self)
+						return true
+						
+	# Step 2: Try to place remaining in empty slots
 	for index in inventory_slots.size():
-		slot_data.origin_index = index
 		if not inventory_slots[index] and is_enough_space(slot_data, index, true):
-			inventory_slots[index] = slot_data
-			add_adjacent_slots(index)
-			inventory_updated.emit(self)
-			picked_up_new_inventory_item.emit(slot_data)
-			return true
+			# If the item is stackable, we might split it if it exceeds stack_size
+			if slot_data.inventory_item.is_stackable and slot_data.quantity > slot_data.inventory_item.stack_size:
+				var new_slot = slot_data.duplicate()
+				new_slot.origin_index = index
+				new_slot.quantity = slot_data.inventory_item.stack_size
+				inventory_slots[index] = new_slot
+				add_adjacent_slots(index)
+				slot_data.quantity -= slot_data.inventory_item.stack_size
+				picked_up_new_inventory_item.emit(new_slot)
+			else:
+				# Fits entirely in this empty slot
+				var new_slot = slot_data.duplicate()
+				new_slot.origin_index = index
+				inventory_slots[index] = new_slot
+				add_adjacent_slots(index)
+				slot_data.quantity = 0
+				inventory_updated.emit(self)
+				picked_up_new_inventory_item.emit(new_slot)
+				return true
+				
+	# If we got here, slot_data.quantity might have decreased but is still > 0.
+	# Or it could be unchanged.
+	inventory_updated.emit(self)
 	
+	# Return true if we successfully picked up at least 1 item
+	if slot_data.quantity < original_quantity:
+		return true
+		
+	# If we picked up nothing at all
 	var _p := CogitoSceneManager._current_player_node
 	if is_instance_valid(_p) and is_instance_valid(_p.player_interaction_component):
 		_p.player_interaction_component.send_hint(null, "Unable to pick up item.")
@@ -256,10 +293,15 @@ func get_all_items() -> Array[InventoryItemPD]:
 func take_all_items(target_inventory: CogitoInventory):
 	for slot in inventory_slots:
 		if slot != null:
-			#grab item in slot and add it to target inventory
-			if target_inventory.pick_up_slot_data(slot.duplicate()):
-				print("Grabbed ", slot.inventory_item.name)
-				remove_slot_data(slot) #Empty the slot
+			var original_quantity = slot.quantity
+			var temp_slot = slot.duplicate()
+			if target_inventory.pick_up_slot_data(temp_slot):
+				if temp_slot.quantity <= 0:
+					print("Grabbed all of ", slot.inventory_item.name)
+					remove_slot_data(slot) #Empty the slot
+				else:
+					print("Grabbed partial ", slot.inventory_item.name, ", remaining: ", temp_slot.quantity)
+					slot.quantity = temp_slot.quantity
 				force_inventory_update()
 
 

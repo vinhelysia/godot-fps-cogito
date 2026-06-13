@@ -250,26 +250,31 @@ func on_inventory_button_press(inventory_data: CogitoInventory, index: int, acti
 			print("Inventory_interface.gd: Gamepad use_item pressed while grabbed_slot_data. Calling drop_single_slot_data...")
 			grabbed_slot_data = inventory_data.drop_single_slot_data(grabbed_slot_data, index)
 		[null, "inventory_drop_item"]:
-			grabbed_slot_data = inventory_data.get_slot_data(index)
-			if grabbed_slot_data:
-				if !grabbed_slot_data.inventory_item.is_droppable:
+			var slot_to_drop = inventory_data.get_slot_data(index)
+			if slot_to_drop:
+				if !slot_to_drop.inventory_item.is_droppable:
 					CogitoGlobals.debug_log(true, "inventory_interface.gd", "Item is not droppable.")
 					Audio.play_sound(sound_error)
-					grabbed_slot_data = null
 					return
-				if grabbed_slot_data.inventory_item.has_method("update_wieldable_data") and grabbed_slot_data.inventory_item.is_being_wielded:
-				#if grabbed_slot_data.inventory_item.ItemType.WIELDABLE and grabbed_slot_data.inventory_item.is_being_wielded:
+				if slot_to_drop.inventory_item.has_method("update_wieldable_data") and slot_to_drop.inventory_item.is_being_wielded:
 					Audio.play_sound(sound_error)
 					CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop while wielding this item.")
-					grabbed_slot_data = null
+				elif not slot_to_drop.inventory_item.drop_scene or slot_to_drop.inventory_item.drop_scene == "":
+					Audio.play_sound(sound_error)
+					get_parent().player.player_interaction_component.send_hint(null, "This item cannot be dropped (no drop scene configured).")
 				else:
-					CogitoGlobals.debug_log(true, "inventory_interface.gd", "Dropping slot data via gamepad ")
-					grabbed_slot_data = inventory_data.grab_single_slot_data(index)
-					if not _drop_item(grabbed_slot_data):
-						Audio.play_sound(sound_error)
-						get_parent().player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
-						CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop because there isn't enough space.")
+					if Input.is_key_pressed(KEY_CTRL):
+						_show_drop_quantity_dialog(inventory_data, index, slot_to_drop)
 					else:
+						CogitoGlobals.debug_log(true, "inventory_interface.gd", "Dropping entire stack via keyboard/gamepad")
+						var drop_data = slot_to_drop.duplicate()
+						inventory_data.remove_slot_data(slot_to_drop)
+						
+						if not _drop_item(drop_data):
+							Audio.play_sound(sound_error)
+							inventory_data.pick_up_slot_data(drop_data)
+							get_parent().player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
+							CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop because there isn't enough space.")
 						grabbed_slot_data = null
 		
 		[null, "inventory_assign_item"]: # Pressing "Assign quickslot" on gamepad
@@ -335,14 +340,13 @@ func _on_gui_input(event):
 						Audio.play_sound(sound_error)
 						CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop while wielding this item.")
 					else:
-						if not _drop_item(grabbed_slot_data):
+						var drop_data = grabbed_slot_data.duplicate()
+						if not _drop_item(drop_data):
 							Audio.play_sound(sound_error)
 							get_parent().player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
 							CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop because there isn't enough space.")
 						else:
-							grabbed_slot_data.create_single_slot_data(grabbed_slot_data.origin_index)
-							if grabbed_slot_data.quantity < 1:
-								grabbed_slot_data = null
+							grabbed_slot_data = null
 					
 				MOUSE_BUTTON_RIGHT:
 					if !grabbed_slot_data.inventory_item.is_droppable:
@@ -352,12 +356,13 @@ func _on_gui_input(event):
 						Audio.play_sound(sound_error)
 						CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop while wielding this item.")
 					else:
-						if not _drop_item(grabbed_slot_data):
+						var drop_data = grabbed_slot_data.create_single_slot_data(grabbed_slot_data.origin_index)
+						if not _drop_item(drop_data):
 							Audio.play_sound(sound_error)
+							grabbed_slot_data.quantity += 1 # Refund the 1 item
 							get_parent().player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
 							CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop because there isn't enough space.")
 						else:
-							grabbed_slot_data.create_single_slot_data(grabbed_slot_data.origin_index)
 							if grabbed_slot_data.quantity < 1:
 								grabbed_slot_data = null
 					
@@ -377,6 +382,12 @@ func _on_inventory_ui_hidden() -> void:
 
 
 func _drop_item(slot_data: InventorySlotPD) -> bool:
+	if not slot_data or not slot_data.inventory_item:
+		return false
+	if not slot_data.inventory_item.drop_scene or slot_data.inventory_item.drop_scene == "":
+		push_error("inventory_interface.gd: drop_scene is not configured on " + slot_data.inventory_item.name)
+		return false
+
 	var player = get_parent().player
 	var player_radius = player.radius
 	var shape_cast = player.item_drop_shapecast
@@ -436,7 +447,74 @@ func _drop_item(slot_data: InventorySlotPD) -> bool:
 
 	dropped_item.find_interaction_nodes()
 	for node in dropped_item.interaction_nodes:
-		if node.has_method("get_item_type"):
+		if "slot_data" in node:
 			node.slot_data = slot_data
 
 	return true
+
+
+func _show_drop_quantity_dialog(inventory_data: CogitoInventory, index: int, slot_to_drop: InventorySlotPD):
+	var dialog = ConfirmationDialog.new()
+	dialog.title = "Drop Quantity"
+	
+	# Add a margin container for padding
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	
+	var vbox = VBoxContainer.new()
+	
+	var label = Label.new()
+	label.text = "Select quantity of " + slot_to_drop.inventory_item.name + " to drop (1 - " + str(slot_to_drop.quantity) + "):"
+	vbox.add_child(label)
+	
+	var spinbox = SpinBox.new()
+	spinbox.min_value = 1
+	spinbox.max_value = slot_to_drop.quantity
+	spinbox.value = 1
+	spinbox.rounded = true
+	spinbox.alignment = HorizontalAlignment.HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(spinbox)
+	
+	margin.add_child(vbox)
+	dialog.add_child(margin)
+	
+	# Connect to dialog confirmed signal
+	dialog.confirmed.connect(func():
+		var quantity_to_drop = int(spinbox.value)
+		if quantity_to_drop > 0 and quantity_to_drop <= slot_to_drop.quantity:
+			_perform_drop_quantity(inventory_data, index, slot_to_drop, quantity_to_drop)
+		dialog.queue_free()
+	)
+	
+	dialog.canceled.connect(func():
+		dialog.queue_free()
+	)
+	
+	add_child(dialog)
+	dialog.popup_centered(Vector2i(300, 120))
+
+
+func _perform_drop_quantity(inventory_data: CogitoInventory, index: int, slot_to_drop: InventorySlotPD, quantity_to_drop: int):
+	if quantity_to_drop == slot_to_drop.quantity:
+		var drop_data = slot_to_drop.duplicate()
+		inventory_data.remove_slot_data(slot_to_drop)
+		if not _drop_item(drop_data):
+			Audio.play_sound(sound_error)
+			inventory_data.pick_up_slot_data(drop_data)
+			get_parent().player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
+	else:
+		var drop_data = slot_to_drop.duplicate()
+		drop_data.quantity = quantity_to_drop
+		
+		# Deduct from inventory slot
+		slot_to_drop.quantity -= quantity_to_drop
+		inventory_data.inventory_updated.emit(inventory_data)
+		
+		if not _drop_item(drop_data):
+			Audio.play_sound(sound_error)
+			slot_to_drop.quantity += quantity_to_drop
+			inventory_data.inventory_updated.emit(inventory_data)
+			get_parent().player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
