@@ -1,8 +1,12 @@
 extends InteractionComponent
 class_name PickupComponent
 
+const PLAYER_COLLISION_EXCEPTION_RETRY_ATTEMPTS: int = 8
+const PLAYER_COLLISION_EXCEPTION_RETRY_DELAY: float = 0.1
+
 @export var slot_data : InventorySlotPD
 @export var display_item_name : bool = false
+@export var ignore_player_collision: bool = true
 
 var player_interaction_component
 
@@ -11,6 +15,11 @@ func _enter_tree() -> void:
 	if display_item_name:
 		var owner_object : CogitoObject = get_parent()
 		owner_object.display_name = slot_data.inventory_item.name
+
+
+func _ready() -> void:
+	if ignore_player_collision:
+		call_deferred("_try_setup_player_collision_exception")
 
 
 func interact(_player_interaction_component: PlayerInteractionComponent):
@@ -48,3 +57,44 @@ func pick_up(_player_interaction_component: PlayerInteractionComponent):
 	Audio.play_sound(slot_data.inventory_item.sound_pickup)
 
 	self.get_parent().queue_free()
+
+
+func _try_setup_player_collision_exception(attempts_remaining: int = PLAYER_COLLISION_EXCEPTION_RETRY_ATTEMPTS) -> void:
+	if not is_inside_tree():
+		return
+
+	var pickup_body := _find_pickup_physics_body()
+	if not pickup_body:
+		push_warning("PickupComponent: could not find pickup physics body for collision exception.")
+		return
+
+	var player_body := _find_player_body()
+	if player_body:
+		pickup_body.add_collision_exception_with(player_body)
+		return
+
+	if attempts_remaining > 0:
+		get_tree().create_timer(PLAYER_COLLISION_EXCEPTION_RETRY_DELAY).timeout.connect(
+				_try_setup_player_collision_exception.bind(attempts_remaining - 1),
+				CONNECT_ONE_SHOT)
+	else:
+		push_warning("PickupComponent: could not find player body for collision exception.")
+
+
+func _find_pickup_physics_body() -> PhysicsBody3D:
+	var node: Node = self
+	while node:
+		if node is PhysicsBody3D:
+			return node as PhysicsBody3D
+		node = node.get_parent()
+	return null
+
+
+func _find_player_body() -> PhysicsBody3D:
+	if is_instance_valid(CogitoSceneManager._current_player_node) and CogitoSceneManager._current_player_node is PhysicsBody3D:
+		return CogitoSceneManager._current_player_node as PhysicsBody3D
+
+	for node: Node in get_tree().get_nodes_in_group("Player"):
+		if node is PhysicsBody3D:
+			return node as PhysicsBody3D
+	return null

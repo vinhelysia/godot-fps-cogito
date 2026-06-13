@@ -387,7 +387,7 @@ func _drop_item(slot_data: InventorySlotPD) -> bool:
 	
 	var scene_to_drop = load(slot_data.inventory_item.drop_scene)
 	var dropped_item = scene_to_drop.instantiate()
-	
+		
 	if dropped_item is not CogitoObject:
 		return false
 		
