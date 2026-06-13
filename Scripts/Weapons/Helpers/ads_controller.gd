@@ -43,7 +43,8 @@ func enter(weapon_data: Weapon_Resource, ads_fov: float, ads_time: float,
 func exit(weapon_data: Weapon_Resource, ads_fov: float, ads_time: float,
 		default_position: Vector3, block_during_shot: bool,
 		is_shot_active: bool, immediate: bool,
-		player_interaction_component: PlayerInteractionComponent) -> void:
+		player_interaction_component: PlayerInteractionComponent,
+		duration_override: float = -1.0) -> void:
 	if not is_aiming and not immediate:
 		return
 	if not immediate and block_during_shot and is_shot_active:
@@ -52,7 +53,8 @@ func exit(weapon_data: Weapon_Resource, ads_fov: float, ads_time: float,
 	is_aiming = false
 	_restore_scope_sensitivity(player_interaction_component)
 	_cancel_tweens()
-	_play_transition(weapon_data, ads_fov, ads_time, Vector3.ZERO, default_position, immediate)
+	_play_transition(weapon_data, ads_fov, ads_time, Vector3.ZERO, default_position,
+			immediate, duration_override)
 
 	if player_interaction_component:
 		player_interaction_component.update_crosshair.emit(true)
@@ -81,20 +83,21 @@ func get_rest_position(weapon_data: Weapon_Resource, ads_position: Vector3,
 
 func _play_transition(weapon_data: Weapon_Resource, ads_fov: float, ads_time: float,
 		ads_position: Vector3, default_position: Vector3,
-		immediate: bool) -> void:
+		immediate: bool, duration_override: float = -1.0) -> void:
 	var camera := _owner.get_viewport().get_camera_3d()
 	var is_scope := weapon_data != null and weapon_data.is_scope_weapon()
 	var target_fov := DEFAULT_FOV
-	var duration := ads_time
+	var duration := duration_override if duration_override >= 0.0 else ads_time
 
 	if is_aiming:
 		var override_fov := weapon_data.get_ads_fov_override() if weapon_data else -1.0
 		target_fov = override_fov if override_fov > 0.0 else ads_fov
-		var override_dur := weapon_data.get_ads_duration_override() if weapon_data else -1.0
-		if override_dur > 0.0:
-			duration = override_dur
+		if duration_override < 0.0:
+			var override_dur := weapon_data.get_ads_duration_override() if weapon_data else -1.0
+			if override_dur > 0.0:
+				duration = override_dur
 	else:
-		if weapon_data and weapon_data.get_ads_duration_override() > 0.0:
+		if duration_override < 0.0 and weapon_data and weapon_data.get_ads_duration_override() > 0.0:
 			duration = weapon_data.get_ads_duration_override()
 
 	if camera:

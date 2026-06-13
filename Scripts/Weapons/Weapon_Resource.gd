@@ -13,6 +13,26 @@ class_name Weapon_Resource
 @export var bulletProjectileToLoad: PackedScene
 @export var weaponVelocity: int
 
+@export_group("Firearm Mechanics")
+@export var magazine_capacity: int = 30
+@export var chamber_capacity: int = 1
+@export var supports_chamber_plus_one: bool = true
+@export var starts_chambered: bool = true
+@export var closed_bolt: bool = true
+@export var locks_open_on_empty: bool = false
+@export var auto_chambers_on_empty_reload: bool = true
+@export var manual_cycle_required: bool = false
+
+func get_mechanics_config() -> Dictionary:
+	return {
+		"magazine_capacity": magazine_capacity,
+		"chamber_capacity": chamber_capacity,
+		"supports_chamber_plus_one": supports_chamber_plus_one,
+		"auto_chambers_on_empty_reload": auto_chambers_on_empty_reload,
+		"locks_open_on_empty": locks_open_on_empty,
+	}
+
+
 # ── Fire Type (matches @export_flags bit positions) ───────────────────────────
 enum FireType { HITSCAN = 1, PROJECTILE = 2 }
 

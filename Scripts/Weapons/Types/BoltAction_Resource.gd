@@ -2,6 +2,13 @@ extends Weapon_Resource
 
 class_name BoltAction_Resource
 
+func _init() -> void:
+	magazine_capacity = 5
+	chamber_capacity = 1
+	locks_open_on_empty = false
+	manual_cycle_required = true
+	auto_chambers_on_empty_reload = false
+
 @export_group("Bolt Action")
 ## Animation name for the bolt cycling action played after each shot.
 @export var boltCycleAnimation: String = "bolt_cycle"
@@ -67,6 +74,7 @@ func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
 		return
 	# Bolt-cycle animation finished → ready for next shot.
 	if _is_bolt_cycle_anim(firearm, anim_name):
+		firearm.on_cycle_complete()
 		firearm._state = CogitoFirearm.WeaponState.IDLE
 		firearm._capture_rest_state()
 
@@ -97,6 +105,7 @@ func _start_cycle(firearm: CogitoFirearm) -> void:
 
 func _finish_cycle(firearm: CogitoFirearm) -> void:
 	firearm._post_fire_cycle_tween = null
+	firearm.on_cycle_complete()
 	firearm._state = CogitoFirearm.WeaponState.IDLE
 	firearm._capture_rest_state()
 

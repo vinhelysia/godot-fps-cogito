@@ -2,6 +2,12 @@ extends Weapon_Resource
 
 class_name Pistol_Resource
 
+func _init() -> void:
+	locks_open_on_empty = true
+	magazine_capacity = 15
+	chamber_capacity = 1
+	auto_chambers_on_empty_reload = true
+
 @export_group("Pistol")
 ## Minimum time in seconds between trigger pulls (prevents holding fire).
 @export var triggerResetTime: float = 0.15
