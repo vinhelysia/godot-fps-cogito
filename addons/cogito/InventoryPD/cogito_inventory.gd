@@ -247,7 +247,7 @@ func pick_up_slot_data(slot_data: InventorySlotPD) -> bool:
 		if not inventory_slots[index] and is_enough_space(slot_data, index, true):
 			# If the item is stackable, we might split it if it exceeds stack_size
 			if slot_data.inventory_item.is_stackable and slot_data.quantity > slot_data.inventory_item.stack_size:
-				var new_slot = slot_data.duplicate()
+				var new_slot = _prepare_slot_for_inventory(slot_data)
 				new_slot.origin_index = index
 				new_slot.quantity = slot_data.inventory_item.stack_size
 				inventory_slots[index] = new_slot
@@ -256,7 +256,7 @@ func pick_up_slot_data(slot_data: InventorySlotPD) -> bool:
 				picked_up_new_inventory_item.emit(new_slot)
 			else:
 				# Fits entirely in this empty slot
-				var new_slot = slot_data.duplicate()
+				var new_slot = _prepare_slot_for_inventory(slot_data)
 				new_slot.origin_index = index
 				inventory_slots[index] = new_slot
 				add_adjacent_slots(index)
@@ -278,6 +278,27 @@ func pick_up_slot_data(slot_data: InventorySlotPD) -> bool:
 	if is_instance_valid(_p) and is_instance_valid(_p.player_interaction_component):
 		_p.player_interaction_component.send_hint(null, "Unable to pick up item.")
 	return false
+
+
+func _prepare_slot_for_inventory(slot_data: InventorySlotPD) -> InventorySlotPD:
+	var new_slot := slot_data.duplicate() as InventorySlotPD
+	if new_slot == null or new_slot.inventory_item == null:
+		return new_slot
+	var wieldable_item := new_slot.inventory_item as WieldableItemPD
+	if wieldable_item != null and not wieldable_item.is_stackable:
+		new_slot.inventory_item = _duplicate_wieldable_item_for_inventory(wieldable_item)
+	return new_slot
+
+
+func _duplicate_wieldable_item_for_inventory(source_item: WieldableItemPD) -> WieldableItemPD:
+	var item_copy := source_item.duplicate(false) as WieldableItemPD
+	if item_copy == null:
+		return source_item
+	item_copy.set_firearm_mechanical_state(source_item.get_firearm_mechanical_state())
+	item_copy.player_interaction_component = null
+	item_copy.is_being_wielded = false
+	item_copy.wielded_item = null
+	return item_copy
 
 
 ## LootComponent - Gets all items in inventory

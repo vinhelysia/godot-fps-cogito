@@ -95,8 +95,6 @@ func save():
 	var node_data = {
 		"filename" : get_scene_file_path(),
 		"parent" : get_parent().get_path(),
-		#"slot_data" : slot_data,
-		#"item_charge" : slot_data.inventory_item.charge_current,
 		"interaction_nodes" : interaction_nodes,
 		"pos_x" : position.x,
 		"pos_y" : position.y,
@@ -106,6 +104,15 @@ func save():
 		"rot_z" : rotation.z,
 		"spawned_loot_item" : spawned_loot_item,
 	}
+
+	var pickup_component := _get_pickup_component()
+	if pickup_component and pickup_component.slot_data:
+		var pickup_slot_data := _duplicate_slot_data_for_pickup_state(pickup_component.slot_data)
+		node_data["pickup_slot_data"] = pickup_slot_data
+		if pickup_slot_data and pickup_slot_data.inventory_item is WieldableItemPD:
+			var wieldable_item := pickup_slot_data.inventory_item as WieldableItemPD
+			node_data["pickup_item_charge"] = wieldable_item.charge_current
+			node_data["pickup_firearm_mechanical_state"] = wieldable_item.get_firearm_mechanical_state()
 
 	# If the node is a RigidBody3D, then save the physics properties of it
 	var rigid_body = find_rigid_body()
@@ -126,6 +133,29 @@ func find_rigid_body() -> RigidBody3D:
 			return current as RigidBody3D
 		current = current.get_parent()
 	return null
+
+
+func _get_pickup_component() -> PickupComponent:
+	for interaction_node in interaction_nodes:
+		if interaction_node is PickupComponent:
+			return interaction_node as PickupComponent
+	var pickup_nodes := find_children("", "PickupComponent", true, false)
+	if pickup_nodes.size() > 0:
+		return pickup_nodes[0] as PickupComponent
+	return null
+
+
+func _duplicate_slot_data_for_pickup_state(slot_data: InventorySlotPD) -> InventorySlotPD:
+	var slot_copy := slot_data.duplicate() as InventorySlotPD
+	if slot_copy == null or slot_copy.inventory_item == null:
+		return slot_copy
+	var wieldable_item := slot_copy.inventory_item as WieldableItemPD
+	if wieldable_item != null:
+		var item_copy := wieldable_item.duplicate(false) as WieldableItemPD
+		if item_copy != null:
+			item_copy.set_firearm_mechanical_state(wieldable_item.get_firearm_mechanical_state())
+			slot_copy.inventory_item = item_copy
+	return slot_copy
 
 
 func _on_body_entered(body: Node) -> void:

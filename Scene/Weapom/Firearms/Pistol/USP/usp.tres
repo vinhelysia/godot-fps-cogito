@@ -14,4 +14,5 @@ recoilHorizontal = 0.05
 recoilRecovery = 8.0
 Type = 1
 weaponVelocity = 350
+locks_open_on_empty = true
 metadata/_custom_type_script = "uid://cwcu7wbttkbeu"

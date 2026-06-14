@@ -25,6 +25,7 @@ signal charge_changed()
 @export var wieldable_range : float
 ## Used for weapons
 @export var wieldable_damage : float
+@export var firearm_mechanical_state : Dictionary = {}
 
 var wieldable_data_text : String
 
@@ -108,6 +109,25 @@ func add(amount):
 	charge_changed.emit()
 
 
+func has_firearm_mechanical_state() -> bool:
+	return int(firearm_mechanical_state.get("version", 0)) == FirearmMechanicalState.SAVE_VERSION
+
+
+func get_firearm_mechanical_state() -> Dictionary:
+	return firearm_mechanical_state.duplicate(true)
+
+
+func set_firearm_mechanical_state(state: Dictionary) -> void:
+	if state.is_empty():
+		clear_firearm_mechanical_state()
+		return
+	firearm_mechanical_state = state.duplicate(true)
+
+
+func clear_firearm_mechanical_state() -> void:
+	firearm_mechanical_state = {}
+
+
 # Function to get the AmmoItemPD
 func get_ammo_item(item_name_to_check_for: String) -> InventoryItemPD:
 	var ammo_item : InventoryItemPD
@@ -135,7 +155,8 @@ func get_item_amount_in_inventory(item_name_to_check_for: String) -> int:
 func save():
 	var saved_item_data = {
 		"resource" : self,
-		"charge_current" : charge_current
+		"charge_current" : charge_current,
+		"firearm_mechanical_state" : get_firearm_mechanical_state(),
 	}
 	return saved_item_data
 

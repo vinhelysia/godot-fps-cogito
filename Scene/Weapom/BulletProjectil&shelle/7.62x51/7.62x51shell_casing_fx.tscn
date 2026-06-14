@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://dexvig8rxjq74"]
 
-[ext_resource type="Script" uid="uid://c4dn1kcpbnmlj" path="res://Scripts/Weapons/shell_casing_fx.gd" id="1_3m4sc"]
+[ext_resource type="Script" uid="uid://c4dn1kcpbnmlj" path="res://Scripts/Weapons/shell_casing_fx.gd" id="1_ty15v"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_c1f1g"]
 height = 0.10320263
@@ -46,7 +46,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_833ir")
 
 [node name="7_62x39ShellCasingFx_tscn" type="RigidBody3D" unique_id=1704166133]
-script = ExtResource("1_3m4sc")
+script = ExtResource("1_ty15v")
 eject_speed = 5.0
 eject_up = 0.1
 spin_speed = 7.0

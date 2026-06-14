@@ -100,6 +100,9 @@ enum WeaponState { IDLE, CYCLING, RELOADING, VENTING }
 ## Minimum time (seconds) the trigger stays pulled.
 @export var trigger_min_hold_time: float = 0.1
 
+@export_group("Debug")
+@export var show_debug_ui: bool = true
+
 # ── Constants ────────────────────────────────────────────────────────────────
 
 const ADS_RECOIL_SCALE: float = 0.4
@@ -116,6 +119,7 @@ var _ammo: AmmoManager
 
 var _state: WeaponState = WeaponState.IDLE
 var _mechanics: FirearmMechanicalState = null
+var _debug_ui: FirearmDebugUI = null
 var _trigger_held: bool = false
 var _fire_cooldown: float = 0.0
 var _current_heat: float = 0.0
@@ -130,6 +134,7 @@ var _bolt_pre_cycle_rest_rot: Vector3 = Vector3.ZERO
 var _hammer_part: Node3D = null
 var _hammer_tween: Tween = null
 var _audio_reload: AudioStreamPlayer3D
+var _reload_mechanics_snapshot: Dictionary = {}
 
 
 # ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -173,6 +178,16 @@ func _physics_process(delta: float) -> void:
 	# Per-type per-frame work (e.g. LMG heat decay).
 	weapon_data.tick(self, delta)
 
+	# Update firearm debug UI if active
+	if _debug_ui and is_instance_valid(_debug_ui) and _mechanics:
+		var state_str := "IDLE"
+		match _state:
+			WeaponState.IDLE: state_str = "IDLE"
+			WeaponState.CYCLING: state_str = "CYCLING"
+			WeaponState.RELOADING: state_str = "RELOADING"
+			WeaponState.VENTING: state_str = "VENTING"
+		_debug_ui.update_debug_info(weapon_data.weaponName, state_str, _mechanics)
+
 
 # ── CogitoWieldable interface ────────────────────────────────────────────────
 
@@ -189,16 +204,31 @@ func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 	_mechanics = FirearmMechanicalState.new()
 	if weapon_data and _item_ref:
 		_mechanics.configure(weapon_data.get_mechanics_config())
-		_mechanics.reconstruct_from_total(int(_item_ref.charge_current))
+		_restore_mechanics_from_item()
 		# Set metadata for HUD displays
 		_item_ref.set_meta("magazine_capacity", weapon_data.magazine_capacity)
 		_item_ref.set_meta("chamber_capacity", weapon_data.chamber_capacity)
+		_apply_mechanics_visual_state()
+		_commit_mechanics_to_item()
+
+	if show_debug_ui:
+		_debug_ui = FirearmDebugUI.new()
+		add_child(_debug_ui)
 		
 	animation_player.play(anim_equip)
 	_configure_recoil()
 
 
 func unequip() -> void:
+	if _debug_ui and is_instance_valid(_debug_ui):
+		_debug_ui.queue_free()
+		_debug_ui = null
+
+	if _state == WeaponState.RELOADING and not _reload_mechanics_snapshot.is_empty() and _mechanics:
+		_mechanics.restore_from_save_dict(_reload_mechanics_snapshot)
+	_reload_mechanics_snapshot.clear()
+	_commit_mechanics_to_item()
+
 	if _bolt_cycle_tween:
 		_bolt_cycle_tween.kill()
 		_bolt_cycle_tween = null
@@ -212,6 +242,7 @@ func unequip() -> void:
 		_post_fire_cycle_tween.kill()
 		_post_fire_cycle_tween = null
 	_shoot_motion.cancel(true)
+	_apply_mechanics_visual_state()
 	_apply_rest_pose()
 	_trigger_held = false
 	_state = WeaponState.IDLE
@@ -309,6 +340,8 @@ func reload() -> void:
 
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
+	if _mechanics:
+		_reload_mechanics_snapshot = _mechanics.to_save_dict()
 	_state = WeaponState.RELOADING
 	animation_player.play(_get_reload_animation_name())
 	_play_reload_sound()
@@ -366,17 +399,6 @@ func _try_fire() -> void:
 
 	# ── Execute shot ─────────────────────────────────────────────────────────
 
-	# Visual
-	_play_shoot_visual()
-
-	# Sound
-	if sound_shoot:
-		audio_stream_player_3d.stream = sound_shoot
-		audio_stream_player_3d.play()
-
-	# Muzzle flash (first-person view)
-	_spawn_muzzle_flash_fpv()
-
 	# Consume ammo from mechanical chamber
 	_mechanics.fire_round()
 	# If weapon does not require manual cycling (semi-auto / auto), cycle immediately
@@ -386,7 +408,18 @@ func _try_fire() -> void:
 		if _mechanics.is_empty() and weapon_data.locks_open_on_empty:
 			_mechanics.bolt_locked_open = true
 			_shoot_motion.fire_part_locked = true
-	_sync_item_charge_from_mechanics()
+	_commit_mechanics_to_item()
+
+	# Visual (must be after mechanics state updates so slide-lock is detected before tween building)
+	_play_shoot_visual()
+
+	# Sound
+	if sound_shoot:
+		audio_stream_player_3d.stream = sound_shoot
+		audio_stream_player_3d.play()
+
+	# Muzzle flash (first-person view)
+	_spawn_muzzle_flash_fpv()
 
 	# Delegate fire to resource (polymorphic dispatch)
 	var ctx := _build_fire_context()
@@ -497,10 +530,9 @@ func _finish_reload_with_mechanics() -> void:
 		else:
 			_mechanics.finish_reload_tactical(consumed)
 		_mechanics.bolt_locked_open = false
-	_sync_item_charge_from_mechanics()
-	
-	if weapon_data is Pistol_Resource and not _mechanics.is_empty():
-		_shoot_motion.release_fire_part_lock()
+	_reload_mechanics_snapshot.clear()
+	_commit_mechanics_to_item()
+	_apply_mechanics_visual_state()
 
 
 func on_cycle_complete() -> void:
@@ -510,18 +542,50 @@ func on_cycle_complete() -> void:
 		if _mechanics.is_empty() and weapon_data and weapon_data.locks_open_on_empty:
 			_mechanics.bolt_locked_open = true
 			_shoot_motion.fire_part_locked = true
-		_sync_item_charge_from_mechanics()
+		_commit_mechanics_to_item()
 
 
-func _sync_item_charge_from_mechanics() -> void:
+func _commit_mechanics_to_item() -> void:
 	if _item_ref == null or _mechanics == null:
 		return
+	var state := _mechanics.to_save_dict()
+	if _item_ref.has_method("set_firearm_mechanical_state"):
+		_item_ref.set_firearm_mechanical_state(state)
 	var total := _mechanics.get_loaded_total()
 	_item_ref.charge_current = float(total)
 	# Safely check and call update wieldable data on WieldableItemPD
 	if _item_ref.get("is_being_wielded") == true:
 		_item_ref.update_wieldable_data(player_interaction_component)
 	_item_ref.charge_changed.emit()
+
+
+func _restore_mechanics_from_item() -> void:
+	if _mechanics == null:
+		return
+	var restored := false
+	if _item_ref and _item_ref.has_method("has_firearm_mechanical_state") and _item_ref.has_firearm_mechanical_state():
+		restored = _mechanics.restore_from_save_dict(_item_ref.get_firearm_mechanical_state())
+	if restored:
+		return
+	var total := int(_item_ref.charge_current) if _item_ref else 0
+	_mechanics.reconstruct_from_total(total)
+	if _mechanics.is_empty() and weapon_data and weapon_data.locks_open_on_empty:
+		# Legacy saves only stored charge_current. This inference may be wrong for an
+		# old manually-closed empty weapon, but preserves the common empty-slide-lock case.
+		_mechanics.bolt_locked_open = true
+
+
+func _apply_mechanics_visual_state() -> void:
+	if _mechanics == null or _shoot_motion == null:
+		return
+	var should_lock_fire_part := _mechanics.bolt_locked_open
+	_shoot_motion.fire_part_locked = should_lock_fire_part
+	if _shoot_motion.fire_part == null:
+		return
+	if should_lock_fire_part:
+		_shoot_motion.fire_part.position = _shoot_motion.fire_part_rest_position + _shoot_motion.fire_part_position_offset
+	else:
+		_shoot_motion.fire_part.position = _shoot_motion.fire_part_rest_position
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -698,6 +762,8 @@ func _resolve_fire_part() -> void:
 
 func _capture_rest_state() -> void:
 	_rest_rotation_degrees = rotation_degrees
+	if _shoot_motion != null and _shoot_motion.fire_part_locked:
+		return
 	_resolve_fire_part()
 
 

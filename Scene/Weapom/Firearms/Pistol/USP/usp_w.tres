@@ -12,6 +12,7 @@ charge_current = 14.0
 wieldable_range = 200.0
 wieldable_damage = 20.0
 name = "USP .45 ACP"
+ammo_item_name = ".45 ACP"
 description = "A German-engineered masterclass in reliability. Featuring a polymer frame and a patented recoil-reduction system, the USP stays on target even when you are panic-firing. It won't clear a horde on its own, but it’s the sidearm you want in your holster when your primary clicks empty."
 icon = ExtResource("1_78j7u")
 drop_scene = "uid://bxxow5b026wvr"

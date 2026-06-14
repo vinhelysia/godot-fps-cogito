@@ -1,6 +1,8 @@
 class_name FirearmMechanicalState
 extends RefCounted
 
+const SAVE_VERSION: int = 1
+
 # Configuration parameters (static, configured via configure())
 var magazine_capacity: int = 30
 var chamber_capacity: int = 1
@@ -20,10 +22,12 @@ func configure(config: Dictionary) -> void:
 	supports_chamber_plus_one = config.get("supports_chamber_plus_one", true)
 	auto_chambers_on_empty_reload = config.get("auto_chambers_on_empty_reload", true)
 	locks_open_on_empty = config.get("locks_open_on_empty", false)
+	_clamp_dynamic_state()
 
 
 func reconstruct_from_total(total: int) -> void:
 	# Reconstruct mechanical state from Cogito's total saved charge
+	bolt_locked_open = false
 	if total <= 0:
 		chamber_rounds = 0
 		magazine_rounds = 0
@@ -42,9 +46,27 @@ func reconstruct_from_total(total: int) -> void:
 			chamber_rounds = 0
 			magazine_rounds = total
 	
-	# Clamp for safety
-	magazine_rounds = clamp(magazine_rounds, 0, magazine_capacity)
-	chamber_rounds = clamp(chamber_rounds, 0, chamber_capacity)
+	_clamp_dynamic_state()
+
+
+func to_save_dict() -> Dictionary:
+	_clamp_dynamic_state()
+	return {
+		"version": SAVE_VERSION,
+		"magazine_rounds": magazine_rounds,
+		"chamber_rounds": chamber_rounds,
+		"bolt_locked_open": bolt_locked_open,
+	}
+
+
+func restore_from_save_dict(state: Dictionary) -> bool:
+	if state.is_empty() or int(state.get("version", 0)) != SAVE_VERSION:
+		return false
+	magazine_rounds = int(state.get("magazine_rounds", 0))
+	chamber_rounds = int(state.get("chamber_rounds", 0))
+	bolt_locked_open = state.get("bolt_locked_open", false) == true
+	_clamp_dynamic_state()
+	return true
 
 
 func can_fire() -> bool:
@@ -108,3 +130,12 @@ func get_loaded_total() -> int:
 
 func is_empty() -> bool:
 	return magazine_rounds == 0 and chamber_rounds == 0
+
+
+func _clamp_dynamic_state() -> void:
+	magazine_rounds = clampi(magazine_rounds, 0, magazine_capacity)
+	chamber_rounds = clampi(chamber_rounds, 0, chamber_capacity)
+	if not locks_open_on_empty:
+		bolt_locked_open = false
+	elif not is_empty():
+		bolt_locked_open = false

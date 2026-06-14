@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_2x0ol"]
 [ext_resource type="PackedScene" uid="uid://c1lv8khlafvto" path="res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.tscn" id="2_2x0ol"]
 [ext_resource type="Resource" uid="uid://dexbuqmkgsldx" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700.tres" id="2_vsell"]
-[ext_resource type="PackedScene" uid="uid://dexvig8rxjq74" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51shell_casing_fx.tscn.tscn" id="3_k8wy1"]
+[ext_resource type="PackedScene" uid="uid://dexvig8rxjq74" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51shell_casing_fx.tscn" id="3_k8wy1"]
 [ext_resource type="AudioStream" uid="uid://cyxri4aax672l" path="res://Assets/SFX/Firearm/M700/308 Single.mp3" id="4_n1hoc"]
 [ext_resource type="PackedScene" uid="uid://e8ign5dedg53" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/muzzle_flash/muzzle_flash_05.tscn" id="4_qn1aq"]
 
