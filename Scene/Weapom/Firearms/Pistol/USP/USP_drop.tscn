@@ -533,7 +533,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_lt27k")
 
 [node name="USP" type="Node3D" unique_id=1380512377]
-transform = Transform3D(-1.3113417e-08, 0, 0.3, 0, 0.29999998, 0, -0.3, 0, -1.3113417e-08, 0, -0.03595466, -0.12434506)
+transform = Transform3D(-9.272586e-09, 9.272585e-09, 0.3, 0.21213204, 0.21213202, 0, -0.21213204, 0.21213202, -1.3113417e-08, 0, -0.03595466, -0.12434506)
 
 [node name="usp9 15rnd empty" type="MeshInstance3D" parent="." unique_id=675922354]
 transform = Transform3D(0.9563874, 0.29210123, 0, -0.29210123, 0.9563874, 0, 0, 0, 1, -0.514894, -0.160929, 0)
@@ -587,3 +587,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9868462, 0.5, 7.591996e-08)
 [node name="shell_eject_point" type="Marker3D" parent="." unique_id=700200003]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 0.47, 0.1)
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=35878168]
+transparent_bg = true
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1265097277]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.46864644, -0.045254268, -0.07907991)
