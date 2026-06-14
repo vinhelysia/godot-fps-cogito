@@ -49,7 +49,6 @@ collision_layer = 3
 sleeping = true
 script = ExtResource("1_xypt8")
 cogito_name = ""
-custom_aabb = AABB(0, 0, 0, 0.3, 0.5, 0.3)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)

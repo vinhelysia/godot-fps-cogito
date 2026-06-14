@@ -26,7 +26,6 @@ origin_index = -1
 [node name="DiamondKeyB" type="RigidBody3D"]
 collision_layer = 3
 script = ExtResource("1_rbcr3")
-custom_aabb = AABB(0, 0, 0, 0.2, 0.25, 0.02)
 
 [node name="CSGPolygon3D2" type="CSGPolygon3D" parent="."]
 material_override = ExtResource("1_qb6jw")

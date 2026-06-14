@@ -552,7 +552,6 @@ collision_layer = 3
 script = ExtResource("1_qscvy")
 cogito_name = "USP"
 display_name = "USP 45. ACP"
-custom_aabb = AABB(-0.09, -0.62, -1.335, 0.9, 0.25, 0.1)
 
 [node name="ExtendedPickupInteraction" parent="." unique_id=54646705 instance=ExtResource("2_wk3sn")]
 hold_interaction_text = "Wield"

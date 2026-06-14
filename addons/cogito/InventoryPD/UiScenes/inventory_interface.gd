@@ -389,55 +389,54 @@ func _drop_item(slot_data: InventorySlotPD) -> bool:
 		return false
 
 	var player = get_parent().player
-	var player_radius = player.radius
 	var shape_cast = player.item_drop_shapecast
 	var item_drop_distance_offset = player.get_node(player.player_hud).item_drop_distance_offset
-	var camera_basis_z = get_viewport().get_camera_3d().get_global_transform().basis.z
-	
-	var drop_distance = abs(shape_cast.target_position.z - item_drop_distance_offset)
 	
 	var scene_to_drop = load(slot_data.inventory_item.drop_scene)
 	var dropped_item = scene_to_drop.instantiate()
 		
-	if dropped_item is not CogitoObject:
+	if not (dropped_item is CogitoObject):
+		dropped_item.queue_free()
 		return false
 		
-	var item_aabb = dropped_item.get_aabb()
-	var item_length = item_aabb.size.z
+	var original_target_position: Vector3 = shape_cast.target_position
 	
+	var drop_radius: float = max(slot_data.inventory_item.item_drop_size, 0.05)
+	var player_radius: float = player.radius
+	var minimum_center_distance: float = player_radius + drop_radius
+	
+	shape_cast.configure_drop_probe(drop_radius)
 	shape_cast.add_exception(player)
 	
-	shape_cast.shape.size = item_aabb.size
-	
-	var previous_target_position = shape_cast.target_position
-	shape_cast.target_position = Vector3.ZERO
-	
+	# Overlap check — check if player is standing in geometry
+	shape_cast.target_position = Vector3(0.0, 0.0, -0.001)
 	shape_cast.force_shapecast_update()
-	
 	if shape_cast.is_colliding():
-		shape_cast.target_position = previous_target_position
+		shape_cast.target_position = original_target_position
+		dropped_item.queue_free()
 		return false
+		
+	var configured_distance: float = abs(original_target_position.z - item_drop_distance_offset)
+	# probe_distance may be larger than configured_distance for large items —
+	# this is intentional: large items need more clearance than the default drop distance.
+	var probe_distance: float = max(configured_distance, minimum_center_distance + 0.25)
 	
-	shape_cast.target_position = previous_target_position
-	
+	# Forward space check
+	shape_cast.target_position = Vector3(0.0, 0.0, -probe_distance)
 	shape_cast.force_shapecast_update()
+	var safe_fraction: float = shape_cast.get_closest_collision_safe_fraction()
+	var safe_drop_distance: float = probe_distance * safe_fraction
+	if safe_drop_distance < minimum_center_distance:
+		shape_cast.target_position = original_target_position
+		dropped_item.queue_free()
+		return false
+		
+	# Compute final spawn position using ShapeCast forward direction
+	var cast_forward: Vector3 = -shape_cast.global_transform.basis.z
+	var final_drop_pos: Vector3 = shape_cast.global_position + safe_drop_distance * cast_forward
 	
-	var collision_safe_fraction = shape_cast.get_closest_collision_safe_fraction()
-	var safe_drop_distance = drop_distance * collision_safe_fraction
-	
-	if item_length < player_radius:
-		if safe_drop_distance < player_radius:
-			return false
-	else:
-		if safe_drop_distance < item_length:
-			return false
-			
-	# Compute final drop position once (branches differ only by player_radius offset).
-	var final_drop_pos: Vector3
-	if item_length < player_radius:
-		final_drop_pos = shape_cast.global_position + (safe_drop_distance - item_length / 2) * -camera_basis_z
-	else:
-		final_drop_pos = shape_cast.global_position + (safe_drop_distance - item_length / 2 + player_radius) * -camera_basis_z
+	# Restore target position before spawning
+	shape_cast.target_position = original_target_position
 
 	CogitoSceneManager._current_scene_root_node.add_child(dropped_item)
 	dropped_item.global_rotation = player.body.global_rotation

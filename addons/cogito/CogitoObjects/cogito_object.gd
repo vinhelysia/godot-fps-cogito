@@ -21,7 +21,8 @@ enum PromptPositionMode{
 
 
 @export_group("Object Size and Shape")
-## Set a custom shape used for calculating object size when dropping.
+## Used for debug visualization and object-size estimation (e.g., carry/drag behavior).
+## Not used for inventory item dropping — use InventoryItemPD.item_drop_size for drop clearance.
 @export var custom_aabb : AABB = AABB():
 	set(new_aabb):
 		custom_aabb = new_aabb
