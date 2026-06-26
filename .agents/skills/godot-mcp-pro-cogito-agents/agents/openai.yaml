@@ -1,9 +1,0 @@
-interface:
-  display_name: Godot MCP Pro Cogito Agents
-  short_description: Multi-agent routing for Cogito projects with Godot MCP Pro
-policy:
-  products:
-  - chatgpt
-  - codex
-  - api
-  allow_implicit_invocation: true
