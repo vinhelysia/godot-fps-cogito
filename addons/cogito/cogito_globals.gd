@@ -37,6 +37,10 @@ func load_cogito_project_settings():
 		print("COGITO: No cogito settings found.")
 
 
+func is_debug_logging() -> bool:
+	return is_logging
+
+
 func debug_log(log_this: bool, _class: String, _message: String) -> void:
 	if is_logging and log_this:
 		print("COGITO: ", _class, ": ", _message)

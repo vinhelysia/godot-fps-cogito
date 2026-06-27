@@ -68,6 +68,33 @@ func consume_ammo(item_ref: WieldableItemPD, ammo_needed: int) -> int:
 	return ammo_loaded
 
 
+func return_ammo(item_ref: WieldableItemPD, amount: int) -> void:
+	var inventory := get_inventory()
+	if inventory == null or item_ref == null or amount <= 0:
+		return
+	
+	# Find a slot with the matching ammo item to get the resource
+	var ammo_item_template: AmmoItemPD = null
+	for slot: InventorySlotPD in inventory.inventory_slots:
+		if slot and slot.inventory_item and slot.inventory_item.name == item_ref.ammo_item_name:
+			ammo_item_template = slot.inventory_item as AmmoItemPD
+			if ammo_item_template:
+				break
+				
+	if ammo_item_template == null:
+		push_warning("Could not find ammo item template to return ammo.")
+		return
+		
+	var new_ammo_item := ammo_item_template.duplicate() as AmmoItemPD
+	new_ammo_item.reload_amount = amount
+	
+	var new_slot := InventorySlotPD.new()
+	new_slot.inventory_item = new_ammo_item
+	new_slot.quantity = 1
+	
+	inventory.pick_up_slot_data(new_slot)
+
+
 func finish_reload(item_ref: WieldableItemPD) -> void:
 	if item_ref == null:
 		return
@@ -76,4 +103,8 @@ func finish_reload(item_ref: WieldableItemPD) -> void:
 		return
 	var ammo_loaded: int = consume_ammo(item_ref, ammo_needed)
 	if ammo_loaded > 0:
-		item_ref.add(ammo_loaded)
+		var actual_added := mini(ammo_loaded, ammo_needed)
+		item_ref.add(actual_added)
+		var unused := ammo_loaded - actual_added
+		if unused > 0:
+			return_ammo(item_ref, unused)

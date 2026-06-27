@@ -53,6 +53,9 @@ var _moveto_keys_held: Array = []  # Track injected keys for guaranteed release
 
 
 func _ready() -> void:
+	if not OS.is_debug_build() and not OS.has_feature("editor"):
+		queue_free()
+		return
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 

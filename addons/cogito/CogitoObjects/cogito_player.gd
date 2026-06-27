@@ -804,8 +804,8 @@ func _physics_process(delta):
 		
 	# Store current velocity for the next frame
 	last_velocity = main_velocity
-  
-  	# Check if the player is on the ground
+	
+	# Check if the player is on the ground
 	if is_on_floor():
 		# Only trigger landing sound if the player was airborne and the velocity exceeds the threshold
 		if was_in_air and last_velocity.y < landing_threshold:

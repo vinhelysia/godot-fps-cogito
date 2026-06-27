@@ -525,11 +525,18 @@ func _finish_reload_with_mechanics() -> void:
 	# Consume ammo from inventory
 	var consumed := _ammo.consume_ammo(_item_ref, rounds_needed)
 	if consumed > 0:
+		var actual_loaded: int
 		if is_empty_reload:
-			_mechanics.finish_reload_empty(consumed)
+			actual_loaded = _mechanics.finish_reload_empty(consumed)
 		else:
-			_mechanics.finish_reload_tactical(consumed)
+			actual_loaded = _mechanics.finish_reload_tactical(consumed)
 		_mechanics.bolt_locked_open = false
+		
+		# Return unused ammo to inventory
+		var unused := consumed - actual_loaded
+		if unused > 0:
+			_ammo.return_ammo(_item_ref, unused)
+			
 	_reload_mechanics_snapshot.clear()
 	_commit_mechanics_to_item()
 	_apply_mechanics_visual_state()
@@ -594,16 +601,25 @@ func _configure_recoil() -> void:
 	var rn := _get_recoil_node()
 	if rn and weapon_data:
 		var hip := Vector3(weapon_data.recoilVertical, weapon_data.recoilHorizontal, 0.0)
-		rn.setRecoil(hip)
+		if rn.has_method("set_recoil"):
+			rn.set_recoil(hip)
+		else:
+			rn.setRecoil(hip)
+			
 		var aim := aim_recoil_values if aim_recoil_values.length() > RECOIL_THRESHOLD else hip * ADS_RECOIL_SCALE
-		if rn.has_method("setAimRecoil"):
+		if rn.has_method("set_aim_recoil"):
+			rn.set_aim_recoil(aim)
+		elif rn.has_method("setAimRecoil"):
 			rn.setAimRecoil(aim)
 
 
 func _apply_recoil() -> void:
 	var rn := _get_recoil_node()
 	if rn:
-		rn.recoilFire(_ads.is_aiming)
+		if rn.has_method("recoil_fire"):
+			rn.recoil_fire(_ads.is_aiming)
+		else:
+			rn.recoilFire(_ads.is_aiming)
 
 
 func _get_recoil_node() -> Node3D:

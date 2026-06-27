@@ -161,7 +161,8 @@ func find_visible_targets_within_detection_area() -> Array[Node3D]:
 
 func object_visibile_for_detector(target: Node3D) -> bool:
 	detection_ray_cast_3d.set_target_position(to_local(target.global_position))
-	CogitoGlobals.debug_log(true,"cogito_security_camera.gd", "Checking if detector can see " +  target.name + " at position " + str(target.global_position) )
+	if CogitoGlobals.is_logging:
+		CogitoGlobals.debug_log(true,"cogito_security_camera.gd", "Checking if detector can see " +  target.name + " at position " + str(target.global_position) )
 	var detected_object = detection_ray_cast_3d.get_collider()
 
 	if detected_object == target:
@@ -221,6 +222,8 @@ func start_alarm_light():
 	light_tween.tween_property(indicator_light,"light_energy", .1, 1).set_trans(Tween.TRANS_CUBIC)
 	if current_state == DetectorState.DETECTED:
 		await get_tree().create_timer(2).timeout
+		if not is_instance_valid(self):
+			return
 		start_alarm_light()
 	else:
 		stop_alarm_light()
