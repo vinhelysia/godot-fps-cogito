@@ -15,6 +15,7 @@ var origin_index : int = -1
 var grid : bool
 var ammo_slot : bool
 var quantity_slot : bool
+var is_rotated: bool = false
 
 signal slot_clicked(index: int, mouse_button: int)
 signal slot_pressed(index: int, action: String)
@@ -29,6 +30,14 @@ func set_icon_region(x, y):
 	if item_data == null:
 		return
 	var region = item_data.get_region(x, y)
+	texture_rect.texture = ImageTexture.create_from_image(region)
+	_apply_item_background(Vector2i(x, y), false)
+
+
+func set_icon_region_rotated(x: int, y: int):
+	if item_data == null:
+		return
+	var region = item_data.get_region_rotated(x, y)
 	texture_rect.texture = ImageTexture.create_from_image(region)
 	_apply_item_background(Vector2i(x, y), false)
 
@@ -92,24 +101,32 @@ func _set_background_border(background_style_flat: StyleBoxFlat, cell_coords: Ve
 		background_style_flat.border_width_bottom = 1
 		return
 
-	var item_size := Vector2i(item_data.item_size)
+	var item_sz := Vector2i(item_data.item_size)
+	if is_rotated:
+		item_sz = Vector2i(item_sz.y, item_sz.x)
 	background_style_flat.border_width_left = 1 if cell_coords.x == 0 else 0
 	background_style_flat.border_width_top = 1 if cell_coords.y == 0 else 0
-	background_style_flat.border_width_right = 1 if cell_coords.x == item_size.x - 1 else 0
-	background_style_flat.border_width_bottom = 1 if cell_coords.y == item_size.y - 1 else 0
+	background_style_flat.border_width_right = 1 if cell_coords.x == item_sz.x - 1 else 0
+	background_style_flat.border_width_bottom = 1 if cell_coords.y == item_sz.y - 1 else 0
 
 
 func check_if_top_right_slot(slot_data: InventorySlotPD, index: int):
 	if not item_data:
 		return
-	if index == slot_data.origin_index + item_data.item_size.x-1:
+	var eff := Vector2i(item_data.item_size)
+	if is_rotated:
+		eff = Vector2i(eff.y, eff.x)
+	if index == slot_data.origin_index + eff.x - 1:
 		quantity_slot = true
 
 
 func check_if_bottom_right_slot(slot_data: InventorySlotPD, index: int, x_size: int):
 	if not item_data:
 		return
-	if index == slot_data.origin_index + item_data.item_size.x-1 + ((item_data.item_size.y-1)*x_size):
+	var eff := Vector2i(item_data.item_size)
+	if is_rotated:
+		eff = Vector2i(eff.y, eff.x)
+	if index == slot_data.origin_index + eff.x - 1 + ((eff.y - 1) * x_size):
 		ammo_slot = true
 
 
@@ -134,6 +151,9 @@ func _on_gui_input(event: InputEvent):
 	if event.is_action_pressed("inventory_assign_item"):
 		slot_pressed.emit(get_index(), "inventory_assign_item")
 		get_viewport().set_input_as_handled()
+	if event.is_action_pressed("inventory_rotate_item"):
+		slot_pressed.emit(get_index(), "inventory_rotate_item")
+		get_viewport().set_input_as_handled()
 
 	if event.is_action_pressed("interact") or event.is_action_pressed("interact2"):
 		get_viewport().set_input_as_handled()
@@ -141,9 +161,19 @@ func _on_gui_input(event: InputEvent):
 
 
 func set_grabbed_dimensions():
-	var item_size = item_data.item_size if grid else Vector2i(1,1)
+	var item_size := Vector2i(item_data.item_size) if grid else Vector2i(1, 1)
+	if is_rotated:
+		item_size = Vector2i(item_size.y, item_size.x)
 	size = Vector2i(64 * item_size.x, 64 * item_size.y)
-	set_hotbar_icon()
+	if is_rotated:
+		# Show the full icon pre-rotated 90° CW to match the swapped footprint
+		var img: Image = item_data.icon.get_image().duplicate()
+		img.rotate_90(CLOCKWISE)
+		texture_rect.texture = ImageTexture.create_from_image(img)
+		_apply_item_background(Vector2i.ZERO, true)
+	else:
+		set_hotbar_icon()
+
 
 
 func set_selection(is_selected : bool):

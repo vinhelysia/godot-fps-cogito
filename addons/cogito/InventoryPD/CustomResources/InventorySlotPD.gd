@@ -13,6 +13,14 @@ signal stack_has_changed
 		stack_has_changed.emit()
 	
 @export var origin_index = -1
+@export var is_rotated: bool = false
+
+
+func get_effective_size() -> Vector2i:
+	if not inventory_item:
+		return Vector2i(1, 1)
+	var s := Vector2i(inventory_item.item_size)
+	return Vector2i(s.y, s.x) if is_rotated else s
 
 
 func is_origin(index):

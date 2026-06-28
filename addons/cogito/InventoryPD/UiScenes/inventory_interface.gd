@@ -40,14 +40,22 @@ func _ready():
 	InputHelper.device_changed.connect(_on_input_device_change)
 	# Calling this function once to set proper input icons
 	_on_input_device_change(InputHelper.device,InputHelper.device_index)
-	
+
 	is_inventory_open = false
 	info_panel.hide()
 	cogito_tab_menu.hide()
-	
+
 	grabbed_slot_node.set_mouse_filter(2) # Setting mouse filter to ignore.
 	grabbed_slot_node.set_focus_mode(0) # Setting focus mode to none.
 	grabbed_slot_node.visibility_changed.connect(update_grabbed_slot_position)
+
+	# Register inventory_rotate_item if missing from project.godot (R key, same as reload —
+	# safe because _input only fires when the inventory is open and consumes the event).
+	if not InputMap.has_action("inventory_rotate_item"):
+		InputMap.add_action("inventory_rotate_item")
+		var ev := InputEventKey.new()
+		ev.physical_keycode = KEY_R
+		InputMap.action_add_event("inventory_rotate_item", ev)
 
 
 func _on_input_device_change(_device, _device_index):
@@ -290,6 +298,8 @@ func on_inventory_button_press(inventory_data: CogitoInventory, index: int, acti
 		[_, "inventory_drop_item"]:
 			Audio.play_sound(sound_error)
 			CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop while moving an item.")
+		[_, "inventory_rotate_item"]:
+			rotate_item()
 
 	# When connecting to the signal, we have bind the inventory_ui so we can use that to set focus.
 	local_inventory_ui.slot_array[index].grab_focus()
@@ -299,6 +309,7 @@ func on_inventory_button_press(inventory_data: CogitoInventory, index: int, acti
 func update_grabbed_slot():
 	if grabbed_slot_data:
 		grabbed_slot_node.show()
+		grabbed_slot_node.is_rotated = grabbed_slot_data.is_rotated
 		grabbed_slot_node.set_slot_data(grabbed_slot_data, grabbed_slot_node.get_index(), true, 0)
 		inventory_ui.grabbed_slot = grabbed_slot_node
 		if external_inventory_ui.visible:
@@ -308,6 +319,22 @@ func update_grabbed_slot():
 		grabbed_slot_node.hide()
 		inventory_ui.detach_grabbed_slot()
 		external_inventory_ui.detach_grabbed_slot()
+
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("inventory_rotate_item") and grabbed_slot_data:
+		get_viewport().set_input_as_handled()
+		rotate_item()
+
+
+func rotate_item() -> void:
+	if not grabbed_slot_data:
+		return
+	var item_size := grabbed_slot_data.inventory_item.item_size
+	if item_size.x == item_size.y:
+		return
+	grabbed_slot_data.is_rotated = not grabbed_slot_data.is_rotated
+	update_grabbed_slot()
 
 
 func _on_bind_grabbed_slot_to_quickslot(quickslotcontainer: CogitoQuickslotContainer):

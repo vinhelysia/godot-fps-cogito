@@ -62,6 +62,7 @@ func populate_item_grid(inventory_data : CogitoInventory) -> void:
 		slot.using_grid(inventory_data.grid)
 	
 		if slot_data:
+			slot.is_rotated = slot_data.is_rotated
 			slot.set_slot_data(slot_data, index, false, grid_container.columns)
 			slot.set_hotbar_icon()
 			
@@ -101,25 +102,31 @@ func apply_slot_icon_regions():
 	for slot in slot_array:
 		if slot.item_data and not added_items.has(slot.origin_index):
 			added_items.append(slot.origin_index)
-			apply_item_icons(slot.item_data, slot.origin_index)
+			var sd := loaded_inventory_data.get_slot_data(slot.origin_index)
+			var rotated := sd.is_rotated if sd else false
+			apply_item_icons(slot.item_data, slot.origin_index, rotated)
 		else:
 			continue
 
 
-func apply_item_icons(item_data : InventoryItemPD, origin_index: int):
-	var icon_slot_size = item_data.item_size
+func apply_item_icons(item_data: InventoryItemPD, origin_index: int, is_rotated: bool = false):
+	var icon_slot_size := Vector2i(item_data.item_size)
+	if is_rotated:
+		icon_slot_size = Vector2i(icon_slot_size.y, icon_slot_size.x)
 	for x in icon_slot_size.x:
 		for y in icon_slot_size.y:
 			var target_idx: int = origin_index + x + (y * grid_container.columns)
 			if target_idx >= slot_array.size():
 				continue
 			var target_slot: SlotPanel = slot_array[target_idx]
-			# Adjacent slots may miss set_slot_data if inventory updated mid-stack (MP edge case).
-			# Propagate the item_data reference so set_icon_region has something to work with.
 			if target_slot.item_data == null:
 				target_slot.item_data = item_data
-			CogitoGlobals.debug_log(true,"InventoryUI.gd","apply_item_icons: item_data=" + item_data.name + " set_icon_region(" + str(x) + "," + str(y) + ")")
-			target_slot.set_icon_region(x, y)
+			target_slot.is_rotated = is_rotated
+			CogitoGlobals.debug_log(true,"InventoryUI.gd","apply_item_icons: item_data=" + item_data.name + " set_icon_region(" + str(x) + "," + str(y) + ") rotated=" + str(is_rotated))
+			if is_rotated:
+				target_slot.set_icon_region_rotated(x, y)
+			else:
+				target_slot.set_icon_region(x, y)
 
 
 func detach_grabbed_slot():
@@ -131,8 +138,13 @@ func detach_grabbed_slot():
 func highlight_slots(index: int, highlight: bool):
 	if !grabbed_slot or !grabbed_slot.item_data or !grabbed_slot.grid:
 		return
-	
-	var highlight_size : Vector2i = grabbed_slot.item_data.item_size if grabbed_slot.grid else Vector2i(1,1)
+
+	var base_size := Vector2i(grabbed_slot.item_data.item_size)
+	var highlight_size: Vector2i
+	if grabbed_slot.grid:
+		highlight_size = Vector2i(base_size.y, base_size.x) if grabbed_slot.is_rotated else base_size
+	else:
+		highlight_size = Vector2i(1, 1)
 	var item_intersections = count_intersecting_items(index, highlight_size)
 	for x in highlight_size.x:
 		for y in highlight_size.y:
