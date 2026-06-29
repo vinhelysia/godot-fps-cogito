@@ -3,7 +3,7 @@
 > Quay về [[🎯 Project Index]]
 >
 > **AUTO-GENERATED — đừng sửa tay.** Regenerate: `bash tools/gen_codebase_map.sh` từ project root.
-> Generated: 2026-06-28 23:32
+> Generated: 2026-06-29 19:29
 >
 > ⚠️ Đây là SNAPSHOT. Verify path / func / line ở file thật trước khi sửa code.
 
@@ -18,6 +18,7 @@ MenuTemplateManager="*uid://dru131jwwih1y"
 MCPScreenshot="*res://addons/godot_mcp/mcp_screenshot_service.gd"
 MCPInputService="*res://addons/godot_mcp/mcp_input_service.gd"
 MCPGameInspector="*res://addons/godot_mcp/mcp_game_inspector_service.gd"
+SoundEvents="*res://Scripts/Enemies/sound_events.gd"
 ```
 
 ## Input actions (project.godot)
@@ -55,6 +56,88 @@ free_cursor
 
 ## Project scripts — `Scripts/` (detailed: class_name · extends · funcs)
 
+### `Scripts/Enemies/BT/Tasks/bt_face_target.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    7:func _tick(_delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/Tasks/bt_look_around.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    11:func _enter() -> void:
+    17:func _tick(_delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/Tasks/bt_move_to.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    9:func _tick(delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/Tasks/bt_patrol.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    12:func _enter() -> void:
+    24:func _tick(delta: float) -> Status:
+    87:func _set_destination(npc: CogitoNPC) -> void:
+    94:func _iterate_patrol_point(npc: CogitoNPC) -> void:
+```
+
+### `Scripts/Enemies/BT/Tasks/bt_reload.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    11:func _enter() -> void:
+    28:func _tick(_delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/Tasks/bt_shoot.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    18:func _enter() -> void:
+    29:func _tick(delta: float) -> Status:
+    88:func _brake(npc: CogitoNPC, delta: float) -> void:
+    97:func _get_muzzle_pos(npc: CogitoNPC) -> Vector3:
+    104:func _cast_ray(npc: CogitoNPC, from: Vector3, to: Vector3) -> Dictionary:
+    112:func _result_hits_target(result: Dictionary, target: Node3D) -> bool:
+    119:func _shoot(npc: CogitoNPC, target: Node3D, muzzle_pos: Vector3) -> void:
+```
+
+### `Scripts/Enemies/BT/Tasks/bt_strafe.gd`
+- extends: `BTAction`
+- funcs:
+```gdscript
+    14:func _enter() -> void:
+    56:func _tick(delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/Tasks/btc_alert_at_least.gd`
+- extends: `BTCondition`
+- funcs:
+```gdscript
+    7:func _tick(_delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/Tasks/btc_has_last_known.gd`
+- extends: `BTCondition`
+- funcs:
+```gdscript
+    5:func _tick(_delta: float) -> Status:
+```
+
+### `Scripts/Enemies/BT/build_scav_bt.gd`
+- extends: `SceneTree`
+- funcs:
+```gdscript
+    3:func _init():
+```
+
 ### `Scripts/Enemies/States/npc_state_shoot.gd`
 - extends: `Node`
 - funcs:
@@ -62,12 +145,12 @@ free_cursor
     34:func _state_enter(_args = null) -> void:
     46:func _state_exit() -> void:
     50:func _physics_process(delta: float) -> void:
-    87:func _brake(delta: float) -> void:
-    96:func _get_muzzle_pos() -> Vector3:
-    103:func _cast_ray(from: Vector3, to: Vector3) -> Dictionary:
-    111:func _result_hits_target(result: Dictionary) -> bool:
-    118:func _shoot() -> void:
-    141:func _apply_damage() -> void:
+    90:func _brake(delta: float) -> void:
+    99:func _get_muzzle_pos() -> Vector3:
+    106:func _cast_ray(from: Vector3, to: Vector3) -> Dictionary:
+    114:func _result_hits_target(result: Dictionary) -> bool:
+    121:func _shoot() -> void:
+    144:func _apply_damage() -> void:
 ```
 
 ### `Scripts/Enemies/scav.gd`
@@ -75,9 +158,28 @@ free_cursor
 - extends: `CogitoNPC`
 - funcs:
 ```gdscript
-    9:func _ready() -> void:
-    14:func _connect_security_camera() -> void:
-    24:func _on_detection_lost() -> void:
+    8:func _ready() -> void:
+    17:func _on_death() -> void:
+```
+
+### `Scripts/Enemies/scav_perception.gd`
+- class_name: `ScavPerception`
+- extends: `Node3D`
+- funcs:
+```gdscript
+    38:func _ready() -> void:
+    53:func _physics_process(delta: float) -> void:
+    104:func _find_target() -> Node3D:
+    111:func _can_see(target: Node3D) -> bool:
+    131:func _aim_point(target: Node3D, height: float) -> Vector3:
+    139:func _los_clear(from: Vector3, to: Vector3) -> bool:
+    151:func _on_sound_emitted(pos: Vector3, loudness: float, _kind: StringName, emitter: Node) -> void:
+```
+
+### `Scripts/Enemies/sound_events.gd`
+- extends: `Node`
+- funcs:
+```gdscript
 ```
 
 ### `Scripts/Player/player_interaction_component_delayed_reload.gd`
@@ -321,38 +423,38 @@ free_cursor
     363:func is_ads_active() -> bool:
     367:func should_suspend_container_motion() -> bool:
     376:func _try_fire() -> void:
-    441:func _build_fire_context() -> Dictionary:
-    456:func _play_shoot_visual() -> bool:
-    465:func _on_shoot_visual_finished() -> void:
-    469:func _get_shoot_visual_duration() -> float:
-    476:func _schedule_post_fire_cycle(delay: float, on_cycle: Callable) -> void:
-    487:func _complete_cycle_after_delay(delay: float, on_done: Callable) -> void:
-    498:func _on_anim_finished(anim_name: StringName) -> void:
-    515:func _finish_reload_with_mechanics() -> void:
-    545:func on_cycle_complete() -> void:
-    555:func _commit_mechanics_to_item() -> void:
-    569:func _restore_mechanics_from_item() -> void:
-    585:func _apply_mechanics_visual_state() -> void:
-    600:func _configure_recoil() -> void:
-    616:func _apply_recoil() -> void:
-    625:func _get_recoil_node() -> Node3D:
-    634:func _is_player_sprinting() -> bool:
-    641:func _get_reload_animation_name() -> String:
-    655:func _is_reload_animation(anim_name: StringName) -> bool:
-    662:func _uses_animation_shoot_motion() -> bool:
-    669:func _get_shoot_animation_name() -> String:
-    675:func _is_shoot_animation_name(anim_name: StringName) -> bool:
-    679:func _is_shoot_animation_playing() -> bool:
-    683:func _run_bolt_tween() -> void:
-    745:func _run_pistol_parts_tween() -> void:
-    758:func _sync_shoot_motion_config() -> void:
-    771:func _resolve_fire_part() -> void:
-    779:func _capture_rest_state() -> void:
-    786:func _apply_rest_pose() -> void:
-    793:func _reset_state() -> void:
-    815:func _play_reload_sound() -> void:
-    822:func _spawn_muzzle_flash_fpv() -> void:
-    843:func _spawn_shell_casing() -> void:
+    448:func _build_fire_context() -> Dictionary:
+    463:func _play_shoot_visual() -> bool:
+    472:func _on_shoot_visual_finished() -> void:
+    476:func _get_shoot_visual_duration() -> float:
+    483:func _schedule_post_fire_cycle(delay: float, on_cycle: Callable) -> void:
+    494:func _complete_cycle_after_delay(delay: float, on_done: Callable) -> void:
+    505:func _on_anim_finished(anim_name: StringName) -> void:
+    522:func _finish_reload_with_mechanics() -> void:
+    552:func on_cycle_complete() -> void:
+    562:func _commit_mechanics_to_item() -> void:
+    576:func _restore_mechanics_from_item() -> void:
+    592:func _apply_mechanics_visual_state() -> void:
+    607:func _configure_recoil() -> void:
+    623:func _apply_recoil() -> void:
+    632:func _get_recoil_node() -> Node3D:
+    641:func _is_player_sprinting() -> bool:
+    648:func _get_reload_animation_name() -> String:
+    662:func _is_reload_animation(anim_name: StringName) -> bool:
+    669:func _uses_animation_shoot_motion() -> bool:
+    676:func _get_shoot_animation_name() -> String:
+    682:func _is_shoot_animation_name(anim_name: StringName) -> bool:
+    686:func _is_shoot_animation_playing() -> bool:
+    690:func _run_bolt_tween() -> void:
+    752:func _run_pistol_parts_tween() -> void:
+    765:func _sync_shoot_motion_config() -> void:
+    778:func _resolve_fire_part() -> void:
+    786:func _capture_rest_state() -> void:
+    793:func _apply_rest_pose() -> void:
+    800:func _reset_state() -> void:
+    822:func _play_reload_sound() -> void:
+    829:func _spawn_muzzle_flash_fpv() -> void:
+    850:func _spawn_shell_casing() -> void:
 ```
 
 ### `Scripts/Weapons/scope_controller.gd`
@@ -411,6 +513,7 @@ free_cursor
 | `CogitoBodyDrag` | `Node3D` | addons/cogito/CogitoNPC/cogito_body_drag.gd | Name that will displayed when interacting. Leave blank to hide |
 | `CogitoNPC` | `CharacterBody3D` | addons/cogito/CogitoNPC/cogito_npc.gd | Emitted when received damage. Used with the HitboxComponent |
 | `CogitoPatrolPath` | `Node` | addons/cogito/CogitoNPC/cogito_patrol_path.gd | List of patrol points which the enemy will move to in order. |
+| `CogitoPerception` | `Node3D` | addons/cogito/CogitoNPC/cogito_perception.gd | Shared NPC vision — proximity + FOV cone + multi-point line-of-sight. |
 | `CogitoButton` | `Node3D` | addons/cogito/CogitoObjects/cogito_button.gd | This sets where interaction prompt gets displayed on the object. |
 | `CogitoContainer` | `Node3D` | addons/cogito/CogitoObjects/cogito_container.gd | Name that will displayed when interacting. Leave blank to hide |
 | `CogitoDoor` | `Node3D` | addons/cogito/CogitoObjects/cogito_door.gd | Name that will displayed when interacting. Leave blank to hide |
@@ -517,7 +620,7 @@ free_cursor
 | scene | root node | script ext_resources |
 |---|---|---|
 | Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.tscn | Tac3014x24Riflescope (Node3D) | res://Scripts/Weapons/scope_controller.gd  |
-| Scene/Enemies/Scav.tscn | Scav (instanced) | res://Scripts/Enemies/scav.gd res://Scripts/Enemies/States/npc_state_shoot.gd res://addons/cogito/Components/LootComponent.gd  |
+| Scene/Enemies/Scav.tscn | Scav (instanced) | res://Scripts/Enemies/scav.gd res://Scripts/Enemies/scav_perception.gd res://addons/cogito/Components/LootComponent.gd  |
 | Scene/Items/Bullets/45. ACP/45.ACP_Item.tscn | 7_62x39MmItem (RigidBody3D) | res://addons/cogito/CogitoObjects/cogito_object.gd res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd  |
 | Scene/Items/Bullets/76239/7.62x39mm_Item.tscn | 7_62x39MmItem (RigidBody3D) | res://addons/cogito/CogitoObjects/cogito_object.gd res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd  |
 | Scene/Items/Bullets/76251/7_62x_51mm_item.tscn | 7_62x51mm_Item (instanced) | res://addons/cogito/CogitoObjects/cogito_object.gd res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd  |
@@ -565,4 +668,4 @@ free_cursor
 | Scene/Weapom/Firearms/Pistol/USP/pickup_usp.tscn | Pickup_usp (RigidBody3D) | res://addons/cogito/CogitoObjects/cogito_object.gd res://addons/cogito/Components/Interactions/PickupComponent.gd res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd  |
 
 ---
-_Stats: 23 project scripts · 179 cogito scripts · 47 project scenes._
+_Stats: 35 project scripts · 180 cogito scripts · 47 project scenes._

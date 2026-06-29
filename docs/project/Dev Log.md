@@ -2,6 +2,37 @@
 
 > Quay về [[🎯 Project Index]]
 
+## 2026-06-29 — Rebuild Scav AI with LimboAI & Fix Navigation Mesh
+
+### Rebuilt Scav AI onto LimboAI
+- **Perception (SENSE)**:
+  - Created [scav_perception.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/scav_perception.gd) (replaces old `CogitoPerception`). Implements 120° FOV vision with 3-point raycast LOS (head, chest, pelvis) and a global `SoundEvents` bus listener for hearing.
+  - Implements self-hearing prevention (ignores sounds from host or its children) and scales hearing range based on sound loudness.
+- **Blackboard / State (THINK)**:
+  - Configured `BlackboardPlan` in [Scav.tscn](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scene/Enemies/Scav.tscn) with all variables declared (`target`, `last_known_position`, `has_last_known`, `heard_position`, `awareness`, `alert_state`, `ammo`, `reloading`, `engage_range`, `last_strafe_time`) to eliminate runtime "Variable not found" warnings.
+  - Built [scav_brain.tres](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scene/Enemies/BT/scav_brain.tres) Behavior Tree programmatically in the editor.
+  - Uses `BTCondition` nodes at the start of each `BTSelector` branch to ensure immediate preemption when alert states change (e.g. going from patrol to combat).
+- **BT Tasks (ACT)**:
+  - Created custom tasks in `Scripts/Enemies/BT/Tasks/`:
+    - [bt_move_to.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_move_to.gd): Navigates to destination using `NavigationAgent3D`.
+    - [bt_face_target.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_face_target.gd): Smoothly rotates the host to face the target.
+    - [bt_shoot.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_shoot.gd): Handles burst shooting, recoil/spread, damage, and fire rate.
+    - [bt_reload.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_reload.gd): Reloads the weapon and updates the blackboard.
+    - [bt_look_around.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_look_around.gd): Rotates left and right to search the area.
+    - [bt_strafe.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_strafe.gd): Moves side-to-side during combat to avoid being hit.
+    - [bt_patrol.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/bt_patrol.gd): Walks along the `CogitoPatrolPath`.
+    - [btc_alert_at_least.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/btc_alert_at_least.gd) & [btc_has_last_known.gd](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scripts/Enemies/BT/Tasks/btc_has_last_known.gd): Custom blackboard conditions.
+
+### Navigation Mesh & Spawn Fix in Town.tscn
+- **Group-Based Bake**:
+  - Switched `Town/NavigationRegion3D` to group-based geometry sourcing (`GROUPS_WITH_CHILDREN`) using group `"navmesh_source"` and geometry type `BOTH` (meshes + static colliders).
+  - Added `NavigationRegion3D/Geometry` (floor), `House1` (house obstacle), `Crate` (prop obstacle), and `KSI_counter` (prop obstacle) to the `"navmesh_source"` group.
+  - Successfully baked the NavigationMesh with **21 vertices** and **15 polygons**, covering the entire interior of `House1` and carving out obstacles.
+- **Spawn Relocation**:
+  - Relocated the `Scav` starting position in [Town.tscn](file:///C:/Stuff/godot-fps-cogito-master/godot-fps-cogito-master/Scene/Town.tscn) to `(36, 0.05, -30)` (inside the house at `PatrolA`) to ensure it starts on the baked NavigationMesh rather than outside of it (near the wall).
+
+---
+
 ## 2026-06-28 — Scav enemy AI (first hostile enemy)
 
 ### Files created
