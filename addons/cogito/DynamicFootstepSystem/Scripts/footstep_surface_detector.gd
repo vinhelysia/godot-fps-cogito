@@ -220,6 +220,26 @@ func _play_footstep(profile : AudioStreamRandomizer, interaction_type: String):
 	if interaction_type == "footstep":
 		stream = profile
 		play()
+		
+		var loudness: float = 10.0
+		var parent: Node = get_parent()
+		if parent:
+			if parent.is_in_group("Player"):
+				if parent.get("is_sprinting") == true:
+					loudness = 20.0
+				elif parent.get("is_crouching") == true:
+					loudness = 5.0
+			else:
+				var vel = parent.get("velocity")
+				var sprint_spd = parent.get("sprint_speed")
+				if vel is Vector3 and sprint_spd is float:
+					if vel.length() >= sprint_spd - 0.5:
+						loudness = 20.0
+		
+		var sound_events = get_node_or_null("/root/SoundEvents")
+		if sound_events:
+			sound_events.sound_emitted.emit(global_position, loudness, &"footstep", parent)
+
 
 	elif interaction_type == "landing":
 		#Setup QuickAudio landing player so that it can use its own pitch/volume parameters

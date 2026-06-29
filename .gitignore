@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Obsidian per-machine config (the notes in docs/project/ ARE tracked)
+docs/project/.obsidian/
+
+# Agent configuration files
+AGENTS.md
+CLAUDE.md

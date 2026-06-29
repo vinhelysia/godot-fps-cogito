@@ -16,6 +16,8 @@
 [ext_resource type="Texture2D" uid="uid://dm7pxodtw082t" path="res://addons/kenney_prototype_textures/green/texture_08.png" id="14_hdm3a"]
 [ext_resource type="PackedScene" uid="uid://ckukvw522vy6q" path="res://Scene/Weapom/Firearms/Pistol/USP/pickup_usp.tscn" id="15_n5gl2"]
 [ext_resource type="PackedScene" uid="uid://wchwola8tvdh" path="res://Scene/Object/Deco/ksi_counter.tscn" id="16_emnm4"]
+[ext_resource type="PackedScene" uid="uid://c5b73hl6rjw60" path="res://Scene/Enemies/Scav.tscn" id="20_scav"]
+[ext_resource type="Script" uid="uid://cabgyitb3d8cj" path="res://addons/cogito/CogitoNPC/cogito_patrol_path.gd" id="21_patrol"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_epm0u"]
 panorama = ExtResource("1_qvonb")
@@ -36,12 +38,19 @@ glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="Resource" id="Resource_n5gl2"]
+[sub_resource type="Resource" id="Resource_gi6o6"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
 inventory_size = Vector2i(9, 4)
 inventory_slots = Array[ExtResource("5_hdm3a")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
+
+[sub_resource type="NavigationMesh" id="NavMesh_scav"]
+vertices = PackedVector3Array(33.52365, 0.52703094, -38.21546, 33.52365, 0.52703094, -37.21546, 34.02365, 0.52703094, -36.96546, 32.77365, 0.52703094, -48.46546, 32.77365, 0.52703094, -38.46546, 49.02365, 0.52703094, -34.96546, 49.02365, 0.52703094, -48.46546, 34.02365, 0.52703094, -34.96546, 34.02365, 0.52703094, -25.965462, 40.02365, 0.52703094, -25.715462, 49.02365, 0.52703094, -25.965462, -74.72635, 0.52703094, -23.965462, -74.72635, 0.52703094, 122.28454, 49.52365, 0.52703094, 122.28454, 49.52365, 0.52703094, -23.965462)
+polygons = [PackedInt32Array(0, 2, 1), PackedInt32Array(0, 4, 3), PackedInt32Array(0, 3, 2), PackedInt32Array(2, 3, 6), PackedInt32Array(2, 6, 5), PackedInt32Array(5, 7, 2), PackedInt32Array(8, 7, 9), PackedInt32Array(9, 7, 10), PackedInt32Array(10, 7, 5), PackedInt32Array(14, 13, 11), PackedInt32Array(11, 13, 12)]
+geometry_parsed_geometry_type = 1
+geometry_source_geometry_mode = 1
+geometry_source_group_name = &"navmesh_source"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xp5ie"]
 render_priority = 0
@@ -80,10 +89,7 @@ shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.175818, -27.005917)
-inventory_data = SubResource("Resource_n5gl2")
-
-[node name="House1" parent="." unique_id=1040486314 instance=ExtResource("5_ha6b3")]
-transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
+inventory_data = SubResource("Resource_gi6o6")
 
 [node name="7_62x51mm_Item" parent="." unique_id=1276708987 instance=ExtResource("11_lb3ao")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.340513)
@@ -128,31 +134,54 @@ freeze = true
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 32.73425, 0.9648551, -29.774569)
 freeze = true
 
-[node name="Crate" parent="." unique_id=1741609525 instance=ExtResource("12_rniks")]
+[node name="Crate" parent="." unique_id=1741609525 groups=["navmesh_source"] instance=ExtResource("12_rniks")]
 transform = Transform3D(-2.5, 0, -3.774895e-07, 0, 2.5, 0, 3.774895e-07, 0, -2.5, 47.06791, 0.054561857, -26.0007)
-
-[node name="Geometry" type="StaticBody3D" parent="." unique_id=1590174803]
-transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Geometry" unique_id=425838633]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.272581, 0, 30.954575)
-mesh = SubResource("PlaneMesh_yhbxf")
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="Geometry" unique_id=1791929580]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.701439, 0.49081236, 1.6246014)
-mesh = SubResource("QuadMesh_rniks")
-
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="Geometry" unique_id=1783393449]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.701439, 0.49081236, 1.6246014)
-shape = SubResource("ConvexPolygonShape3D_hdm3a")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Geometry" unique_id=803583386]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.32085, 0, 31.099411)
-shape = SubResource("ConvexPolygonShape3D_flngw")
 
 [node name="Pickup_usp" parent="." unique_id=1862161420 instance=ExtResource("15_n5gl2")]
 transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 32.69835, 0.850376, -37.26477)
 freeze = true
 
-[node name="KSI_counter" parent="." unique_id=1168112705 instance=ExtResource("16_emnm4")]
+[node name="KSI_counter" parent="." unique_id=1168112705 groups=["navmesh_source"] instance=ExtResource("16_emnm4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.010532, 0.049999952, -36.48145)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=31755595]
+navigation_mesh = SubResource("NavMesh_scav")
+
+[node name="Geometry" type="StaticBody3D" parent="NavigationRegion3D" unique_id=1590174803 groups=["navmesh_source"]]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NavigationRegion3D/Geometry" unique_id=425838633]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.272581, 0, 30.954575)
+mesh = SubResource("PlaneMesh_yhbxf")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="NavigationRegion3D/Geometry" unique_id=1791929580]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.701439, 0.49081236, 1.6246014)
+mesh = SubResource("QuadMesh_rniks")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="NavigationRegion3D/Geometry" unique_id=1783393449]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28.701439, 0.49081236, 1.6246014)
+shape = SubResource("ConvexPolygonShape3D_hdm3a")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/Geometry" unique_id=803583386]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.32085, 0, 31.099411)
+shape = SubResource("ConvexPolygonShape3D_flngw")
+
+[node name="House1" parent="NavigationRegion3D" unique_id=1040486314 groups=["navmesh_source"] instance=ExtResource("5_ha6b3")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 40.777256, 0.05000013, -28.715464)
+
+[node name="ScavPatrolPath" type="Node3D" parent="." unique_id=1717123740 node_paths=PackedStringArray("patrol_points")]
+script = ExtResource("21_patrol")
+patrol_points = [NodePath("PatrolA"), NodePath("PatrolB"), NodePath("PatrolC")]
+
+[node name="PatrolA" type="Node3D" parent="ScavPatrolPath" unique_id=1020191332]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 1, -30)
+
+[node name="PatrolB" type="Node3D" parent="ScavPatrolPath" unique_id=2091612430]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 1, -25)
+
+[node name="PatrolC" type="Node3D" parent="ScavPatrolPath" unique_id=697101448]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 1, -37)
+
+[node name="Scav" parent="." unique_id=1555544251 node_paths=PackedStringArray("patrol_path") instance=ExtResource("20_scav")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.0, 0.049776077, -30.0)
+patrol_path = NodePath("../ScavPatrolPath")

@@ -1,0 +1,56 @@
+[gd_resource type="BehaviorTree" format=3 uid="uid://dootm3wprrons"]
+
+[ext_resource type="Script" uid="uid://cn0aaugrfw2a4" path="res://Scripts/Enemies/BT/Tasks/btc_alert_at_least.gd" id="1_yflyk"]
+[ext_resource type="Script" uid="uid://cba8683mghvbd" path="res://Scripts/Enemies/BT/Tasks/bt_face_target.gd" id="2_k5wgg"]
+[ext_resource type="Script" uid="uid://dw74x0arhesi1" path="res://Scripts/Enemies/BT/Tasks/bt_strafe.gd" id="3_ethxh"]
+[ext_resource type="Script" uid="uid://hdwhniau8cbq" path="res://Scripts/Enemies/BT/Tasks/bt_shoot.gd" id="4_id76j"]
+[ext_resource type="Script" uid="uid://c0wr6f8loechx" path="res://Scripts/Enemies/BT/Tasks/bt_reload.gd" id="5_33d6f"]
+[ext_resource type="Script" uid="uid://jw0bvu47bdch" path="res://Scripts/Enemies/BT/Tasks/bt_move_to.gd" id="6_c8q6g"]
+[ext_resource type="Script" uid="uid://ck73n87sm7ua2" path="res://Scripts/Enemies/BT/Tasks/btc_has_last_known.gd" id="7_daogp"]
+[ext_resource type="Script" uid="uid://ibaffq1fj70y" path="res://Scripts/Enemies/BT/Tasks/bt_look_around.gd" id="8_wourw"]
+[ext_resource type="Script" uid="uid://dy4dufpwoytd7" path="res://Scripts/Enemies/BT/Tasks/bt_patrol.gd" id="9_iv4tx"]
+
+[sub_resource type="BTCondition" id="BTCondition_03rya"]
+script = ExtResource("1_yflyk")
+
+[sub_resource type="BTAction" id="BTAction_y3mpp"]
+script = ExtResource("2_k5wgg")
+
+[sub_resource type="BTAction" id="BTAction_go0y3"]
+script = ExtResource("3_ethxh")
+
+[sub_resource type="BTAction" id="BTAction_tyl7d"]
+script = ExtResource("4_id76j")
+
+[sub_resource type="BTAction" id="BTAction_dfbx2"]
+script = ExtResource("5_33d6f")
+
+[sub_resource type="BTAction" id="BTAction_vsa5v"]
+script = ExtResource("6_c8q6g")
+
+[sub_resource type="BTSelector" id="BTSelector_euccw"]
+children = [SubResource("BTAction_go0y3"), SubResource("BTAction_tyl7d"), SubResource("BTAction_dfbx2"), SubResource("BTAction_vsa5v")]
+
+[sub_resource type="BTSequence" id="BTSequence_hj5cx"]
+children = [SubResource("BTCondition_03rya"), SubResource("BTAction_y3mpp"), SubResource("BTSelector_euccw")]
+
+[sub_resource type="BTCondition" id="BTCondition_xggx1"]
+script = ExtResource("7_daogp")
+
+[sub_resource type="BTAction" id="BTAction_k5q6m"]
+script = ExtResource("6_c8q6g")
+
+[sub_resource type="BTAction" id="BTAction_56dhh"]
+script = ExtResource("8_wourw")
+
+[sub_resource type="BTSequence" id="BTSequence_8ssw3"]
+children = [SubResource("BTCondition_xggx1"), SubResource("BTAction_k5q6m"), SubResource("BTAction_56dhh")]
+
+[sub_resource type="BTAction" id="BTAction_qypna"]
+script = ExtResource("9_iv4tx")
+
+[sub_resource type="BTSelector" id="BTSelector_7245w"]
+children = [SubResource("BTSequence_hj5cx"), SubResource("BTSequence_8ssw3"), SubResource("BTAction_qypna")]
+
+[resource]
+root_task = SubResource("BTSelector_7245w")

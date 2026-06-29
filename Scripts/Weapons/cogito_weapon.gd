@@ -418,6 +418,13 @@ func _try_fire() -> void:
 		audio_stream_player_3d.stream = sound_shoot
 		audio_stream_player_3d.play()
 
+	var sound_events = get_node_or_null("/root/SoundEvents")
+	if sound_events:
+		var emitter: Node = null
+		if player_interaction_component:
+			emitter = player_interaction_component.get_parent()
+		sound_events.sound_emitted.emit(bullet_point.global_position, 80.0, &"gunshot", emitter)
+
 	# Muzzle flash (first-person view)
 	_spawn_muzzle_flash_fpv()
 

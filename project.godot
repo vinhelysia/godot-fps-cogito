@@ -33,6 +33,7 @@ MenuTemplateManager="*uid://dru131jwwih1y"
 MCPScreenshot="*res://addons/godot_mcp/mcp_screenshot_service.gd"
 MCPInputService="*res://addons/godot_mcp/mcp_input_service.gd"
 MCPGameInspector="*res://addons/godot_mcp/mcp_game_inspector_service.gd"
+SoundEvents="*res://Scripts/Enemies/sound_events.gd"
 
 [display]
 
