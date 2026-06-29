@@ -1,16 +1,42 @@
 extends InteractionComponent
 class_name PickupComponent
 
-@export var slot_data : InventorySlotPD
+const PLAYER_COLLISION_EXCEPTION_RETRY_ATTEMPTS: int = 8
+const PLAYER_COLLISION_EXCEPTION_RETRY_DELAY: float = 0.1
+
+@export var slot_data : InventorySlotPD:
+	set(value):
+		slot_data = value
+		_update_display_name()
 @export var display_item_name : bool = false
+@export var ignore_player_collision: bool = true
 
 var player_interaction_component
+var _original_interaction_text : String = ""
 
 
-func _enter_tree() -> void:
-	if display_item_name:
+func _update_display_name():
+	if _original_interaction_text == "":
+		_original_interaction_text = interaction_text
+		
+	if slot_data and slot_data.inventory_item:
 		var owner_object : CogitoObject = get_parent()
-		owner_object.display_name = slot_data.inventory_item.name
+		if owner_object:
+			if display_item_name:
+				owner_object.display_name = tr(slot_data.inventory_item.name)
+			
+			if slot_data.quantity > 1:
+				interaction_text = tr(_original_interaction_text) + " x" + str(slot_data.quantity)
+			else:
+				interaction_text = tr(_original_interaction_text)
+
+
+func _ready() -> void:
+	if _original_interaction_text == "":
+		_original_interaction_text = interaction_text
+	_update_display_name()
+	if ignore_player_collision:
+		call_deferred("_try_setup_player_collision_exception")
 
 
 func interact(_player_interaction_component: PlayerInteractionComponent):
@@ -31,8 +57,9 @@ func pick_up(_player_interaction_component: PlayerInteractionComponent):
 			_player_interaction_component.send_hint(slot_data.inventory_item.icon, tr(slot_data.inventory_item.name) + " " +tr("HINT_cant_pick_up") )
 			return
 	
-	if not _player_interaction_component.get_parent().inventory_data.pick_up_slot_data(slot_data):
-		return
+	var original_quantity = slot_data.quantity
+	var pick_up_success = _player_interaction_component.get_parent().inventory_data.pick_up_slot_data(slot_data)
+	var picked_up_amount = original_quantity - slot_data.quantity
 
 	# Update wieldable UI if we have picked up ammo for current wieldable
 	if _player_interaction_component.is_wielding:
@@ -42,28 +69,59 @@ func pick_up(_player_interaction_component: PlayerInteractionComponent):
 			var equipped_wieldable = _player_interaction_component.equipped_wieldable_item
 			_player_interaction_component.equipped_wieldable_item.update_wieldable_data(_player_interaction_component)
 
-
-	_player_interaction_component.send_hint(slot_data.inventory_item.icon, tr(slot_data.inventory_item.name) + " " + tr("INVENTORY_add_item") )
-	was_interacted_with.emit(interaction_text, input_map_action)
-	Audio.play_sound(slot_data.inventory_item.sound_pickup)
-
-	# Multiplayer: disable immediately to block double-pickup during latency,
-	# then have the server queue_free() so WeaponSpawner despawns for all peers.
-	if multiplayer.get_peers().size() > 0:
-		is_disabled = true
-		if multiplayer.is_server():
-			get_parent().queue_free()
+	if picked_up_amount > 0:
+		Audio.play_sound(slot_data.inventory_item.sound_pickup)
+		was_interacted_with.emit(interaction_text, input_map_action)
+		
+		if slot_data.quantity <= 0:
+			# Entire stack picked up
+			_player_interaction_component.send_hint(slot_data.inventory_item.icon, tr(slot_data.inventory_item.name) + " " + tr("INVENTORY_add_item") )
+			self.get_parent().queue_free()
 		else:
-			_request_server_despawn.rpc_id(1)
+			# Partial stack picked up
+			_player_interaction_component.send_hint(slot_data.inventory_item.icon, "Picked up " + str(picked_up_amount) + " " + tr(slot_data.inventory_item.name) )
+			_update_display_name()
 	else:
-		self.get_parent().queue_free()
+		# Nothing was picked up at all (inventory full)
+		_player_interaction_component.send_hint(slot_data.inventory_item.icon, tr(slot_data.inventory_item.name) + " " + tr("HINT_cant_pick_up") )
 
 
-## Multiplayer: server-side despawn — WeaponSpawner propagates removal to all clients.
-@rpc("any_peer", "reliable")
-func _request_server_despawn() -> void:
-	if not multiplayer.is_server():
+func _try_setup_player_collision_exception(attempts_remaining: int = PLAYER_COLLISION_EXCEPTION_RETRY_ATTEMPTS) -> void:
+	if not is_inside_tree():
 		return
-	var pickup := get_parent()
-	if is_instance_valid(pickup):
-		pickup.queue_free()
+
+	var pickup_body := _find_pickup_physics_body()
+	if not pickup_body:
+		push_warning("PickupComponent: could not find pickup physics body for collision exception.")
+		return
+
+	var player_body := _find_player_body()
+	if player_body:
+		pickup_body.add_collision_exception_with(player_body)
+		return
+
+	if attempts_remaining > 0:
+		get_tree().create_timer(PLAYER_COLLISION_EXCEPTION_RETRY_DELAY).timeout.connect(
+				_try_setup_player_collision_exception.bind(attempts_remaining - 1),
+				CONNECT_ONE_SHOT)
+	else:
+		push_warning("PickupComponent: could not find player body for collision exception.")
+
+
+func _find_pickup_physics_body() -> PhysicsBody3D:
+	var node: Node = self
+	while node:
+		if node is PhysicsBody3D:
+			return node as PhysicsBody3D
+		node = node.get_parent()
+	return null
+
+
+func _find_player_body() -> PhysicsBody3D:
+	if is_instance_valid(CogitoSceneManager._current_player_node) and CogitoSceneManager._current_player_node is PhysicsBody3D:
+		return CogitoSceneManager._current_player_node as PhysicsBody3D
+
+	for node: Node in get_tree().get_nodes_in_group("Player"):
+		if node is PhysicsBody3D:
+			return node as PhysicsBody3D
+	return null

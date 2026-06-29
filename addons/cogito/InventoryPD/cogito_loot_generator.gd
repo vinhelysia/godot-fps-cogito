@@ -9,6 +9,7 @@ class_name LootGenerator extends Node
 var _player: CogitoPlayer
 var _player_hud: CogitoPlayerHudManager
 var _player_inventory: CogitoInventory
+var _cached_lookup_merge: Array[InventoryItemPD] = []
 
 # Arrays to sort items into
 ## Array for loot table items that do not have any drop type selected. These items are not to be dropped.
@@ -21,7 +22,6 @@ var chance_drops_table: Array[LootDropEntry] = []
 var quest_drops_table: Array[LootDropEntry] = []
 
 
-## Generate loot by passing a loot table and amount of items to generate.
 func generate(loot_table: LootTable, amount: int, debug: bool = false) -> Array[LootDropEntry]:
 	debug_prints = debug
 	
@@ -43,14 +43,44 @@ func generate(loot_table: LootTable, amount: int, debug: bool = false) -> Array[
 		if guaranteed_drops_table.size() > 0:
 			output_array.append_array(guaranteed_drops_table)
 			
+		_cached_lookup_merge.clear() # Clear reference cache to prevent memory leaks
+			
 	return output_array
 
 
-## Set up references to player in order to query loot bags and player inventory so we can check for unique and quest drops.
 func _set_up_references():
 	_player = get_tree().get_first_node_in_group("Player")
 	_player_hud = _player.find_child("Player_HUD", true, true)
 	_player_inventory = _player.inventory_data
+	
+	_cached_lookup_merge.clear()
+	var _loot_bags: Array[Node] = get_tree().get_nodes_in_group("loot_bag")
+	var _spawned_items: Array[Node] = get_tree().get_nodes_in_group("spawned_loot_items")
+	_loot_bags.append_array(get_tree().get_nodes_in_group("lootable_containers"))
+	
+	var _loot_bags_slots: Array[InventoryItemPD] = []
+	var _spawned_items_in_scene: Array[InventoryItemPD] = []
+	var _player_inventory_slots: Array[InventoryItemPD] = []
+	
+	if _player_inventory:
+		_player_inventory_slots = _player_inventory.get_all_items()
+	
+	if _loot_bags.size() > 0:
+		for i in _loot_bags:
+			if i and i.get("inventory_data"):
+				_loot_bags_slots.append_array(i.inventory_data.get_all_items())
+	
+	if _spawned_items.size() > 0:
+		for i in _spawned_items:
+			if i:
+				var children = i.get_children()
+				for child in children:
+					if child is PickupComponent and child.slot_data and child.slot_data.inventory_item:
+						_spawned_items_in_scene.append(child.slot_data.inventory_item)
+	
+	_cached_lookup_merge.append_array(_player_inventory_slots)
+	_cached_lookup_merge.append_array(_loot_bags_slots)
+	_cached_lookup_merge.append_array(_spawned_items_in_scene)
 
 
 ## Sort the loot table into neat little arrays.
@@ -81,69 +111,17 @@ func _sort_loot_table(loot_table: LootTable):
 		)
 
 
-## Checks for given InventoryPD item against player inventory, loot bags, and lootable containers, returns true if there is a copy of a unique item, false if there isn't.
-func _is_unique_found(item: InventoryItemPD):
-	var _loot_bags: Array[Node] = get_tree().get_nodes_in_group("loot_bag")
-	var _spawned_items: Array[Node] = get_tree().get_nodes_in_group("spawned_loot_items")
-	_loot_bags.append_array(get_tree().get_nodes_in_group("lootable_containers"))
-	
-	var _loot_bags_slots: Array[InventoryItemPD] = []
-	var _spawned_items_in_scene: Array[InventoryItemPD] = []
-	var _player_inventory_slots: Array[InventoryItemPD] = _player_inventory.get_all_items()
-	var _lookup_merge: Array[InventoryItemPD] = []
-	
-	if _loot_bags.size() > 0:
-		for i in _loot_bags:
-			_loot_bags_slots.append_array(i.inventory_data.get_all_items())
-	
-	if _spawned_items.size() > 0:
-		for i in _spawned_items:
-			var children = []
-			children = i.get_children()
-			for child in children:
-				if child is PickupComponent:
-					_spawned_items_in_scene.append(child.slot_data.inventory_item)
-	
-	_lookup_merge.append_array(_player_inventory_slots)
-	_lookup_merge.append_array(_loot_bags_slots)
-	_lookup_merge.append_array(_spawned_items_in_scene)
-	
-	for _slot in _lookup_merge:
-		if _slot.is_unique:
+func _is_unique_found(item: InventoryItemPD) -> bool:
+	for _slot in _cached_lookup_merge:
+		if _slot and _slot.is_unique and (_slot == item or _slot.name == item.name):
 			return true
 	return false
 
 
-## Counts given quest items within player's inventory, loot bags, and lootable containers. Returns an integer.
 func _count_quest_items(item: InventoryItemPD) -> int:
-	var _loot_bags: Array[Node] = get_tree().get_nodes_in_group("loot_bag")
-	_loot_bags.append_array(get_tree().get_nodes_in_group("lootable_containers"))
-	var _spawned_items: Array[Node] = get_tree().get_nodes_in_group("spawned_loot_items")
-
-	var _loot_bags_slots: Array[InventoryItemPD]
-	var _spawned_items_in_scene: Array[InventoryItemPD] = []
-	var _player_inventory_slots: Array[InventoryItemPD] = _player_inventory.get_all_items()
-	var _lookup_merge: Array[InventoryItemPD]
-	
-	if _loot_bags.size() > 0:
-		for i in _loot_bags:
-			_loot_bags_slots.append_array(i.inventory_data.get_all_items())
-			
-	if _spawned_items.size() > 0:
-		for i in _spawned_items:
-			var children = []
-			children = i.get_children()
-			for child in children:
-				if child is PickupComponent:
-					_spawned_items_in_scene.append(child.slot_data.inventory_item)
-	
-	_lookup_merge.append_array(_player_inventory_slots)
-	_lookup_merge.append_array(_loot_bags_slots)
-	_lookup_merge.append_array(_spawned_items_in_scene)
-	
-	var _count: int
-	for _slot in _lookup_merge:
-		if _slot == item:
+	var _count: int = 0
+	for _slot in _cached_lookup_merge:
+		if _slot and (_slot == item or _slot.name == item.name):
 			_count += 1 
 	CogitoGlobals.debug_log(debug_prints, "Loot Component/Loot Generator", "Quest items count is: " + str(_count))
 	return _count

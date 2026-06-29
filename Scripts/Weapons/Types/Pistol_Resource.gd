@@ -2,6 +2,12 @@ extends Weapon_Resource
 
 class_name Pistol_Resource
 
+func _init() -> void:
+	locks_open_on_empty = true
+	magazine_capacity = 15
+	chamber_capacity = 1
+	auto_chambers_on_empty_reload = true
+
 @export_group("Pistol")
 ## Minimum time in seconds between trigger pulls (prevents holding fire).
 @export var triggerResetTime: float = 0.15
@@ -32,7 +38,7 @@ func play_post_fire_visual(weapon: Node) -> void:
 	# Slide-lock on last round.  Tells ShootMotionController to keep the
 	# fire_part at its forward offset until reload completes.
 	firearm._shoot_motion.fire_part_locked = slide_lock_enabled \
-			and firearm._item_ref != null and firearm._item_ref.charge_current <= 0
+			and firearm._mechanics != null and firearm._mechanics.bolt_locked_open
 	# Hammer cock-and-return tween.
 	if firearm._hammer_part != null:
 		firearm._run_pistol_parts_tween()

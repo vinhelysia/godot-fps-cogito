@@ -13,6 +13,26 @@ class_name Weapon_Resource
 @export var bulletProjectileToLoad: PackedScene
 @export var weaponVelocity: int
 
+@export_group("Firearm Mechanics")
+@export var magazine_capacity: int = 30
+@export var chamber_capacity: int = 1
+@export var supports_chamber_plus_one: bool = true
+@export var starts_chambered: bool = true
+@export var closed_bolt: bool = true
+@export var locks_open_on_empty: bool = false
+@export var auto_chambers_on_empty_reload: bool = true
+@export var manual_cycle_required: bool = false
+
+func get_mechanics_config() -> Dictionary:
+	return {
+		"magazine_capacity": magazine_capacity,
+		"chamber_capacity": chamber_capacity,
+		"supports_chamber_plus_one": supports_chamber_plus_one,
+		"auto_chambers_on_empty_reload": auto_chambers_on_empty_reload,
+		"locks_open_on_empty": locks_open_on_empty,
+	}
+
+
 # ── Fire Type (matches @export_flags bit positions) ───────────────────────────
 enum FireType { HITSCAN = 1, PROJECTILE = 2 }
 
@@ -88,7 +108,7 @@ func on_reset(_weapon: Node) -> void:
 ## True if this resource drives its own shell-eject timing (e.g. bolt-action
 ## with a timed shell_eject_delay). When true, the orchestrator skips its
 ## ON_FIRE shell spawn so the resource can do it at the right moment.
-func handles_own_shell_eject() -> bool:
+func handles_own_shell_eject(_weapon: Node) -> bool:
 	return false
 
 
@@ -149,10 +169,5 @@ func _projectile_fire(ctx: Dictionary) -> void:
 
 
 static func _deal_damage(collider: Node, direction: Vector3, hit_position: Vector3, item_ref: WieldableItemPD) -> void:
-	# Multiplayer: CogitoPlayer hits use RPC so damage runs on all peers.
-	# Singleplayer safe: get_peers() is empty when no network peer is active.
-	if collider is CogitoPlayer and collider.multiplayer.get_peers().size() > 0:
-		collider.take_damage.rpc(item_ref.wieldable_damage)
-		return
 	if collider.has_signal("damage_received"):
 		collider.damage_received.emit(item_ref.wieldable_damage, direction, hit_position)

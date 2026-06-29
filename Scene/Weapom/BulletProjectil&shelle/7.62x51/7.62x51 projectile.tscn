@@ -46,9 +46,9 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_py7uj")
 
 [node name="7_62x39Projectile" type="RigidBody3D" unique_id=844824024]
+continuous_cd = true
 contact_monitor = true
 max_contacts_reported = 4
-continuous_cd = true
 script = ExtResource("1_s8p08")
 destroy_on_impact = true
 cogito_name = "7_62x39Projectile"
@@ -59,12 +59,12 @@ shape = SubResource("CylinderShape3D_e83yt")
 
 [node name="Lifespan" type="Timer" parent="." unique_id=982286599]
 
-[connection signal="body_entered" from="." to="." method="_on_body_entered"]
-
 [node name="7_62x51mm_Projectile" type="Node3D" parent="." unique_id=1450158727]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -0.0031546354)
 
 [node name="7_62x51 mag_002" type="MeshInstance3D" parent="7_62x51mm_Projectile" unique_id=1141692938]
-transform = Transform3D(-0.37015927, 0, 1.14109655e-08, 0, 0.37015927, 0, -3.236035e-08, 0, -0.13052623, 0, 0, 0)
+transform = Transform3D(-0.37015927, 0, -1.14109655e-08, 0, 0.37015927, 0, 3.236035e-08, 0, -0.13052623, 0, 0, 0)
 mesh = SubResource("ArrayMesh_o0v2g")
 skeleton = NodePath("")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

@@ -61,6 +61,19 @@ func get_region(x, y):
 	return image.get_region(region)
 
 
+# Returns a chunk of the icon after rotating it 90° CW.
+# Caller iterates x in [0, item_size.y-1], y in [0, item_size.x-1] (swapped footprint).
+func get_region_rotated(x: int, y: int) -> Image:
+	var image: Image = icon.get_image().duplicate()
+	image.rotate_90(CLOCKWISE)
+	var eff_w: int = int(item_size.y)
+	var eff_h: int = int(item_size.x)
+	var x_chunk: int = image.get_width() / eff_w
+	var y_chunk: int = image.get_height() / eff_h
+	var region := Rect2i(Vector2i(x * x_chunk, y * y_chunk), Vector2i(x_chunk, y_chunk))
+	return image.get_region(region)
+
+
 func get_slot_background_color() -> Color:
 	match slot_background_preset:
 		SlotBackgroundPreset.TARKOV_GRAY:

@@ -156,14 +156,6 @@ func _ready():
 
 func interact(interactor: Node3D):
 	player_interaction_component = interactor
-	# In MP, non-server peers forward the request to the server
-	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
-		var swing_dir: int = 1
-		if bidirectional_swing and interactor != null:
-			var _offset := interactor.global_transform.origin - global_transform.origin
-			swing_dir = -1 if _offset.dot(global_transform.basis.x) < 0 else 1
-		_rpc_request_door_interact.rpc_id(1, swing_dir)
-		return
 	if !is_locked:
 		if !is_open:
 			open_door(interactor)
@@ -179,9 +171,6 @@ func interact(interactor: Node3D):
 					object.close_door(interactor)
 	else:
 		door_rattle(interactor)
-	# Server broadcasts new state to all non-server peers
-	if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
-		_mp_sync_door.rpc(is_open, target_rotation_vector)
 
 
 func door_rattle(interactor):
@@ -331,45 +320,6 @@ func close_door(_interactor: Node3D):
 	interaction_text = interaction_text_when_closed
 	object_state_updated.emit(interaction_text)
 	door_state_changed.emit(false)
-
-
-@rpc("any_peer", "reliable")
-func _rpc_request_door_interact(swing_dir: int) -> void:
-	if not multiplayer.is_server(): return
-	if is_locked: return  # No state change, no broadcast
-	if not is_open:
-		open_door(null, swing_dir)
-		for nodepath in doors_to_sync_with:
-			if nodepath != null:
-				get_node(nodepath).open_door(null, swing_dir)
-	else:
-		close_door(null)
-		for nodepath in doors_to_sync_with:
-			if nodepath != null:
-				get_node(nodepath).close_door(null)
-	_mp_sync_door.rpc(is_open, target_rotation_vector)
-
-
-@rpc("authority", "reliable")
-func _mp_sync_door(new_is_open: bool, new_target_rot: Vector3) -> void:
-	is_open = new_is_open
-	target_rotation_vector = new_target_rot
-	if door_type == DoorType.ROTATING:
-		is_moving = true
-	elif door_type == DoorType.ANIMATED:
-		if new_is_open:
-			anim_player.play(opening_animation)
-		else:
-			if reverse_opening_anim_for_close:
-				anim_player.play_backwards(opening_animation)
-			else:
-				anim_player.play(closing_animation)
-	elif door_type == DoorType.SLIDING:
-		var tw := get_tree().create_tween()
-		tw.tween_property(self, "position", open_position if new_is_open else closed_position, door_speed)
-	interaction_text = interaction_text_when_open if new_is_open else interaction_text_when_closed
-	object_state_updated.emit(interaction_text)
-	door_state_changed.emit(new_is_open)
 
 
 func set_state():

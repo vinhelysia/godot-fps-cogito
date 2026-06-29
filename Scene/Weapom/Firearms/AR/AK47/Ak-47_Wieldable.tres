@@ -4,17 +4,15 @@
 [ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.png" id="1_ik1uf"]
 [ext_resource type="Texture2D" uid="uid://c1blj5u0t6uq4" path="res://Scene/Weapom/Firearms/AR/AK47/ak47_qucik.png" id="2_uqp7b"]
 [ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tscn" id="3_0md2p"]
-[ext_resource type="PackedScene" uid="uid://c2o5c3td65lqn" path="res://Scene/Weapom/Firearms/AR/AK47/AK47_Drop.tscn" id="4_2gw0m"]
 
 [resource]
 resource_local_to_scene = true
 script = ExtResource("1_33dit")
 wieldable_scene = ExtResource("3_0md2p")
-tpp_weapon_scene = ExtResource("4_2gw0m")
 quickslot_icon = ExtResource("2_uqp7b")
-charge_max = 30.0
+charge_max = 31.0
 ammo_item_name = "7.62x39mm"
-charge_current = 30.0
+charge_current = 31.0
 wieldable_range = 1000.0
 wieldable_damage = 30.0
 name = "AK-47"

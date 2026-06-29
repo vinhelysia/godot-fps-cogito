@@ -2,6 +2,13 @@ extends Weapon_Resource
 
 class_name Shotgun_Resource
 
+func _init() -> void:
+	magazine_capacity = 6
+	chamber_capacity = 1
+	locks_open_on_empty = false
+	manual_cycle_required = true
+	auto_chambers_on_empty_reload = false
+
 @export_group("Shotgun")
 ## Number of pellets fired per shot.
 @export var pelletCount: int = 8
@@ -72,6 +79,7 @@ func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
 		return
 	# Pump animation finished → ready for next shot.
 	if pumpAnimation != "" and anim_name == pumpAnimation:
+		firearm.on_cycle_complete()
 		firearm._state = CogitoFirearm.WeaponState.IDLE
 		firearm._capture_rest_state()
 
@@ -89,5 +97,6 @@ func _start_pump(firearm: CogitoFirearm) -> void:
 
 func _finish_pump(firearm: CogitoFirearm) -> void:
 	firearm._post_fire_cycle_tween = null
+	firearm.on_cycle_complete()
 	firearm._state = CogitoFirearm.WeaponState.IDLE
 	firearm._capture_rest_state()

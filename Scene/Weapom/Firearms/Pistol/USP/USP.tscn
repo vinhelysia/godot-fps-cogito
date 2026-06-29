@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_jc4jo"]
 [ext_resource type="Resource" uid="uid://c0a1piy7rpc46" path="res://Scene/Weapom/Firearms/Pistol/USP/usp.tres" id="2_tmght"]
+[ext_resource type="PackedScene" uid="uid://xxm0xnbm08ry" path="res://Scene/Weapom/BulletProjectil&shelle/45. ACP/45acpshell_casing_fx.tscn" id="3_n16dk"]
 [ext_resource type="AudioStream" uid="uid://dlhdc05h58c13" path="res://Assets/SFX/Firearm/usp_fire_close.wav" id="3_tmght"]
 [ext_resource type="PackedScene" uid="uid://calgbn1slkmss" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/short_flash/short_flash_01.tscn" id="4_uspmfl"]
 
@@ -692,9 +693,11 @@ transform = Transform3D(-0.25116545, -0.16396213, 0.0056865537, -0.16392013, 0.2
 visible = false
 script = ExtResource("1_jc4jo")
 weapon_data = ExtResource("2_tmght")
-sound_shoot = ExtResource("3_tmght")
+shell_casing_scene = ExtResource("3_n16dk")
+max_shell_casings = 2
 muzzle_flash_scene = ExtResource("4_uspmfl")
 muzzle_flash_scale = 0.7
+sound_shoot = ExtResource("3_tmght")
 ads_fov = 45.0
 default_position = Vector3(0.45, -0.326, -0.685)
 ads_position = Vector3(0, -0.196, -0.819)
@@ -775,4 +778,9 @@ libraries/ = SubResource("AnimationLibrary_2ekfw")
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.99667525, 0.49982363, 0.003583908)
 
+[node name="shell_eject_point" type="Marker3D" parent="." unique_id=490805178]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10300088, 0.541898, 0.0035840273)
+
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="." unique_id=305694095]
+transform = Transform3D(3.3333333, 0, 0, 0, 3.3333335, 0, 0, 0, 3.3333333, 0.92361784, 0.5067443, 0.0026365519)

@@ -1,9 +1,5 @@
 [gd_scene format=4 uid="uid://bxxow5b026wvr"]
 
-[ext_resource type="Script" uid="uid://0tyobwpftig5" path="res://Scripts/Weapons/RemoteWeaponFxAnchor.gd" id="1_rfxanchor"]
-[ext_resource type="PackedScene" uid="uid://calgbn1slkmss" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/short_flash/short_flash_01.tscn" id="2_0651l"]
-[ext_resource type="AudioStream" uid="uid://dlhdc05h58c13" path="res://Assets/SFX/Firearm/usp_fire_close.wav" id="3_usp_snd"]
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_o3x6l"]
 resource_name = "polymer"
 cull_mode = 2
@@ -537,7 +533,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_lt27k")
 
 [node name="USP" type="Node3D" unique_id=1380512377]
-transform = Transform3D(-1.3113417e-08, 0, 0.3, 0, 0.29999998, 0, -0.3, 0, -1.3113417e-08, 0, -0.03595466, -0.12434506)
+transform = Transform3D(-9.272586e-09, 9.272585e-09, 0.3, 0.21213204, 0.21213202, 0, -0.21213204, 0.21213202, -1.3113417e-08, 0, -0.03595466, -0.12434506)
 
 [node name="usp9 15rnd empty" type="MeshInstance3D" parent="." unique_id=675922354]
 transform = Transform3D(0.9563874, 0.29210123, 0, -0.29210123, 0.9563874, 0, 0, 0, 1, -0.514894, -0.160929, 0)
@@ -592,10 +588,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9868462, 0.5, 7.591996e-08)
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.02, 0.47, 0.1)
 
-[node name="RemoteWeaponFxAnchor" type="Node3D" parent="." unique_id=700200001 node_paths=PackedStringArray("muzzle_socket", "shell_socket")]
-script = ExtResource("1_rfxanchor")
-muzzle_socket = NodePath("../Bullet_Point")
-shell_socket = NodePath("../shell_eject_point")
-muzzle_flash_scene = ExtResource("2_0651l")
-muzzle_flash_scale = 0.7
-shot_sound = ExtResource("3_usp_snd")
+[node name="SubViewport" type="SubViewport" parent="." unique_id=35878168]
+transparent_bg = true
+
+[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1265097277]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.46864644, -0.045254268, -0.07907991)

@@ -222,12 +222,6 @@ func equip_wieldable(wieldable_item: WieldableItemPD):
 		equipped_wieldable_node.item_reference = wieldable_item
 		print("PIC: Found ", equipped_wieldable_item.name, " in wieldable node array: ", wieldable_node.name)
 		equipped_wieldable_node.equip(self)
-		# Multiplayer: broadcast equipped weapon path so other peers show the TPP mesh.
-		# Uses tpp_weapon_scene (pickup/drop scene) — a clean static mesh with no FPV arms.
-		var _player := get_parent()
-		if _player.is_multiplayer_authority() and "current_tpp_weapon_path" in _player:
-			var _tpp := wieldable_item.tpp_weapon_scene
-			_player.current_tpp_weapon_path = _tpp.resource_path if _tpp else ""
 		await get_tree().create_timer(equipped_wieldable_node.animation_player.current_animation_length).timeout
 		is_changing_wieldables = false
 	else:
@@ -247,10 +241,6 @@ func change_wieldable_to(next_wieldable: InventoryItemPD):
 	if equipped_wieldable_node != null:
 		equipped_wieldable_node.queue_free()
 	equipped_wieldable_node = null
-	# Multiplayer: clear TPP path now; equip_wieldable will set it again if next_wieldable != null.
-	var _player := get_parent()
-	if _player.is_multiplayer_authority() and "current_tpp_weapon_path" in _player:
-		_player.current_tpp_weapon_path = ""
 	equip_wieldable(next_wieldable)
 
 

@@ -22,7 +22,6 @@ mass = 3.5
 script = ExtResource("1_cogobj")
 cogito_name = "AK-47"
 display_name = "AK-47"
-custom_aabb = AABB(-0.09, -0.62, -1.335, 0.9, 0.25, 0.1)
 
 [node name="AK47_Drop" parent="." unique_id=1576005502 instance=ExtResource("7_mesh")]
 

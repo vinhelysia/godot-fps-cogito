@@ -83,11 +83,6 @@ func open_pause_menu():
 		load_button.disabled = true
 		label_active_slot.visible = false
 
-	# Disable save/load during multiplayer sessions
-	if multiplayer.has_multiplayer_peer():
-		save_button.disabled = true
-		load_button.disabled = true
-
 	resume_game_button.grab_focus.call_deferred()
 
 

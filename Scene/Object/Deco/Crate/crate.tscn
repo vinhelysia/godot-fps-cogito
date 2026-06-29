@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://cp6ih5a86n4xs"]
 
-[ext_resource type="Texture2D" uid="uid://cbfwxuq4cq435" path="res://Assets/crate_Texture_BaseColor_v02.png" id="1_q6jxc"]
+[ext_resource type="Texture2D" uid="uid://cbfwxuq4cq435" path="res://Assets/Plzzz/crate_Texture_BaseColor_v02.png" id="1_q6jxc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s01om"]
 resource_name = "Weapon_Crate_M"

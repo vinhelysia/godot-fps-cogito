@@ -12,6 +12,13 @@ var hold_interaction: HoldInteraction
 var is_holding : bool = false
 var player_interaction_component
 
+func _is_live_node(node: Node) -> bool:
+	return node != null and is_instance_valid(node) and not node.is_queued_for_deletion()
+
+
+func _has_valid_hold_interaction() -> bool:
+	return _is_live_node(hold_interaction) and _is_live_node(hold_interaction.parent_node)
+
 
 func _ready() -> void:
 	hide()
@@ -24,7 +31,11 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if is_holding and hold_interaction:
+	if is_holding:
+		if not _has_valid_hold_interaction() or not is_instance_valid(player_interaction_component):
+			stop_holding()
+			return
+
 		if hold_timer.time_left  < hold_timer.wait_time-buffer_time:
 			show()
 		hold_interaction.is_being_held.emit(hold_timer.time_left)
@@ -38,20 +49,33 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_holding and event.is_action_released(hold_interaction.input_map_action):
+	if not is_holding:
+		return
+
+	if not _has_valid_hold_interaction():
+		stop_holding()
+		return
+
+	if event.is_action_released(hold_interaction.input_map_action):
 		if hold_interaction is DualInteraction:
 			hold_interaction.on_quick_press.emit(player_interaction_component)
 		if hold_interaction is ExtendedPickupInteraction:
 			# Pick up the item on early release, using the PickupComponent
-			hold_interaction.pickup.is_disabled = false
-			hold_interaction.pickup.interact(player_interaction_component)
-			if hold_interaction != null: # The pickup failed if it's components still exist
-				hold_interaction.pickup.is_disabled = true
+			var pickup_component = hold_interaction.pickup
+			if _is_live_node(pickup_component):
+				pickup_component.is_disabled = false
+				pickup_component.interact(player_interaction_component)
+				if _is_live_node(pickup_component): # The pickup failed if its components still exist.
+					pickup_component.is_disabled = true
 			
 		stop_holding()
 
 
 func _on_hold_complete():
+	if not _has_valid_hold_interaction():
+		stop_holding()
+		return
+
 	# Important for HoldInteraction to be a base HoldInteraction, not a subclass, to work
 	if hold_interaction is not DualInteraction and hold_interaction is not ExtendedPickupInteraction:
 		hold_interaction.parent_node.interact(player_interaction_component)
@@ -63,7 +87,7 @@ func _on_hold_complete():
 
 
 func start_holding(_hold_interaction: HoldInteraction) -> void:
-	if !is_holding:
+	if !is_holding and _is_live_node(_hold_interaction):
 		
 		# Aligns the progress wheel with the prompt, for feedback on which prompt is being interacted with
 		var pixel_y_offset: float = 0
@@ -91,4 +115,5 @@ func stop_holding() -> void:
 	is_holding = false
 	hold_interaction = null
 	progress_wheel.current_value = 0.0
-	player_interaction_component.player.is_movement_paused = false
+	if is_instance_valid(player_interaction_component) and is_instance_valid(player_interaction_component.player):
+		player_interaction_component.player.is_movement_paused = false

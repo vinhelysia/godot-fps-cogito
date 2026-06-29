@@ -4,18 +4,16 @@
 [ext_resource type="Texture2D" uid="uid://davc2sbh1w433" path="res://Scene/Weapom/Firearms/Bolt-action/M700/m700quick.png" id="2_droao"]
 [ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="2_hisdn"]
 [ext_resource type="PackedScene" uid="uid://dmdmar5r18j30" path="res://Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn" id="3_6ywfr"]
-[ext_resource type="PackedScene" uid="uid://38efjuqypg1q" path="res://Scene/Weapom/Firearms/Bolt-action/M700/M700_Drop.tscn" id="4_bh3tu"]
 
 [resource]
 resource_local_to_scene = true
 script = ExtResource("2_hisdn")
 wieldable_scene = ExtResource("3_6ywfr")
-tpp_weapon_scene = ExtResource("4_bh3tu")
 wieldable_data_icon = ExtResource("2_droao")
 quickslot_icon = ExtResource("2_droao")
-charge_max = 5.0
+charge_max = 6.0
 ammo_item_name = "7.62x51mm"
-charge_current = 5.0
+charge_current = 6.0
 wieldable_range = 1000.0
 wieldable_damage = 80.0
 name = "M700"

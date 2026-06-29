@@ -157,9 +157,13 @@ func load_player_state(player, passed_slot:String) -> void:
 				continue
 			else:
 				for slot in player.inventory_data.inventory_slots:
-					if slot and slot.inventory_item and slot.inventory_item == data["resource"]:
+					if slot and slot.inventory_item and data.has("resource") and slot.inventory_item == data["resource"]:
 						CogitoGlobals.debug_log(true,"CSM","Match found: " + str(slot.inventory_item))
-						slot.inventory_item.charge_current = data["charge_current"]
+						var wieldable_item := slot.inventory_item as WieldableItemPD
+						if wieldable_item:
+							_restore_wieldable_saved_state(wieldable_item,
+									data.get("firearm_mechanical_state", {}),
+									data.get("charge_current", null))
 						
 		player.inventory_data.force_inventory_update()
 		
@@ -213,9 +217,6 @@ func load_player_state(player, passed_slot:String) -> void:
 
 
 func save_player_state(player, slot:String) -> void:
-	if multiplayer.has_multiplayer_peer():
-		push_warning("[CogitoSave] Save disabled during multiplayer session.")
-		return
 	if !_player_state:
 		CogitoGlobals.debug_log(true,"CSM","State doesn't exist. Creating for slot " + slot + "...")
 		_player_state = CogitoPlayerState.new()
@@ -353,13 +354,11 @@ func load_scene_state(_scene_name_to_load:String, slot:String) -> void:
 					new_object.angular_velocity = Vector3(node_data["angular_velocity_x"], node_data["angular_velocity_y"], node_data["angular_velocity_z"])
 			# Set the remaining variables.
 			for data in node_data.keys():
-				if data == "filename" or data == "parent" or data == "pos_x" or data == "pos_y" or data == "pos_z" or data == "rot_x" or data == "rot_y" or data == "rot_z" or data == "item_charge":
+				if data == "filename" or data == "parent" or data == "pos_x" or data == "pos_y" or data == "pos_z" or data == "rot_x" or data == "rot_y" or data == "rot_z" or data == "item_charge" or data == "pickup_slot_data" or data == "pickup_item_charge" or data == "pickup_firearm_mechanical_state":
 					continue
 				new_object.set(data, node_data[data])
 			
-			if new_object.has_method("update_wieldable_data"): # Check if item is wieldable
-				CogitoGlobals.debug_log(true,"CSM","Setting charge of "+ new_object+ " to "+ node_data["item_charge"])
-				new_object.slot_data.inventory_item.charge_current = node_data["item_charge"]
+			_restore_pickup_state(new_object, node_data)
 				
 			# Call set_state only if the method exists
 			if new_object.has_method("set_state"):
@@ -386,10 +385,78 @@ func load_scene_state(_scene_name_to_load:String, slot:String) -> void:
 		CogitoGlobals.debug_log(true,"CSM","CSM: Scene state doesn't exist.")
 
 
-func save_scene_state(_scene_name_to_save, slot: String) -> void:
-	if multiplayer.has_multiplayer_peer():
-		push_warning("[CogitoSave] Scene save disabled during multiplayer session.")
+func _restore_pickup_state(new_object: Node, node_data: Dictionary) -> void:
+	var saved_slot_data = null
+	if node_data.has("pickup_slot_data"):
+		saved_slot_data = node_data["pickup_slot_data"]
+	elif node_data.has("slot_data"):
+		saved_slot_data = node_data["slot_data"]
+	if not (saved_slot_data is InventorySlotPD):
 		return
+
+	var slot_copy := _duplicate_slot_data_for_scene_restore(saved_slot_data as InventorySlotPD, node_data)
+	if slot_copy == null:
+		return
+	if "slot_data" in new_object:
+		new_object.set("slot_data", slot_copy)
+	var pickup_component := _find_pickup_component(new_object)
+	if pickup_component:
+		pickup_component.slot_data = slot_copy
+
+
+func _duplicate_slot_data_for_scene_restore(slot_data: InventorySlotPD, node_data: Dictionary) -> InventorySlotPD:
+	var slot_copy := slot_data.duplicate() as InventorySlotPD
+	if slot_copy == null or slot_copy.inventory_item == null:
+		return slot_copy
+	var wieldable_item := slot_copy.inventory_item as WieldableItemPD
+	if wieldable_item != null:
+		var item_copy := wieldable_item.duplicate(false) as WieldableItemPD
+		if item_copy != null:
+			var state_data = node_data.get("pickup_firearm_mechanical_state", wieldable_item.get_firearm_mechanical_state())
+			var fallback_charge = null
+			if node_data.has("pickup_item_charge"):
+				fallback_charge = node_data["pickup_item_charge"]
+			elif node_data.has("item_charge"):
+				fallback_charge = node_data["item_charge"]
+			_restore_wieldable_saved_state(item_copy, state_data, fallback_charge)
+			item_copy.player_interaction_component = null
+			item_copy.is_being_wielded = false
+			item_copy.wielded_item = null
+			slot_copy.inventory_item = item_copy
+	return slot_copy
+
+
+func _find_pickup_component(root: Node) -> PickupComponent:
+	if root is PickupComponent:
+		return root as PickupComponent
+	var pickup_nodes := root.find_children("", "PickupComponent", true, false)
+	if pickup_nodes.size() > 0:
+		return pickup_nodes[0] as PickupComponent
+	return null
+
+
+func _restore_wieldable_saved_state(wieldable_item: WieldableItemPD, state_data, fallback_charge = null) -> void:
+	if _is_firearm_state_dict(state_data):
+		var state_dict: Dictionary = state_data
+		wieldable_item.set_firearm_mechanical_state(state_dict)
+		wieldable_item.charge_current = float(_get_firearm_state_total(state_dict))
+		return
+	if fallback_charge != null:
+		wieldable_item.charge_current = float(fallback_charge)
+
+
+func _is_firearm_state_dict(state_data) -> bool:
+	if typeof(state_data) != TYPE_DICTIONARY:
+		return false
+	var state_dict: Dictionary = state_data
+	return int(state_dict.get("version", 0)) == FirearmMechanicalState.SAVE_VERSION
+
+
+func _get_firearm_state_total(state_data: Dictionary) -> int:
+	return int(state_data.get("magazine_rounds", 0)) + int(state_data.get("chamber_rounds", 0))
+
+
+func save_scene_state(_scene_name_to_save, slot: String) -> void:
 	if !_scene_state:
 		CogitoGlobals.debug_log(true,"CSM","CSM: Save doesn't exist. Creating...")
 		_scene_state = CogitoSceneState.new()
@@ -577,8 +644,6 @@ func _exit_tree() -> void:
 
 
 func _save_autosave_state() -> void:
-	if multiplayer.has_multiplayer_peer():
-		return
 	_current_scene_name = get_tree().get_current_scene().get_name()
 	_current_scene_path = get_tree().current_scene.scene_file_path
 	# Use the class variable instead of creating a new local variable

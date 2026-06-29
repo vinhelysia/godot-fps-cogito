@@ -15,6 +15,8 @@ func get_commands() -> Dictionary:
 		"get_signals": _get_signals,
 		"compare_screenshots": _compare_screenshots,
 		"set_auto_dismiss": _set_auto_dismiss,
+		"get_editor_camera": _get_editor_camera,
+		"set_editor_camera": _set_editor_camera,
 	}
 
 
@@ -353,6 +355,10 @@ func _execute_editor_script(params: Dictionary) -> Dictionary:
 	if result[1] != null:
 		return result[1]
 	var code: String = result[0]
+	var allow_unsafe_editor_io: bool = optional_bool(params, "allow_unsafe_editor_io", false)
+	var unsafe_guard := _guard_editor_script_file_io(code, allow_unsafe_editor_io)
+	if not unsafe_guard.is_empty():
+		return unsafe_guard
 
 	# Wrap user code in a @tool script
 	var wrapped_code := """@tool
@@ -404,6 +410,40 @@ func run() -> Variant:
 		"output": mcp_output,
 		"return_value": str(output) if output != null else null,
 	})
+
+
+func _guard_editor_script_file_io(code: String, allow_unsafe_editor_io: bool) -> Dictionary:
+	if allow_unsafe_editor_io:
+		return {}
+	var compact := code.replace(" ", "").replace("\t", "").replace("\n", "")
+	var unsafe_patterns: Array[String] = []
+	if compact.contains("ResourceSaver.save("):
+		unsafe_patterns.append("ResourceSaver.save")
+	if compact.contains("ProjectSettings.save("):
+		unsafe_patterns.append("ProjectSettings.save")
+	if compact.contains("ConfigFile.save("):
+		unsafe_patterns.append("ConfigFile.save")
+	if compact.contains("FileAccess.open(") and _contains_any(compact, ["FileAccess.WRITE", "FileAccess.READ_WRITE", "FileAccess.WRITE_READ"]):
+		unsafe_patterns.append("FileAccess.open WRITE")
+	if _contains_any(compact, ["DirAccess.remove_absolute(", "DirAccess.rename_absolute(", "DirAccess.copy_absolute(", "DirAccess.make_dir_absolute(", "DirAccess.make_dir_recursive_absolute("]):
+		unsafe_patterns.append("DirAccess filesystem mutation")
+	if unsafe_patterns.is_empty():
+		return {}
+	return error_conflict(
+		"Refusing to execute editor script with direct file/resource write APIs",
+		{
+			"unsafe_patterns": unsafe_patterns,
+			"open_scenes": get_open_scene_paths(),
+			"suggestion": "Use dedicated MCP commands and save_scene for editor-owned resources, or pass allow_unsafe_editor_io=true only when no open editor resource can be overwritten.",
+		}
+	)
+
+
+func _contains_any(value: String, needles: Array[String]) -> bool:
+	for needle: String in needles:
+		if value.contains(needle):
+			return true
+	return false
 
 
 func _indent_code(code: String) -> String:
@@ -568,6 +608,68 @@ func _compare_screenshots(params: Dictionary) -> Dictionary:
 		"width": width,
 		"height": height,
 		"diff_image_base64": diff_base64,
+	})
+
+
+func _get_editor_camera(_params: Dictionary) -> Dictionary:
+	var vp3d := EditorInterface.get_editor_viewport_3d()
+	var cam := vp3d.get_camera_3d() if vp3d else null
+	if not cam:
+		return error(-32000, "No 3D editor camera found", {
+			"suggestion": "Make sure a 3D scene is open in the editor",
+		})
+	var pos := cam.global_position
+	var rot := cam.rotation_degrees
+	return success({
+		"position": {"x": pos.x, "y": pos.y, "z": pos.z},
+		"rotation_degrees": {"x": rot.x, "y": rot.y, "z": rot.z},
+		"fov": cam.fov,
+		"near": cam.near,
+		"far": cam.far,
+	})
+
+
+func _set_editor_camera(params: Dictionary) -> Dictionary:
+	var vp3d := EditorInterface.get_editor_viewport_3d()
+	var cam := vp3d.get_camera_3d() if vp3d else null
+	if not cam:
+		return error(-32000, "No 3D editor camera found", {
+			"suggestion": "Make sure a 3D scene is open in the editor",
+		})
+
+	# Set position
+	if params.has("position"):
+		var p: Dictionary = params["position"]
+		cam.global_position = Vector3(
+			float(p.get("x", cam.global_position.x)),
+			float(p.get("y", cam.global_position.y)),
+			float(p.get("z", cam.global_position.z)),
+		)
+
+	# Set rotation
+	if params.has("rotation_degrees"):
+		var r: Dictionary = params["rotation_degrees"]
+		cam.rotation_degrees = Vector3(
+			float(r.get("x", cam.rotation_degrees.x)),
+			float(r.get("y", cam.rotation_degrees.y)),
+			float(r.get("z", cam.rotation_degrees.z)),
+		)
+
+	# Look at target (overrides rotation if set)
+	if params.has("look_at"):
+		var t: Dictionary = params["look_at"]
+		cam.look_at(Vector3(float(t.get("x", 0)), float(t.get("y", 0)), float(t.get("z", 0))))
+
+	# Set FOV
+	if params.has("fov"):
+		cam.fov = float(params["fov"])
+
+	var pos := cam.global_position
+	var rot := cam.rotation_degrees
+	return success({
+		"position": {"x": pos.x, "y": pos.y, "z": pos.z},
+		"rotation_degrees": {"x": rot.x, "y": rot.y, "z": rot.z},
+		"fov": cam.fov,
 	})
 
 

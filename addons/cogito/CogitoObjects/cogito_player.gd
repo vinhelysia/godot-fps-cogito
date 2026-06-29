@@ -175,23 +175,6 @@ var last_velocity : Vector3= Vector3.ZERO
 var stand_after_roll : bool = false
 var is_movement_paused : bool = false
 var is_dead : bool = false
-## Multiplayer: remote footstep state (non-authority peers only)
-@export_group("Remote Footstep Audio")
-@export var remote_min_speed: float = 0.75
-@export var remote_teleport_reset_distance: float = 4.0
-@export var remote_walk_volume_db: float = -34.0
-@export var remote_sprint_volume_db: float = -26.0
-@export var remote_crouch_volume_db: float = -56.0
-@export_group("")
-var _remote_prev_position: Vector3
-var _remote_prev_valid: bool = false
-var _remote_step_cooldown: float = 0.0
-## Multiplayer: path of the currently equipped wieldable scene, replicated so
-## other peers can render the correct third-person weapon mesh.
-var current_tpp_weapon_path: String = "" :
-	set(value):
-		current_tpp_weapon_path = value
-		_refresh_tpp_weapon()
 var slide_audio_player : AudioStreamPlayer3D
 var radius : float
 
@@ -231,80 +214,18 @@ var radius : float
 @onready var wieldables = %Wieldables
 #endregion
 
-## Multiplayer: spawn or clear the third-person weapon mesh visible to other players.
-## Runs on ALL peers whenever current_tpp_weapon_path changes (setter or sync delta).
-func _refresh_tpp_weapon() -> void:
-	var mount := get_node_or_null("Body/TPPWeaponMount")
-	if not mount:
-		mount = get_node_or_null("TPPWeaponMount")
-	if not mount:
-		return
-	# Remove previous weapon instance
-	for child in mount.get_children():
-		child.queue_free()
-	# Local (FPV authority) player never sees their own TPP mesh
-	if is_multiplayer_authority():
-		mount.visible = false
-		return
-	mount.visible = true
-	if current_tpp_weapon_path.is_empty():
-		return
-	var packed := load(current_tpp_weapon_path) as PackedScene
-	if not packed:
-		return
-	var inst := packed.instantiate()
-	# Some TPP references point at pickup scenes, so strip gameplay/physics behavior when needed.
-	if inst is RigidBody3D:
-		inst.freeze = true
-		inst.linear_velocity = Vector3.ZERO
-		inst.angular_velocity = Vector3.ZERO
-		inst.collision_layer = 0
-		inst.collision_mask = 0
-	for comp in inst.find_children("*", "InteractionComponent", true, false):
-		(comp as Node).process_mode = Node.PROCESS_MODE_DISABLED
-	mount.add_child(inst)
-
-
-func _enter_tree() -> void:
-	# Multiplayer: derive authority from node name (spawner sets name = str(peer_id)).
-	# In singleplayer name is "Player" → to_int() = 0 → skip → default authority 1 stays → always local.
-	var peer_id := str(name).to_int()
-	if peer_id > 0:
-		# Non-recursive: only this CharacterBody3D gets client authority.
-		set_multiplayer_authority(peer_id, false)
-		# Body sync gets CLIENT authority — client runs physics and sends position/rotation.
-		var body_sync := get_node_or_null("MultiplayerSynchronizer")
-		if body_sync:
-			body_sync.set_multiplayer_authority(peer_id)
-
-
 func _ready():
 	#Some Setup steps
-	# Only the local (authority) player registers as the current player node.
-	if is_multiplayer_authority():
-		CogitoSceneManager._current_player_node = self
+	CogitoSceneManager._current_player_node = self
 	player_interaction_component.exclude_player(get_rid())
 
 	randomize()
 
 	radius = _calculate_player_radius()
 
-	# Camera and mouse capture only for local player.
-	camera.current = is_multiplayer_authority()
-	$GUI.visible = is_multiplayer_authority()
-	if is_multiplayer_authority():
-		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-
-	# Multiplayer body mesh: hide for local player, show for remote players.
-	var mp_body := get_node_or_null("MPBodyMesh")
-	var mp_nametag := get_node_or_null("MPNameTag")
-	if mp_body:
-		mp_body.visible = not is_multiplayer_authority()
-	if mp_nametag:
-		mp_nametag.visible = not is_multiplayer_authority()
-		mp_nametag.text = "Player %s" % name
-	# TPP weapon mount: always hidden for local (FPV) player.
-	_refresh_tpp_weapon()
+	camera.current = true
+	$GUI.visible = true
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 	### NEW PLAYER ATTRIBUTE SETUP:
 	# Grabs all attached player attributes
@@ -325,21 +246,6 @@ func _ready():
 	if sanity_attribute and visibility_attribute:
 		visibility_attribute.attribute_changed.connect(sanity_attribute.on_visibility_changed)
 		visibility_attribute.check_current_visibility()
-
-	# Multiplayer: for NON-authority players (remote copies on other peers), disconnect
-	# the HUD death signal entirely — prevents the host from freezing when a remote player dies.
-	# Authority players keep the death signal so the MP death screen + Respawn button can show.
-	# Singleplayer safe: name "CogitoPlayer" → to_int() = 0 → skipped.
-	if str(name).to_int() > 0 and not is_multiplayer_authority():
-		await get_tree().process_frame  # Wait for HUD _setup_player call_deferred to finish.
-		var _health_attr = player_attributes.get("health")
-		var _hud := get_node_or_null(player_hud)
-		if _health_attr and _hud:
-			if _health_attr.death.is_connected(_hud._on_player_death):
-				_health_attr.death.disconnect(_hud._on_player_death)
-			if _health_attr.damage_taken.is_connected(_hud._on_player_damage_taken):
-				_health_attr.damage_taken.disconnect(_hud._on_player_damage_taken)
-
 
 	### CURRENCY SETUP
 	for currency in find_children("", "CogitoCurrency", false):
@@ -420,110 +326,10 @@ func decrease_currency(currency_name: String, value: float):
 func _on_death():
 	player_interaction_component.on_death()
 	is_dead = true
-	if multiplayer.get_peers().size() > 0 and is_multiplayer_authority():
-		var hud := get_node_or_null(player_hud)
-		var death_screen := hud.get_node_or_null("DeathScreen") if hud else null
-		if hud and death_screen and not death_screen.visible:
-			hud._on_player_death()
-	# Multiplayer: respawn is triggered by the Respawn button in the MP death screen.
-	# No automatic timer — player clicks the button when ready.
 
 
-## Multiplayer: any peer can call this to apply damage. Runs on all peers (call_local).
-@rpc("any_peer", "call_local", "reliable")
 func take_damage(amount: float) -> void:
 	decrease_attribute("health", amount)
-
-
-## Multiplayer: called via Respawn button on death screen. Runs on all peers.
-@rpc("any_peer", "call_local", "reliable")
-func respawn() -> void:
-	if not is_multiplayer_authority():
-		return
-	is_dead = false
-	is_movement_paused = false
-	is_showing_ui = false
-	# Safety: ensure tree is never left paused.
-	if get_tree().paused:
-		get_tree().paused = false
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	var hud := get_node_or_null(player_hud)
-	if hud and hud.has_method("_on_external_ui_toggle"):
-		hud._on_external_ui_toggle(false)
-	# Reset health to full.
-	var health_attr = player_attributes.get("health")
-	if health_attr:
-		health_attr.set_attribute(health_attr.value_max, health_attr.value_max)
-	main_velocity = Vector3.ZERO
-	velocity = Vector3.ZERO
-	gravity_vec = Vector3.ZERO
-	last_velocity = Vector3.ZERO
-	direction = Vector3.ZERO
-	# Teleport to a random spawn point.
-	var spawn_points := get_tree().get_nodes_in_group("mp_spawn_points")
-	if not spawn_points.is_empty():
-		global_position = (spawn_points.pick_random() as Node3D).global_position
-	else:
-		global_position = Vector3(0, 2, 0)
-	# Re-initialize wieldable system: rebuilds the weapon node, resets is_being_wielded,
-	# and re-emits updated_wieldable_data so the ammo HUD and wieldable_hud become visible again.
-	player_interaction_component.set_state.call_deferred()
-	# Force inventory hotbar to refresh so quickslot icons are correct.
-	if inventory_data:
-		inventory_data.force_inventory_update.call_deferred()
-
-
-## Multiplayer: broadcast to all peers so they play remote fire FX on this player's TPP weapon.
-## Called by cogito_weapon.gd after a confirmed shot.  Authority fires this; non-authority
-## instances run the FX on their local copy of the TPP weapon mesh.
-@rpc("any_peer", "call_local", "unreliable_ordered")
-func rpc_play_remote_fire_fx() -> void:
-	# The authority player never shows their own TPP mesh, so skip FX locally.
-	if is_multiplayer_authority():
-		return
-	var mount := get_node_or_null("Body/TPPWeaponMount")
-	if not mount:
-		mount = get_node_or_null("TPPWeaponMount")
-	if not mount:
-		return
-	for weapon_inst in mount.get_children():
-		var anchor := weapon_inst.find_child("RemoteWeaponFxAnchor", true, false)
-		if anchor and anchor.has_method("play_remote_fire_fx"):
-			anchor.play_remote_fire_fx()
-			break
-
-
-## Server-authoritative item drop.  Called by the dropping peer; server
-## instantiates the pickup scene under the DroppedItems node so the
-## MultiplayerSpawner replicates it to all connected peers.
-@rpc("any_peer", "call_local", "reliable")
-func request_drop_item(scene_path: String, pos: Vector3, rot: Vector3, quantity: int, charge: int) -> void:
-	if not multiplayer.is_server():
-		return
-	var scene: PackedScene = load(scene_path)
-	if scene == null:
-		push_warning("[MP] request_drop_item: cannot load scene '%s'" % scene_path)
-		return
-	var item: Node = scene.instantiate()
-	item.global_position = pos
-	item.global_rotation = rot
-	# Best-effort: restore quantity/charge on the pickup's interaction nodes.
-	if item.has_method("find_interaction_nodes"):
-		item.call("find_interaction_nodes")
-		if "interaction_nodes" in item:
-			for node in item.interaction_nodes:
-				if "slot_data" in node and node.slot_data != null:
-					if "quantity" in node.slot_data:
-						node.slot_data.quantity = quantity
-					var inv_item = node.slot_data.get("inventory_item")
-					if inv_item != null and "charge_current" in inv_item:
-						inv_item.charge_current = charge
-	var dropped_container := get_tree().root.find_child("DroppedItems", true, false)
-	if dropped_container:
-		dropped_container.add_child(item, true)
-	else:
-		push_warning("[MP] request_drop_item: DroppedItems node missing — item freed")
-		item.queue_free()
 
 
 # Methods to pause input (for Menu or Dialogues etc)
@@ -562,8 +368,6 @@ func _on_pause_menu_resume():
 
 
 func _input(event):
-	if not is_multiplayer_authority():
-		return
 	# Hold Alt to free the cursor without opening a menu (useful after alt-tab).
 	# Only toggles when alive and no UI/menu is already controlling the mouse.
 	if event.is_action_pressed("free_cursor") and not is_dead and not is_movement_paused:
@@ -992,24 +796,6 @@ func _process_on_sittable(delta):
 
 
 func _physics_process(delta):
-	# Update remote player body mesh: hide when dead, match crouch height otherwise.
-	var _mp_body := get_node_or_null("MPBodyMesh") as MeshInstance3D
-	var _mp_tag := get_node_or_null("MPNameTag")
-	if _mp_body and not is_multiplayer_authority():
-		_mp_body.visible = not is_dead
-		if _mp_tag:
-			_mp_tag.visible = not is_dead
-		if not is_dead:
-			if is_crouching:
-				_mp_body.position.y = -0.45
-				_mp_body.scale = Vector3(1.0, 0.7 / 1.7, 1.0)
-			else:
-				_mp_body.position.y = 0.05
-				_mp_body.scale = Vector3(1.0, 1.0, 1.0)
-
-	if not is_multiplayer_authority():
-		_process_remote_footsteps(delta)
-		return
 	#if is_movement_paused:
 		#return
 	if is_sitting:
@@ -1018,8 +804,8 @@ func _physics_process(delta):
 		
 	# Store current velocity for the next frame
 	last_velocity = main_velocity
-  
-  	# Check if the player is on the ground
+	
+	# Check if the player is on the ground
 	if is_on_floor():
 		# Only trigger landing sound if the player was airborne and the velocity exceeds the threshold
 		if was_in_air and last_velocity.y < landing_threshold:
@@ -1357,7 +1143,6 @@ func _physics_process(delta):
 		slide_audio_player.stop()
 
 
-## Local authority footstep audio — wiggle-phase gated, unchanged from original.
 func _process_local_footsteps() -> void:
 	if can_play_footstep && wiggle_vector.y > 0.9:
 		if is_walking:
@@ -1370,56 +1155,6 @@ func _process_local_footsteps() -> void:
 		can_play_footstep = false
 	if !can_play_footstep && wiggle_vector.y < 0.9:
 		can_play_footstep = true
-
-
-## Multiplayer: plays 3D footstep audio for remote player copies on the local peer.
-## Uses position-delta speed instead of wiggle phase (remote copy doesn't run movement loop).
-func _process_remote_footsteps(delta: float) -> void:
-	# Singleplayer safety — never runs when no peers exist.
-	if multiplayer.get_peers().is_empty():
-		return
-
-	# Bootstrap: record starting position, skip audio this frame.
-	if not _remote_prev_valid:
-		_remote_prev_position = global_position
-		_remote_prev_valid = true
-		return
-
-	var flat_delta := global_position - _remote_prev_position
-	flat_delta.y = 0.0
-
-	# Teleport / respawn guard: large jump means replicated position snap, not footstep.
-	if flat_delta.length() > remote_teleport_reset_distance:
-		_remote_prev_position = global_position
-		_remote_step_cooldown = walk_footstep_interval
-		return
-
-	# Always keep prev_position current so speed is frame-accurate.
-	_remote_prev_position = global_position
-
-	var horizontal_speed := flat_delta.length() / delta
-
-	# Dead or stationary: let cooldown bleed to zero, no audio.
-	if is_dead or horizontal_speed < remote_min_speed:
-		_remote_step_cooldown = maxf(0.0, _remote_step_cooldown - delta)
-		return
-
-	_remote_step_cooldown -= delta
-	if _remote_step_cooldown > 0.0:
-		return
-
-	# Pick cadence + volume, then fire.
-	if is_crouching:
-		_remote_step_cooldown = walk_footstep_interval
-		footstep_player.volume_db = remote_crouch_volume_db
-	elif horizontal_speed >= footstep_interval_change_velocity:
-		_remote_step_cooldown = sprint_footstep_interval
-		footstep_player.volume_db = remote_sprint_volume_db
-	else:
-		_remote_step_cooldown = walk_footstep_interval
-		footstep_player.volume_db = remote_walk_volume_db
-
-	footstep_player._play_interaction("footstep")
 
 
 func step_check(delta: float, is_jumping_: bool, step_result: StepResult):

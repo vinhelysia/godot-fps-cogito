@@ -300,6 +300,7 @@ func deserialize_inputs_for_actions(string: String) -> void:
 
 	# Version 1
 	for action in data.map.keys():
+		if not InputMap.has_action(action): continue
 		InputMap.action_erase_events(action)
 		var action_inputs: PackedStringArray = data.map[action].split(";")
 		for action_input in action_inputs:
@@ -356,6 +357,7 @@ func deserialize_inputs_for_actions(string: String) -> void:
 func _deprecated_deserialize_inputs_for_actions(string: String) -> void:
 	var map: Dictionary = JSON.parse_string(string)
 	for action in map.keys():
+		if not InputMap.has_action(action): continue
 		InputMap.action_erase_events(action)
 
 		for key in map[action]["keyboard"]:

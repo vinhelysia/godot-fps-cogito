@@ -311,7 +311,7 @@ func _on_set_use_prompt(_passed_use_text):
 # Updating HUD wieldable data, used for stuff like flashlight battery charge, ammo display, etc
 func _on_update_wieldable_data(passed_wieldable_item: WieldableItemPD, passed_ammo_in_inventory: int, passed_ammo_item: AmmoItemPD):
 	if passed_wieldable_item:
-		wieldable_hud.show()
+		wieldable_hud.hide() # Always hide the wieldable HUD as requested by user
 		wieldable_hud.update_wieldable_data(passed_wieldable_item, passed_ammo_in_inventory, passed_ammo_item)
 		if passed_wieldable_item.wieldable_crosshair:
 			if prompt_area.get_child_count() == 0:
@@ -345,11 +345,6 @@ func _on_player_damage_taken():
 
 # Function called when player dies.
 func _on_player_death():
-	if multiplayer.get_peers().size() > 0:
-		# Multiplayer: show respawn screen without pausing the game.
-		_on_external_ui_toggle(true)
-		$DeathScreen.open_mp_death_screen(player)
-		return
 	player._on_pause_movement()
 	$DeathScreen.open_death_screen()
 

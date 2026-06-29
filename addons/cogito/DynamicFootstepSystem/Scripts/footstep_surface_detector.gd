@@ -8,6 +8,7 @@ class_name FootstepSurfaceDetector
 @export var landing_material_library : FootstepMaterialLibrary
 var last_result
 var parent_rid : RID
+var _material_cache : Dictionary = {}
 
 
 func _ready():
@@ -83,6 +84,58 @@ func _get_footstep_surface_child(collider : Node3D) -> AudioStreamRandomizer:
 
 
 func _get_surface_material(collider : Node3D) -> Material:
+	if not collider:
+		return null
+		
+	var collider_id = collider.get_instance_id()
+	
+	# Determine the cell for keying
+	var cell = Vector3.ZERO
+	var mesh_instance = null
+	
+	if collider is StaticBody3D or collider is RigidBody3D:
+		if collider.get_parent() is MeshInstance3D:
+			mesh_instance = collider.get_parent()
+		else:
+			var mesh_instances = collider.find_children("", "MeshInstance3D")
+			if mesh_instances and len(mesh_instances) == 1:
+				mesh_instance = mesh_instances[0]
+				
+	if mesh_instance and 'mesh' in mesh_instance and mesh_instance.mesh:
+		if mesh_instance.mesh.get_surface_count() > 1:
+			if last_result and last_result.has('position'):
+				cell = last_result['position'].snapped(Vector3(0.25, 0.25, 0.25))
+				
+	var cache_key = str(collider_id) + "_" + str(cell)
+	
+	# Check cache
+	if _material_cache.has(cache_key):
+		var entry = _material_cache[cache_key]
+		if entry.ref.get_ref():
+			return entry.material
+		else:
+			_material_cache.erase(cache_key)
+			
+	# Resolve uncached
+	var mat = _get_surface_material_uncached(collider)
+	
+	# Cache it
+	_material_cache[cache_key] = {
+		"ref": weakref(collider),
+		"material": mat
+	}
+	
+	# Cleanup stale entries if cache grows
+	if _material_cache.size() > 50:
+		for key in _material_cache.keys():
+			var entry = _material_cache[key]
+			if not entry.ref.get_ref():
+				_material_cache.erase(key)
+				
+	return mat
+
+
+func _get_surface_material_uncached(collider : Node3D) -> Material:
 	var mesh_instance = null
 	var meshes = []
 	if collider is CSGShape3D:
@@ -167,6 +220,26 @@ func _play_footstep(profile : AudioStreamRandomizer, interaction_type: String):
 	if interaction_type == "footstep":
 		stream = profile
 		play()
+		
+		var loudness: float = 10.0
+		var parent: Node = get_parent()
+		if parent:
+			if parent.is_in_group("Player"):
+				if parent.get("is_sprinting") == true:
+					loudness = 20.0
+				elif parent.get("is_crouching") == true:
+					loudness = 5.0
+			else:
+				var vel = parent.get("velocity")
+				var sprint_spd = parent.get("sprint_speed")
+				if vel is Vector3 and sprint_spd is float:
+					if vel.length() >= sprint_spd - 0.5:
+						loudness = 20.0
+		
+		var sound_events = get_node_or_null("/root/SoundEvents")
+		if sound_events:
+			sound_events.sound_emitted.emit(global_position, loudness, &"footstep", parent)
+
 
 	elif interaction_type == "landing":
 		#Setup QuickAudio landing player so that it can use its own pitch/volume parameters

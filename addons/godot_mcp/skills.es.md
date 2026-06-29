@@ -6,7 +6,7 @@
 
 ## ¿Qué es Godot MCP Pro?
 
-Tienes acceso a 162 herramientas MCP que se conectan directamente al editor de Godot 4. Puedes crear escenas, escribir scripts, simular entrada del jugador, inspeccionar juegos en ejecución y más — todo sin que el usuario salga de esta conversación. Cada cambio pasa por el sistema UndoRedo de Godot, así que el usuario siempre puede hacer Ctrl+Z.
+Tienes acceso a 169 herramientas MCP que se conectan directamente al editor de Godot 4. Puedes crear escenas, escribir scripts, simular entrada del jugador, inspeccionar juegos en ejecución y más — todo sin que el usuario salga de esta conversación. Cada cambio pasa por el sistema UndoRedo de Godot, así que el usuario siempre puede hacer Ctrl+Z.
 
 ## Flujos de Trabajo Esenciales
 
@@ -167,12 +167,12 @@ Al escribir GDScript con loops `for` sobre arrays sin tipo, usa anotaciones de t
 ```gdscript
 # MAL — causará errores
 for item in some_untyped_array:
-	var x := item.value  # la inferencia de tipos falla
+    var x := item.value  # la inferencia de tipos falla
 
 # BIEN
 for i in range(some_untyped_array.size()):
-	var item: Dictionary = some_untyped_array[i]
-	var x: int = item.value
+    var item: Dictionary = some_untyped_array[i]
+    var x: int = item.value
 ```
 
 ### Los Cambios en Scripts Necesitan Reload

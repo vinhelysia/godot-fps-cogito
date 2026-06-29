@@ -78,10 +78,6 @@ func _physics_process(delta: float) -> void:
 func interact(_player_interaction_component:PlayerInteractionComponent):
 	if cooldown > 0:
 		return
-	# In MP, non-server peers forward the request to the server
-	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
-		_rpc_request_button_press.rpc_id(1)
-		return
 
 	player_interaction_component = _player_interaction_component
 	
@@ -121,10 +117,6 @@ func press():
 	else:
 		cooldown = press_cooldown_time
 
-	# Broadcast state to all non-server peers in MP
-	if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
-		_mp_sync_button_state.rpc(has_been_used, interaction_text)
-
 	if !objects_call_interact:
 		return
 	for nodepath in objects_call_interact:
@@ -154,21 +146,6 @@ func check_for_item() -> bool:
 		player_interaction_component.send_hint(null,item_hint) # Sends the key hint with the default hint icon.
 	return false
 	
-
-@rpc("any_peer", "reliable")
-func _rpc_request_button_press() -> void:
-	if not multiplayer.is_server(): return
-	if cooldown > 0: return
-	if not allows_repeated_interaction and has_been_used: return
-	press()
-
-
-@rpc("authority", "reliable")
-func _mp_sync_button_state(used: bool, text: String) -> void:
-	has_been_used = used
-	interaction_text = text
-	object_state_updated.emit(interaction_text)
-
 
 func set_state():
 	if has_been_used:

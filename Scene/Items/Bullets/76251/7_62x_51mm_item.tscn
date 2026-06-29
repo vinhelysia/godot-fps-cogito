@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://u7tvrbwfpvb2"]
 
-[ext_resource type="PackedScene" uid="uid://dh2kyasyxn7ms" path="res://Assets/7.62x51mm_Item.glb" id="1_b8itn"]
+[ext_resource type="PackedScene" uid="uid://dh2kyasyxn7ms" path="res://Assets/Plzzz/7.62x51mm_Item.glb" id="1_b8itn"]
 [ext_resource type="Script" uid="uid://dmeh01c5ccjqc" path="res://addons/cogito/CogitoObjects/cogito_object.gd" id="2_5uoj0"]
 [ext_resource type="PackedScene" uid="uid://1xq4y42qkcur" path="res://addons/cogito/Components/Interactions/PickupComponent.tscn" id="2_17qlu"]
 [ext_resource type="Resource" uid="uid://p4tk4735s2bo" path="res://Scene/Items/Bullets/76251/7_62x51mm_item.tres" id="4_5uoj0"]

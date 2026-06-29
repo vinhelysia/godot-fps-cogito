@@ -23,7 +23,16 @@ func update_wieldable_data(wieldable_item: WieldableItemPD, _carried_ammo:int, _
 	if wieldable_item.no_reload:
 		wieldable_charge_label.text = ""
 	else:
-		wieldable_charge_label.text = str(int(wieldable_item.charge_current))
+		var display_text : String = str(int(wieldable_item.charge_current))
+		# Read metadata if firearm mechanics are configured
+		if wieldable_item.has_meta("magazine_capacity") and wieldable_item.has_meta("chamber_capacity"):
+			var mag_cap : int = wieldable_item.get_meta("magazine_capacity")
+			var cham_cap : int = wieldable_item.get_meta("chamber_capacity")
+			var current : int = int(wieldable_item.charge_current)
+			# Only display as mag+chamber when weapon is fully loaded (mag full + chamber loaded)
+			if current == mag_cap + cham_cap and cham_cap > 0:
+				display_text = str(mag_cap) + "+" + str(cham_cap)
+		wieldable_charge_label.text = display_text
 	
 	# Hides ammo data ui elements if player doesn't have any ammo in their inventory (or if wieldable doesn't use ammo)
 	if _ammo_item:

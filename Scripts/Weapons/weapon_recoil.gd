@@ -56,11 +56,14 @@ var _time_since_last_shot: float = 0.0
 @export var shake_trauma_power: float = 2.0
 ## Noise oscillation speed — higher = faster shake.
 @export var shake_noise_frequency: float = 20.0
+## Prevent unintended z-axis tilt during recoil calculation (opt-out if using lean systems).
+@export var prevent_z_tilt: bool = true
 
 var _trauma: float = 0.0
 var _shake_time: float = 0.0
 var _shake_noise: FastNoiseLite
 var _shake_offset: Vector3 = Vector3.ZERO
+var _shake_roll: float = 0.0  # Track shake roll (in degrees) to apply additively
 
 var _head_node: Node3D
 
@@ -87,11 +90,12 @@ func _process(delta: float) -> void:
 	_prev_rotation = current_rotation
 
 	if _head_node and delta_rot.length() > 0.0001:
+		var prev_z := _head_node.global_rotation.z
 		_head_node.rotate_object_local(Vector3.RIGHT, delta_rot.x)
 		_head_node.rotate_object_local(Vector3.UP, delta_rot.y)
 		# Prevent unintended z-axis tilt when recoil.z is unused
-		if recoil.z == 0.0 and aim_recoil.z == 0.0:
-			_head_node.global_rotation.z = 0.0
+		if prevent_z_tilt and recoil.z == 0.0 and aim_recoil.z == 0.0:
+			_head_node.global_rotation.z = prev_z
 
 	# Positional shake
 	_trauma = maxf(0.0, _trauma - shake_trauma_decay * delta)
@@ -143,12 +147,13 @@ func _apply_shake() -> void:
 	if not parent:
 		return
 
-	# Remove previous frame's shake offset so we don't accumulate
+	# Remove previous frame's shake offset and roll so we don't accumulate
 	parent.position -= _shake_offset
+	parent.rotation_degrees.z -= _shake_roll
 
 	if _trauma <= 0.001:
 		_shake_offset = Vector3.ZERO
-		parent.rotation_degrees.z = 0.0
+		_shake_roll = 0.0
 		return
 
 	var shake: float = pow(_trauma, shake_trauma_power)
@@ -158,17 +163,22 @@ func _apply_shake() -> void:
 		_shake_noise.get_noise_2d(0.0, t)   * shake_max_offset.y * shake,
 		0.0
 	)
+	_shake_roll = _shake_noise.get_noise_2d(t, 100.0) * shake_max_roll_deg * shake
+	
 	parent.position += _shake_offset
-	parent.rotation_degrees.z = _shake_noise.get_noise_2d(t, 100.0) * shake_max_roll_deg * shake
+	parent.rotation_degrees.z += _shake_roll
 
 
 # ── Backwards-compatible aliases (camelCase) ─────────────────────────────────
 
+# DEPRECATED: Use recoil_fire instead.
 func recoilFire(is_aiming: bool = false) -> void:
 	recoil_fire(is_aiming)
 
+# DEPRECATED: Use set_recoil instead.
 func setRecoil(new_recoil: Vector3) -> void:
 	set_recoil(new_recoil)
 
+# DEPRECATED: Use set_aim_recoil instead.
 func setAimRecoil(new_recoil: Vector3) -> void:
 	set_aim_recoil(new_recoil)
