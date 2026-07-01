@@ -6,39 +6,18 @@
 [ext_resource type="Resource" uid="uid://curftyaxcxdcf" path="res://Scene/Enemies/LootTables/scav_loot_table.tres" id="4_loot"]
 [ext_resource type="PackedScene" uid="uid://eq5tc21gdk8" path="res://addons/cogito/PackedScenes/loot_chest.tscn" id="5_chest"]
 [ext_resource type="Script" uid="uid://d2dr6c2kvr57f" path="res://addons/cogito/Components/LootComponent.gd" id="6_lootcomp"]
-[ext_resource type="BehaviorTree" path="res://Scene/Enemies/BT/scav_brain.tres" id="7_brain"]
+[ext_resource type="BehaviorTree" uid="uid://dootm3wprrons" path="res://Scene/Enemies/BT/scav_brain.tres" id="7_brain"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_ojppo"]
 var/target/name = &"target"
 var/target/type = 24
-var/target/value = null
 var/target/hint = 0
 var/target/hint_string = ""
-var/last_known_position/name = &"last_known_position"
-var/last_known_position/type = 9
-var/last_known_position/value = Vector3(0, 0, 0)
-var/last_known_position/hint = 0
-var/last_known_position/hint_string = ""
 var/has_last_known/name = &"has_last_known"
 var/has_last_known/type = 1
 var/has_last_known/value = false
 var/has_last_known/hint = 0
 var/has_last_known/hint_string = ""
-var/heard_position/name = &"heard_position"
-var/heard_position/type = 0
-var/heard_position/value = null
-var/heard_position/hint = 0
-var/heard_position/hint_string = ""
-var/awareness/name = &"awareness"
-var/awareness/type = 3
-var/awareness/value = 0.0
-var/awareness/hint = 0
-var/awareness/hint_string = ""
-var/alert_state/name = &"alert_state"
-var/alert_state/type = 2
-var/alert_state/value = 0
-var/alert_state/hint = 0
-var/alert_state/hint_string = ""
 var/ammo/name = &"ammo"
 var/ammo/type = 2
 var/ammo/value = 5
@@ -54,11 +33,41 @@ var/engage_range/type = 3
 var/engage_range/value = 15.0
 var/engage_range/hint = 0
 var/engage_range/hint_string = ""
-var/last_strafe_time/name = &"last_strafe_time"
-var/last_strafe_time/type = 3
-var/last_strafe_time/value = 0.0
-var/last_strafe_time/hint = 0
-var/last_strafe_time/hint_string = ""
+var/target_visible/name = &"target_visible"
+var/target_visible/type = 1
+var/target_visible/value = false
+var/target_visible/hint = 0
+var/target_visible/hint_string = ""
+var/last_seen_time/name = &"last_seen_time"
+var/last_seen_time/type = 3
+var/last_seen_time/value = -999.0
+var/last_seen_time/hint = 0
+var/last_seen_time/hint_string = ""
+var/last_known_pos/name = &"last_known_pos"
+var/last_known_pos/type = 9
+var/last_known_pos/value = Vector3(0, 0, 0)
+var/last_known_pos/hint = 0
+var/last_known_pos/hint_string = ""
+var/heard_pos/name = &"heard_pos"
+var/heard_pos/type = 9
+var/heard_pos/value = Vector3(0, 0, 0)
+var/heard_pos/hint = 0
+var/heard_pos/hint_string = ""
+var/heard_time/name = &"heard_time"
+var/heard_time/type = 3
+var/heard_time/value = -999.0
+var/heard_time/hint = 0
+var/heard_time/hint_string = ""
+var/alert/name = &"alert"
+var/alert/type = 2
+var/alert/value = 0
+var/alert/hint = 0
+var/alert/hint_string = ""
+var/combat_reacted/name = &"combat_reacted"
+var/combat_reacted/type = 1
+var/combat_reacted/value = false
+var/combat_reacted/hint = 0
+var/combat_reacted/hint_string = ""
 
 [node name="Scav" unique_id=1240844793 instance=ExtResource("1_base")]
 script = ExtResource("2_scav")
@@ -67,42 +76,36 @@ display_name = "Scav"
 sprint_speed = 5.0
 
 [node name="Skeleton3D" parent="Rig" parent_id_path=PackedInt32Array(1075982299) index="0" unique_id=1082083865]
-bones/1/position = Vector3(-0.001012765, 0.08661083, 0.87387717)
-bones/1/rotation = Quaternion(0.76184106, -0.086303905, -0.07286538, 0.6378405)
-bones/3/rotation = Quaternion(-0.027788257, 0.00037137087, 0.00022483515, 0.9996138)
-bones/4/rotation = Quaternion(0.15000701, 0.0011112436, 0.00016515132, 0.9886843)
-bones/5/rotation = Quaternion(0.011254091, -0.0002404629, -0.00023902334, 0.99993664)
-bones/6/rotation = Quaternion(-0.009990965, 0.09598751, -0.003450257, 0.9953264)
-bones/7/rotation = Quaternion(-0.60529155, -0.3695408, -0.39788085, 0.5820245)
-bones/8/rotation = Quaternion(-0.27006128, 0.6715549, -0.50848675, 0.46639264)
-bones/9/rotation = Quaternion(0.2797423, 0.02477332, 0.0004156636, 0.9597555)
-bones/26/rotation = Quaternion(-0.64147806, 0.30737063, 0.33250198, 0.6192509)
-bones/27/rotation = Quaternion(-0.28673837, -0.67634887, 0.48691973, 0.47248545)
-bones/28/rotation = Quaternion(0.36814567, -0.13995464, 0.05615928, 0.9174572)
-bones/45/rotation = Quaternion(0.9587726, 0.11411313, -0.013490688, 0.25990674)
-bones/46/rotation = Quaternion(0.20501636, -0.10777634, 0.023172189, 0.97253054)
-bones/47/rotation = Quaternion(-0.5040352, 0.020518025, 0.093659416, 0.8583446)
-bones/48/rotation = Quaternion(-0.000137176, 0.9643069, -0.26478696, -0.000499421)
-bones/49/rotation = Quaternion(0.99191225, -0.12125317, 0.015134075, 0.034333993)
-bones/50/rotation = Quaternion(0.15680821, 0.3453895, -0.05985382, 0.9233282)
-bones/51/rotation = Quaternion(-0.5954521, -0.051557966, -0.1570196, 0.78620833)
-bones/52/rotation = Quaternion(-0.00013704842, 0.9643069, -0.26478696, -0.0004994199)
+bones/1/position = Vector3(0.003931567, 0.08586189, 0.87247074)
+bones/1/rotation = Quaternion(0.7578911, -0.08683239, -0.07322839, 0.64241654)
+bones/3/rotation = Quaternion(-0.034124285, -0.00014875138, 3.5373232e-05, 0.9994176)
+bones/4/rotation = Quaternion(0.12664422, -0.0004982061, 0.0007464168, 0.9919479)
+bones/5/rotation = Quaternion(0.025950732, -0.00023302448, -0.0002456402, 0.99966323)
+bones/6/rotation = Quaternion(-0.022384554, 0.09604803, 0.0009970507, 0.9951245)
+bones/7/rotation = Quaternion(-0.6073472, -0.36813062, -0.3991856, 0.57987934)
+bones/8/rotation = Quaternion(-0.26397872, 0.6708234, -0.51289755, 0.466098)
+bones/9/rotation = Quaternion(0.25193554, 0.018214127, 0.0028330337, 0.9675685)
+bones/26/rotation = Quaternion(-0.6435872, 0.30623454, 0.33354923, 0.6170582)
+bones/27/rotation = Quaternion(-0.29267335, -0.6797507, 0.47310525, 0.47796744)
+bones/28/rotation = Quaternion(0.36745682, -0.15077578, 0.060501505, 0.9157411)
+bones/45/rotation = Quaternion(0.9610503, 0.1114464, -0.013879527, 0.2525264)
+bones/46/rotation = Quaternion(0.21572283, -0.10749859, 0.024376662, 0.9702132)
+bones/47/rotation = Quaternion(-0.5062729, 0.022206308, 0.090841725, 0.8572878)
+bones/48/rotation = Quaternion(-0.0001414078, 0.964279, -0.26488823, -0.0005004073)
+bones/49/rotation = Quaternion(0.9912902, -0.12579873, 0.014798651, 0.03604706)
+bones/50/rotation = Quaternion(0.15656869, 0.34461367, -0.059618935, 0.92367375)
+bones/51/rotation = Quaternion(-0.5939719, -0.051677287, -0.15929312, 0.7868625)
+bones/52/rotation = Quaternion(-0.0001370481, 0.9643069, -0.26478696, -0.0004994204)
 
 [node name="BoneAttachment3D" parent="Rig/Skeleton3D" index="1" unique_id=537023208]
-transform = Transform3D(0.9979986, -0.059232246, -0.022142664, 0.050446264, 0.95689124, -0.28603214, 0.038130432, 0.28434262, 0.9579642, -0.023942163, 1.5191242, 0.015252318)
+transform = Transform3D(0.99777585, -0.05896979, -0.03107825, 0.050688628, 0.9740079, -0.22076967, 0.043289214, 0.21870336, 0.9748307, -0.0154407695, 1.5221574, -0.0057307947)
 
-[node name="CogitoHealthAttribute" parent="." index="7" unique_id=1621381883]
+[node name="CogitoHealthAttribute" parent="." index="8" unique_id=1621381883]
 value_max = 80.0
 value_start = 80.0
 
-[node name="LookAtArea" parent="." index="12" unique_id=1003527868]
+[node name="LookAtArea" parent="." index="13" unique_id=1003527868]
 transform = Transform3D(1, 0, 0, 0, 0.9999591, -0.0090406835, 0, 0.0090406835, 0.9999591, 0, 0, 0)
-
-[node name="Perception" parent="." index="13" unique_id=1516148782]
-script = ExtResource("3_4t50h")
-time_to_notice = 1.5
-awareness_decay_speed = 0.15
-hearing_range = 30.0
 
 [node name="Muzzle" type="Marker3D" parent="." index="14" unique_id=575613463]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.5)
@@ -114,6 +117,13 @@ loot_table = ExtResource("4_loot")
 amount_of_items_to_drop = 2
 loot_bag_scene = ExtResource("5_chest")
 health_component_to_monitor = NodePath("../CogitoHealthAttribute")
+
+[node name="Perception" parent="." index="16" unique_id=1516148782]
+script = ExtResource("3_4t50h")
+hear_k = 0.6
+combat_hearing_loudness = 30.0
+combat_hold = 4.0
+debug_perception = true
 
 [node name="BTPlayer" type="BTPlayer" parent="." index="17" unique_id=1437823093]
 behavior_tree = ExtResource("7_brain")

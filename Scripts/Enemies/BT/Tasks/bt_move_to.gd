@@ -1,13 +1,15 @@
 extends BTAction
 
-## BTAction that moves the NPC to a destination stored in the Blackboard.
+## Navigate the NPC to a position stored in the Blackboard.
+## The reactive root BTSelector handles all preemption — no alert checks here.
 
-@export var position_var: StringName = &"last_known_position"
-@export var speed_var: StringName = &"" # If set, uses this speed. Otherwise uses agent.move_speed.
+@export var position_var: StringName = &"last_known_pos"
+@export var speed_var: StringName = &""
 @export var tolerance: float = 1.0
 
+
 func _tick(delta: float) -> Status:
-	var dest = blackboard.get_var(position_var, null, false)
+	var dest: Variant = blackboard.get_var(position_var, null)
 	if not dest is Vector3:
 		return FAILURE
 
@@ -28,28 +30,30 @@ func _tick(delta: float) -> Status:
 		npc.update_animations(delta)
 		return FAILURE
 
-	var next_position = nav_agent.get_next_path_position()
-	
-	# Apply gravity
+	var next_position := nav_agent.get_next_path_position()
+
 	if not npc.is_on_floor():
 		npc.velocity += npc.get_gravity() * delta
 
-	var direction = npc.global_position.direction_to(next_position)
-	var face_direction = Vector3(npc.global_position.x + npc.velocity.x, npc.global_position.y, npc.global_position.z + npc.velocity.z)
+	var direction := npc.global_position.direction_to(next_position)
+	var face_dir := Vector3(
+		npc.global_position.x + npc.velocity.x,
+		npc.global_position.y,
+		npc.global_position.z + npc.velocity.z,
+	)
 
-	var speed = npc.move_speed
+	var speed: float = npc.move_speed
 	if speed_var != &"":
-		speed = blackboard.get_var(speed_var, npc.move_speed, false)
+		speed = blackboard.get_var(speed_var, npc.move_speed)
 
 	if direction:
-		npc.face_direction(face_direction)
+		npc.face_direction(face_dir)
 		npc.velocity.x = direction.x * speed
 		npc.velocity.z = direction.z * speed
 	else:
-		npc.velocity.x = move_toward(npc.velocity.x, 0, speed)
-		npc.velocity.z = move_toward(npc.velocity.z, 0, speed)
-	
+		npc.velocity.x = move_toward(npc.velocity.x, 0.0, speed)
+		npc.velocity.z = move_toward(npc.velocity.z, 0.0, speed)
+
 	npc.move_and_slide()
 	npc.update_animations(delta)
-
 	return RUNNING

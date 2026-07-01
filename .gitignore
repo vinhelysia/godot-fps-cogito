@@ -2,9 +2,10 @@
 .godot/
 /android/
 
-# Obsidian per-machine config (the notes in docs/project/ ARE tracked)
-docs/project/.obsidian/
+# Ignore the entire docs folder so it won't be uploaded to GitHub
+docs/
 
 # Agent configuration files
 AGENTS.md
 CLAUDE.md
+
