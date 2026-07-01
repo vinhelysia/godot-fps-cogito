@@ -88,7 +88,7 @@ transform = Transform3D(0.81935227, -2.44186e-08, -0.5732905, 0.29080313, 0.8617
 shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.327393, 1.175818, -27.005917)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.80206, 1.175818, -29.302485)
 inventory_data = SubResource("Resource_gi6o6")
 
 [node name="7_62x51mm_Item" parent="." unique_id=1276708987 instance=ExtResource("11_lb3ao")]
@@ -174,14 +174,14 @@ script = ExtResource("21_patrol")
 patrol_points = [NodePath("PatrolA"), NodePath("PatrolB"), NodePath("PatrolC")]
 
 [node name="PatrolA" type="Node3D" parent="ScavPatrolPath" unique_id=1020191332]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 1, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0.05, -30)
 
 [node name="PatrolB" type="Node3D" parent="ScavPatrolPath" unique_id=2091612430]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 1, -25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 0.05, -25)
 
 [node name="PatrolC" type="Node3D" parent="ScavPatrolPath" unique_id=697101448]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 1, -37)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 0.05, -37)
 
 [node name="Scav" parent="." unique_id=1555544251 node_paths=PackedStringArray("patrol_path") instance=ExtResource("20_scav")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36.0, 0.049776077, -30.0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0.049776077, -30)
 patrol_path = NodePath("../ScavPatrolPath")

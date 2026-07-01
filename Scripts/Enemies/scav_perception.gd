@@ -1,104 +1,99 @@
 extends Node3D
 class_name ScavPerception
 
-## Perception sensor for Scav enemy. Gathers vision and hearing data,
-## accumulates awareness, and writes directly to the LimboAI Blackboard.
+## SENSOR ONLY — writes blackboard, never calls goto or moves the agent.
+## Alert is a pure time-latch: once the player is seen, COMBAT holds for
+## combat_hold seconds after the LAST successful sight check. Brief FOV/LOS
+## flicker cannot drop alert to PATROL because the latch is time-based.
 
 @export_group("Vision")
-## Max distance the NPC can see (metres).
 @export var sight_range: float = 25.0
-## Total horizontal field-of-view cone (degrees).
-@export_range(10.0, 360.0, 1.0, "suffix:°") var fov_degrees: float = 120.0
-## Eye height above the NPC origin — ray origin for LOS.
+@export_range(10.0, 360.0, 1.0, "suffix:°") var fov_degrees: float = 110.0
 @export var eye_height: float = 1.6
-## Seconds the target must stay visible at close range before being fully spotted.
-@export var time_to_notice: float = 1.5
-## Rate at which awareness decays when the player is not seen.
-@export var awareness_decay_speed: float = 0.15
-## Group name of things this NPC hunts.
+@export_flags_3d_physics var los_mask: int = 3
 @export var target_group: StringName = &"Player"
 
-@export_group("Line of Sight")
-## Physics layers LOS rays test against (world + target).
-@export_flags_3d_physics var los_mask: int = 3
-
 @export_group("Hearing")
-## Max distance the NPC can hear sounds (metres).
-@export var hearing_range: float = 30.0
+## Effective hearing range = loudness * hear_k.
+## footstep(10)→6 m  sprint(20)→12 m  gunshot(80)→48 m
+@export var hear_k: float = 0.6
+## In COMBAT, ignore sounds quieter than this (footsteps/movement).
+@export var combat_hearing_loudness: float = 30.0
 
-enum AlertState { CALM = 0, SUSPICIOUS = 1, ALERT = 2, COMBAT = 3 }
+@export_group("Combat")
+## Seconds after losing sight before dropping COMBAT → SUSPICIOUS.
+@export var combat_hold: float = 4.0
+
+@export_group("Debug")
+@export var debug_perception: bool = false
+
+enum Alert { RELAXED = 0, SUSPICIOUS = 1, COMBAT = 2 }
 
 var _host: CogitoNPC
-var _bt_player: Node
-var _target: Node3D = null
+var _bb: Blackboard
+var _prev_alert: int = -1
 
-# Local awareness accumulator (0.0 to 1.0)
-var _awareness: float = 0.0
 
 func _ready() -> void:
 	_host = get_parent() as CogitoNPC
 	if _host == null:
-		push_error("ScavPerception must be a child of a CogitoNPC.")
+		push_error("ScavPerception must be a child of CogitoNPC.")
 		set_physics_process(false)
 		return
-	
-	_bt_player = _host.get_node_or_null("BTPlayer")
-	
-	# Connect to the SoundEvents autoload
-	var sound_events = get_node_or_null("/root/SoundEvents")
-	if sound_events:
-		sound_events.sound_emitted.connect(_on_sound_emitted)
+
+	var bt := _host.get_node_or_null("BTPlayer")
+	if bt:
+		_bb = bt.blackboard
+
+	var se := get_node_or_null("/root/SoundEvents")
+	if se:
+		se.sound_emitted.connect(_on_sound_emitted)
 
 
-func _physics_process(delta: float) -> void:
-	if _bt_player == null:
-		# Try to find BTPlayer if it wasn't ready yet
-		_bt_player = _host.get_node_or_null("BTPlayer")
-		if _bt_player == null:
+func _physics_process(_delta: float) -> void:
+	if _bb == null:
+		var bt := _host.get_node_or_null("BTPlayer")
+		if bt == null:
 			return
+		_bb = bt.blackboard
 
-	var target := _find_target()
-	var can_see := target != null and _can_see(target)
+	var now: float = Time.get_ticks_msec() / 1000.0
 
-	if can_see:
-		_target = target
-		
-		# Calculate awareness gain rate based on distance and player pose
-		var dist = global_position.distance_to(target.global_position)
-		var distance_factor = clamp(1.0 - (dist / sight_range), 0.1, 1.0)
-		
-		var pose_factor = 1.0
-		if target.is_in_group("Player"):
-			if target.get("is_sprinting") == true:
-				pose_factor = 1.5
-			elif target.get("is_crouching") == true:
-				pose_factor = 0.5
-		
-		var gain = (1.0 / time_to_notice) * distance_factor * pose_factor
-		_awareness = clamp(_awareness + gain * delta, 0.0, 1.0)
-		
-		# Update blackboard target and positions
-		_bt_player.blackboard.set_var(&"target", target)
-		_bt_player.blackboard.set_var(&"last_known_position", target.global_position)
-		_bt_player.blackboard.set_var(&"has_last_known", true)
+	# --- Vision ---
+	var t := _find_target()
+	var visible: bool = t != null and _can_see(t)
+
+	_bb.set_var(&"target_visible", visible)
+	if visible:
+		_bb.set_var(&"target", t)
+		_bb.set_var(&"last_seen_time", now)
+		_bb.set_var(&"last_known_pos", t.global_position)
+		_bb.set_var(&"has_last_known", true)
+
+	# --- Alert (time-latch — immune to brief LOS flicker) ---
+	var last_seen: float = _bb.get_var(&"last_seen_time", -999.0)
+	var has_lk: bool = _bb.get_var(&"has_last_known", false)
+
+	var alert: int
+	if (now - last_seen) <= combat_hold:
+		alert = Alert.COMBAT
+	elif has_lk:
+		alert = Alert.SUSPICIOUS
 	else:
-		# Decay awareness
-		_awareness = clamp(_awareness - awareness_decay_speed * delta, 0.0, 1.0)
-		if _awareness <= 0.0:
-			_bt_player.blackboard.set_var(&"target", null)
+		alert = Alert.RELAXED
+		_bb.set_var(&"target", null)
+		_bb.set_var(&"has_last_known", false)
+		_bb.set_var(&"combat_reacted", false)
 
-	# Map awareness to alert state
-	var alert = AlertState.CALM
-	if _awareness == 1.0:
-		alert = AlertState.COMBAT
-	elif _awareness >= 0.5:
-		alert = AlertState.ALERT
-	elif _awareness > 0.0:
-		alert = AlertState.SUSPICIOUS
+	_bb.set_var(&"alert", alert)
 
-	# Write to blackboard
-	_bt_player.blackboard.set_var(&"awareness", _awareness)
-	_bt_player.blackboard.set_var(&"alert_state", int(alert))
+	if debug_perception and alert != _prev_alert:
+		var names: PackedStringArray = ["RELAXED", "SUSPICIOUS", "COMBAT"]
+		print("[Scav:%s] %s  visible=%s  has_lk=%s  dt_seen=%.1fs" % [
+			_host.name, names[alert], visible, has_lk,
+			now - last_seen if last_seen > -999.0 else INF,
+		])
+	_prev_alert = alert
 
 
 func _find_target() -> Node3D:
@@ -110,33 +105,31 @@ func _find_target() -> Node3D:
 
 func _can_see(target: Node3D) -> bool:
 	var eye := global_position + Vector3.UP * eye_height
-	var to_target := target.global_position - eye
-	if to_target.length() > sight_range:
+	var to_t := target.global_position - eye
+	if to_t.length() > sight_range:
 		return false
 
-	# FOV cone — measured horizontally against NPC forward (-Z).
 	var forward := -_host.global_transform.basis.z
-	var flat_to := Vector3(to_target.x, 0.0, to_target.z)
-	if flat_to.length() > 0.01:
-		var angle := rad_to_deg(forward.angle_to(flat_to.normalized()))
-		if angle > fov_degrees * 0.5:
+	var flat := Vector3(to_t.x, 0.0, to_t.z)
+	if flat.length_squared() > 0.0001:
+		if rad_to_deg(forward.angle_to(flat.normalized())) > fov_degrees * 0.5:
 			return false
 
-	# Multi-point LOS — head, chest, pelvis
-	return _los_clear(eye, _aim_point(target, 1.6)) or \
-		   _los_clear(eye, _aim_point(target, 1.0)) or \
-		   _los_clear(eye, _aim_point(target, 0.4))
+	# Multi-point LOS: head, chest, pelvis — pass target for hitbox-child check
+	return _los_clear(eye, _aim_point(target, 1.6), target) \
+		or _los_clear(eye, _aim_point(target, 1.0), target) \
+		or _los_clear(eye, _aim_point(target, 0.4), target)
 
 
 func _aim_point(target: Node3D, height: float) -> Vector3:
 	if height >= 1.5:
-		var head_val: Variant = target.get("head")
-		if head_val is Node3D and is_instance_valid(head_val):
-			return (head_val as Node3D).global_position
+		var h: Variant = target.get("head")
+		if h is Node3D and is_instance_valid(h):
+			return (h as Node3D).global_position
 	return target.global_position + Vector3.UP * height
 
 
-func _los_clear(from: Vector3, to: Vector3) -> bool:
+func _los_clear(from: Vector3, to: Vector3, target: Node3D) -> bool:
 	var space := get_world_3d().direct_space_state
 	var params := PhysicsRayQueryParameters3D.create(from, to)
 	params.collision_mask = los_mask
@@ -144,29 +137,44 @@ func _los_clear(from: Vector3, to: Vector3) -> bool:
 	var hit := space.intersect_ray(params)
 	if hit.is_empty():
 		return true
-	var collider: Object = hit["collider"]
-	return collider == _target or (collider is Node and (collider as Node).is_in_group(target_group))
+	var c: Object = hit["collider"]
+	# Accept the target itself, any node in target_group, or a child of the target
+	# (handles HitboxComponent Area3D children that may lack the group tag).
+	if c == target:
+		return true
+	if c is Node:
+		var cn := c as Node
+		if cn.is_in_group(target_group):
+			return true
+		if target.is_ancestor_of(cn):
+			return true
+	return false
 
 
 func _on_sound_emitted(pos: Vector3, loudness: float, _kind: StringName, emitter: Node) -> void:
-	# Self-hearing prevention: ignore if emitter is the host or a child of the host
 	if emitter == _host or (emitter != null and _host.is_ancestor_of(emitter)):
 		return
-
-	if _bt_player == null:
+	if _bb == null:
 		return
 
-	var dist = global_position.distance_to(pos)
-	# Sound propagation: check if within hearing radius (loudness scales hearing range)
-	var effective_hearing_range = hearing_range * (loudness / 15.0)
-	if dist <= effective_hearing_range:
-		# Record heard position
-		_bt_player.blackboard.set_var(&"heard_position", pos)
-		_bt_player.blackboard.set_var(&"last_known_position", pos)
-		_bt_player.blackboard.set_var(&"has_last_known", true)
-		
-		# Bump awareness to at least ALERT (0.5) to trigger investigation
-		if _awareness < 0.5:
-			_awareness = 0.5
-			_bt_player.blackboard.set_var(&"awareness", _awareness)
-			_bt_player.blackboard.set_var(&"alert_state", int(AlertState.ALERT))
+	var alert: int = _bb.get_var(&"alert", Alert.RELAXED)
+	if alert == Alert.COMBAT and loudness < combat_hearing_loudness:
+		return
+
+	var dist: float = global_position.distance_to(pos)
+	if dist > loudness * hear_k:
+		return
+
+	var now: float = Time.get_ticks_msec() / 1000.0
+	_bb.set_var(&"heard_pos", pos)
+	_bb.set_var(&"heard_time", now)
+	_bb.set_var(&"has_last_known", true)
+
+	# Vision owns last_known_pos in COMBAT; hearing updates it otherwise.
+	if alert != Alert.COMBAT:
+		_bb.set_var(&"last_known_pos", pos)
+
+	if debug_perception:
+		print("[Scav:%s] HEARD loudness=%.0f dist=%.1f/%.1fm" % [
+			_host.name, loudness, dist, loudness * hear_k,
+		])

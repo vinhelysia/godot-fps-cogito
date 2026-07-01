@@ -43,6 +43,7 @@ SPAWN_CONTAINER = 2, ## Spawns a loot drop container to fill up with rolled item
 func _get_configuration_warnings():
 	if !loot_table:
 		return ["Loot table is not set. It is required for the loot component to function."]
+	return []
 
 
 func _ready() -> void:
@@ -82,7 +83,7 @@ func _spawn_loot():
 			if item.inventory_item.drop_scene != null:
 				var item_to_spawn = load(item.inventory_item.drop_scene)
 				var spawned_item = item_to_spawn.instantiate() as CogitoObject
-				spawned_item.position = parent_position
+				spawned_item.position = parent_position + Vector3(0.0, 0.5, 0.0)
 				get_tree().current_scene.add_child(spawned_item)
 				
 				var children: Array = []
@@ -128,7 +129,7 @@ func _spawn_loot_container():
 	
 	if enabled and amount_of_items_to_drop > 0:
 		spawned_loot_bag = loot_bag_scene.instantiate()
-		spawned_loot_bag.position = parent_position
+		spawned_loot_bag.position = parent_position + Vector3(0.0, 0.5, 0.0)
 		get_tree().current_scene.call_deferred("add_child", spawned_loot_bag)
 		
 		if !spawned_loot_bag.toggle_inventory.is_connected(_player_hud.toggle_inventory_interface):

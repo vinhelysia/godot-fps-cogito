@@ -1,6 +1,8 @@
 extends BTAction
 
-## BTAction that makes the NPC patrol along their assigned CogitoPatrolPath.
+## Patrol along the CogitoPatrolPath. The reactive BTSelector at root
+## preempts this task automatically when a higher-priority guard succeeds —
+## no self-abort logic needed here.
 
 @export var patrol_point_wait_time: float = 3.0
 @export var tolerance: float = 0.5
@@ -8,6 +10,7 @@ extends BTAction
 var _patrol_point_index: int = 0
 var _wait_timer: float = 0.0
 var _is_waiting: bool = false
+
 
 func _enter() -> void:
 	var npc: CogitoNPC = agent as CogitoNPC
@@ -27,7 +30,6 @@ func _tick(delta: float) -> Status:
 		return FAILURE
 
 	if npc.patrol_path == null or npc.patrol_path.patrol_points.is_empty():
-		# No patrol path, just idle
 		npc.velocity = Vector3.ZERO
 		npc.update_animations(delta)
 		return RUNNING
@@ -35,7 +37,6 @@ func _tick(delta: float) -> Status:
 	var nav_agent: NavigationAgent3D = npc.navigation_agent_3d
 
 	if _is_waiting:
-		# Brake / decelerate
 		npc.velocity.x = move_toward(npc.velocity.x, 0.0, delta * npc.move_speed)
 		npc.velocity.z = move_toward(npc.velocity.z, 0.0, delta * npc.move_speed)
 		if not npc.is_on_floor():
@@ -50,7 +51,6 @@ func _tick(delta: float) -> Status:
 			_set_destination(npc)
 		return RUNNING
 
-	# Moving along path
 	if not nav_agent.is_target_reachable():
 		_iterate_patrol_point(npc)
 		_set_destination(npc)
@@ -61,32 +61,34 @@ func _tick(delta: float) -> Status:
 		_wait_timer = patrol_point_wait_time
 		return RUNNING
 
-	var next_position = nav_agent.get_next_path_position()
-	
-	# Apply gravity
+	var next_position := nav_agent.get_next_path_position()
+
 	if not npc.is_on_floor():
 		npc.velocity += npc.get_gravity() * delta
 
-	var direction = npc.global_position.direction_to(next_position)
-	var face_direction = Vector3(npc.global_position.x + npc.velocity.x, npc.global_position.y, npc.global_position.z + npc.velocity.z)
+	var direction := npc.global_position.direction_to(next_position)
+	var face_dir := Vector3(
+		npc.global_position.x + npc.velocity.x,
+		npc.global_position.y,
+		npc.global_position.z + npc.velocity.z,
+	)
 
 	if direction:
-		npc.face_direction(face_direction)
+		npc.face_direction(face_dir)
 		npc.velocity.x = direction.x * npc.move_speed
 		npc.velocity.z = direction.z * npc.move_speed
 	else:
 		npc.velocity.x = move_toward(npc.velocity.x, 0.0, npc.move_speed)
 		npc.velocity.z = move_toward(npc.velocity.z, 0.0, npc.move_speed)
-	
+
 	npc.move_and_slide()
 	npc.update_animations(delta)
-
 	return RUNNING
 
 
 func _set_destination(npc: CogitoNPC) -> void:
 	if npc.patrol_path and not npc.patrol_path.patrol_points.is_empty():
-		var point = npc.patrol_path.patrol_points[_patrol_point_index]
+		var point := npc.patrol_path.patrol_points[_patrol_point_index]
 		if is_instance_valid(point):
 			npc.navigation_agent_3d.target_position = point.global_position
 

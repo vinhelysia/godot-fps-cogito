@@ -1,11 +1,10 @@
 extends BTCondition
 
-## BTCondition that checks if the alert level is at least the specified value.
+## Guard: returns SUCCESS when alert >= min_level.
+## Alert enum: RELAXED=0, SUSPICIOUS=1, COMBAT=2
 
-@export var min_level: int = 3 # COMBAT by default
+@export var min_level: int = 2  # COMBAT by default
 
 func _tick(_delta: float) -> Status:
-	var alert = blackboard.get_var(&"alert_state", 0, false)
-	if alert >= min_level:
-		return SUCCESS
-	return FAILURE
+	var alert: int = blackboard.get_var(&"alert", 0)
+	return SUCCESS if alert >= min_level else FAILURE
