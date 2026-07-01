@@ -16,7 +16,10 @@
 [ext_resource type="Texture2D" uid="uid://dm7pxodtw082t" path="res://addons/kenney_prototype_textures/green/texture_08.png" id="14_hdm3a"]
 [ext_resource type="PackedScene" uid="uid://ckukvw522vy6q" path="res://Scene/Weapom/Firearms/Pistol/USP/pickup_usp.tscn" id="15_n5gl2"]
 [ext_resource type="PackedScene" uid="uid://wchwola8tvdh" path="res://Scene/Object/Deco/ksi_counter.tscn" id="16_emnm4"]
+[ext_resource type="Script" uid="uid://b58a5jxts5377" path="res://Scripts/Enemies/AIProfile.gd" id="19_3085e"]
+[ext_resource type="Resource" uid="uid://cao1lbgvo6tvi" path="res://Scene/Weapom/Firearms/Pistol/USP/usp_w.tres" id="20_kdlys"]
 [ext_resource type="PackedScene" uid="uid://c5b73hl6rjw60" path="res://Scene/Enemies/Scav.tscn" id="20_scav"]
+[ext_resource type="Resource" uid="uid://c0a1piy7rpc46" path="res://Scene/Weapom/Firearms/Pistol/USP/usp.tres" id="21_8vr6j"]
 [ext_resource type="Script" uid="uid://cabgyitb3d8cj" path="res://addons/cogito/CogitoNPC/cogito_patrol_path.gd" id="21_patrol"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_epm0u"]
@@ -38,7 +41,7 @@ glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="Resource" id="Resource_gi6o6"]
+[sub_resource type="Resource" id="Resource_6epgb"]
 resource_local_to_scene = true
 script = ExtResource("4_3dqf0")
 grid = true
@@ -75,6 +78,11 @@ points = PackedVector3Array(25, 1.5, 0, 25, -1.5, 0, -25, 1.5, 0, -25, -1.5, 0)
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_flngw"]
 points = PackedVector3Array(25, 0, 29.5, -25, 0, 29.5, 25, 0, -29.5, -25, 0, -29.5)
 
+[sub_resource type="Resource" id="Resource_5cyug"]
+script = ExtResource("19_3085e")
+accuracy = 0.06
+metadata/_custom_type_script = "uid://b58a5jxts5377"
+
 [node name="Town" type="Node3D" unique_id=2099410991]
 script = ExtResource("1_g1f60")
 bgm_neutral = ExtResource("2_4p7si")
@@ -89,7 +97,7 @@ shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.80206, 1.175818, -29.302485)
-inventory_data = SubResource("Resource_gi6o6")
+inventory_data = SubResource("Resource_6epgb")
 
 [node name="7_62x51mm_Item" parent="." unique_id=1276708987 instance=ExtResource("11_lb3ao")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.340513)
@@ -184,4 +192,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 0.05, -37)
 
 [node name="Scav" parent="." unique_id=1555544251 node_paths=PackedStringArray("patrol_path") instance=ExtResource("20_scav")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0.049776077, -30)
+ai_profile = SubResource("Resource_5cyug")
+equipped_wieldable = ExtResource("20_kdlys")
+equipped_weapon_data = ExtResource("21_8vr6j")
 patrol_path = NodePath("../ScavPatrolPath")

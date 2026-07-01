@@ -7,6 +7,9 @@
 [ext_resource type="PackedScene" uid="uid://eq5tc21gdk8" path="res://addons/cogito/PackedScenes/loot_chest.tscn" id="5_chest"]
 [ext_resource type="Script" uid="uid://d2dr6c2kvr57f" path="res://addons/cogito/Components/LootComponent.gd" id="6_lootcomp"]
 [ext_resource type="BehaviorTree" uid="uid://dootm3wprrons" path="res://Scene/Enemies/BT/scav_brain.tres" id="7_brain"]
+[ext_resource type="Resource" path="res://Scene/Enemies/Profiles/scav_profile.tres" id="8_profile"]
+[ext_resource type="Resource" uid="uid://yv04ygxufxb1" path="res://Scene/Weapom/Firearms/AR/AK47/Ak-47_Wieldable.tres" id="9_wieldable"]
+[ext_resource type="Resource" uid="uid://dr3aharu3mmkm" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tres" id="10_weapondata"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_ojppo"]
 var/target/name = &"target"
@@ -74,6 +77,9 @@ script = ExtResource("2_scav")
 cogito_name = "Scav"
 display_name = "Scav"
 sprint_speed = 5.0
+ai_profile = ExtResource("8_profile")
+equipped_wieldable = ExtResource("9_wieldable")
+equipped_weapon_data = ExtResource("10_weapondata")
 
 [node name="Skeleton3D" parent="Rig" parent_id_path=PackedInt32Array(1075982299) index="0" unique_id=1082083865]
 bones/1/position = Vector3(0.003931567, 0.08586189, 0.87247074)
@@ -120,9 +126,6 @@ health_component_to_monitor = NodePath("../CogitoHealthAttribute")
 
 [node name="Perception" parent="." index="16" unique_id=1516148782]
 script = ExtResource("3_4t50h")
-hear_k = 0.6
-combat_hearing_loudness = 30.0
-combat_hold = 4.0
 debug_perception = true
 
 [node name="BTPlayer" type="BTPlayer" parent="." index="17" unique_id=1437823093]

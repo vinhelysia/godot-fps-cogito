@@ -1,27 +1,22 @@
 extends BTAction
 
-## Shoot the target. Returns FAILURE when: ammo <= 0, target out of engage_range,
-## or no line of sight. The CombatActions selector then tries Reload or MoveTo.
+## Shoot the target. Returns FAILURE when: ammo <= 0, target out of engage
+## range, or no line of sight. The CombatActions selector then tries Reload
+## or MoveTo.
+##
+## Damage / fire rate / magazine size come from the agent's equipped weapon
+## (HostileNPC.equipped_wieldable / equipped_weapon_data) — the SAME resources
+## the player's real guns use. Accuracy / reaction / LOS grace / engage range
+## come from the agent's ai_profile (faction skill), NOT the weapon, so the
+## same gun feels different in different hands.
 ##
 ## Reaction beat: one deliberate pause at the START of each engagement
 ## (guarded by combat_reacted on the blackboard — persists across re-entries
 ## within the same COMBAT session; cleared by perception on RELAXED).
 
-@export var fire_rate: float = 0.8
-@export var damage: float = 8.0
-## Spread magnitude (~tan of the deviation angle). At 0.12, a 5-8m shot could deviate
-## ~0.6-1m laterally — wider than the player's hitbox, causing frequent near-misses/wall
-## clips even with clear LOS. Lowered so mid-range shots reliably land while still missing
-## sometimes (not a laser).
-@export var accuracy: float = 0.035
-@export var burst_count: int = 5
-@export var reaction_delay: float = 0.3
 @export var shoot_sound: AudioStream
 @export var muzzle_flash_scene: PackedScene
-## Keep aiming through brief LOS loss before bailing to chase (seconds).
-@export var los_grace: float = 0.4
-## Extra distance tolerated past engage_range before bailing to chase (metres).
-@export var range_margin: float = 2.0
+@export var debug_shoot: bool = false
 
 var _fire_timer: float = 0.0
 var _reaction_timer: float = 0.0
@@ -30,11 +25,12 @@ var _los_lost_timer: float = 0.0
 
 
 func _enter() -> void:
-	_fire_timer = fire_rate * 0.5
+	var npc := agent as HostileNPC
+	_fire_timer = (npc.effective_fire_cooldown() if npc else 0.8) * 0.5
 	_los_lost_timer = 0.0
 	_has_reacted = blackboard.get_var(&"combat_reacted", false)
 	if not _has_reacted:
-		_reaction_timer = reaction_delay
+		_reaction_timer = npc.ai_profile.reaction_delay if npc and npc.ai_profile else 0.3
 
 
 func _tick(delta: float) -> Status:
@@ -42,34 +38,43 @@ func _tick(delta: float) -> Status:
 	if not is_instance_valid(target) or not target is Node3D:
 		return FAILURE
 
-	var npc: CogitoNPC = agent as CogitoNPC
+	var npc := agent as HostileNPC
 	if npc == null:
 		return FAILURE
+	var profile: AIProfile = npc.ai_profile
 
 	npc.face_direction((target as Node3D).global_position)
 	_brake(npc, delta)
 
+	var engage_range: float = profile.preferred_engage_range if profile else 18.0
+	var range_margin: float = profile.range_margin if profile else 2.0
 	var dist: float = npc.global_position.distance_to((target as Node3D).global_position)
-	if dist > blackboard.get_var(&"engage_range", 15.0) + range_margin:
-		print("[shoot] FAIL range dist=%.1f" % dist)
+	if dist > engage_range + range_margin:
+		if debug_shoot:
+			print("[shoot] FAIL range dist=%.1f" % dist)
 		return FAILURE
 
-	var ammo: int = blackboard.get_var(&"ammo", burst_count)
+	var ammo: int = blackboard.get_var(&"ammo", npc.magazine_size())
 	if ammo <= 0:
-		print("[shoot] FAIL ammo=0 -> reload")
+		if debug_shoot:
+			print("[shoot] FAIL ammo=0 -> reload")
 		return FAILURE
 
 	var muzzle_pos := _get_muzzle_pos(npc)
-	var aim_pos := (target as Node3D).global_position + Vector3(0.0, 0.5, 0.0)  # CogitoPlayer's standing collision box (0.6x1.7x0.6, local center +0.05)
-	# spans roughly origin-0.8 to origin+0.9 vertically. +1.0 overshot the box top by ~0.1m,
-	# causing shots to sail over the player's head except when spread randomly angled down —
-	# this was the "sometimes hits sometimes doesn't" bug. +0.5 lands solidly inside the box.
-	# LOS grace: tolerate brief line-of-sight loss (player strafing a cover edge, muzzle shifting)
-	# instead of bailing to chase immediately — this caused the "shoot 0-2 then move away" jitter.
+	# Aim at ~+0.5m above origin: CogitoPlayer's standing collision box
+	# (0.6x1.7x0.6, local center +0.05) spans roughly origin-0.8 to origin+0.9
+	# vertically. +1.0 overshot the box top by ~0.1m, causing shots to sail
+	# over the player's head except when spread randomly angled down — this
+	# was the "sometimes hits sometimes doesn't" bug. +0.5 lands solidly inside.
+	var aim_pos := (target as Node3D).global_position + Vector3(0.0, 0.5, 0.0)
+	# LOS grace: tolerate brief line-of-sight loss (player strafing a cover
+	# edge, muzzle shifting) instead of bailing to chase immediately.
+	var los_grace: float = profile.los_grace if profile else 0.4
 	if not _result_hits_target(_cast_ray(npc, muzzle_pos, aim_pos), target as Node3D):
 		_los_lost_timer += delta
 		if _los_lost_timer >= los_grace:
-			print("[shoot] FAIL no-LOS %.2fs -> chase" % _los_lost_timer)
+			if debug_shoot:
+				print("[shoot] FAIL no-LOS %.2fs -> chase" % _los_lost_timer)
 			return FAILURE
 		return RUNNING
 	_los_lost_timer = 0.0
@@ -84,8 +89,9 @@ func _tick(delta: float) -> Status:
 
 	_fire_timer -= delta
 	if _fire_timer <= 0.0:
-		_fire_timer = fire_rate
-		print("[shoot] FIRE ammo=%d dist=%.1f" % [ammo, dist])
+		_fire_timer = npc.effective_fire_cooldown()
+		if debug_shoot:
+			print("[shoot] FIRE ammo=%d dist=%.1f" % [ammo, dist])
 		_shoot(npc, target as Node3D, muzzle_pos)
 		ammo -= 1
 		blackboard.set_var(&"ammo", ammo)
@@ -95,7 +101,7 @@ func _tick(delta: float) -> Status:
 	return RUNNING
 
 
-func _brake(npc: CogitoNPC, delta: float) -> void:
+func _brake(npc: HostileNPC, delta: float) -> void:
 	var rate: float = delta * npc.sprint_speed * 6.0
 	npc.velocity.x = move_toward(npc.velocity.x, 0.0, rate)
 	npc.velocity.z = move_toward(npc.velocity.z, 0.0, rate)
@@ -104,14 +110,14 @@ func _brake(npc: CogitoNPC, delta: float) -> void:
 	npc.move_and_slide()
 
 
-func _get_muzzle_pos(npc: CogitoNPC) -> Vector3:
+func _get_muzzle_pos(npc: HostileNPC) -> Vector3:
 	var muzzle: Node3D = npc.get_node_or_null("Muzzle")
 	if is_instance_valid(muzzle):
 		return muzzle.global_position
 	return npc.global_position + Vector3(0.0, 1.4, 0.0)
 
 
-func _cast_ray(npc: CogitoNPC, from: Vector3, to: Vector3) -> Dictionary:
+func _cast_ray(npc: HostileNPC, from: Vector3, to: Vector3) -> Dictionary:
 	var space: PhysicsDirectSpaceState3D = npc.get_world_3d().direct_space_state
 	var params := PhysicsRayQueryParameters3D.create(from, to)
 	params.exclude = [npc.get_rid()]
@@ -126,19 +132,21 @@ func _result_hits_target(result: Dictionary, target: Node3D) -> bool:
 	return hit == target or (hit is Node and (hit as Node).is_in_group(&"Player"))
 
 
-func _shoot(npc: CogitoNPC, target: Node3D, muzzle_pos: Vector3) -> void:
-	var aim_pos := target.global_position + Vector3(0.0, 0.5, 0.0)  # CogitoPlayer's standing collision box (0.6x1.7x0.6, local center +0.05)
-	# spans roughly origin-0.8 to origin+0.9 vertically. +1.0 overshot the box top by ~0.1m,
-	# causing shots to sail over the player's head except when spread randomly angled down —
-	# this was the "sometimes hits sometimes doesn't" bug. +0.5 lands solidly inside the box.
+func _shoot(npc: HostileNPC, target: Node3D, muzzle_pos: Vector3) -> void:
+	var aim_pos := target.global_position + Vector3(0.0, 0.5, 0.0)
 	var aim_dir := (aim_pos - muzzle_pos).normalized()
-	print("[shoot] GEOM npc_pos=%s muzzle=%s target=%s(%s) aim_pos=%s aim_dir=%s" % [
-		npc.global_position, muzzle_pos, target.name, target.global_position, aim_pos, aim_dir])
+	if debug_shoot:
+		print("[shoot] GEOM npc_pos=%s muzzle=%s target=%s(%s) aim_pos=%s aim_dir=%s" % [
+			npc.global_position, muzzle_pos, target.name, target.global_position, aim_pos, aim_dir])
+
+	# Higher ai_profile.accuracy (0-1) = better shooter = LESS spread.
+	var spread_magnitude: float = npc.ai_profile.spread() if npc.ai_profile else 0.5
+	var damage: float = npc.weapon_damage()
 
 	var right := aim_dir.cross(Vector3.UP).normalized()
 	var up := right.cross(aim_dir).normalized()
-	var spread := right * randf_range(-accuracy, accuracy) \
-				+ up * randf_range(-accuracy * 0.5, accuracy * 0.5)
+	var spread := right * randf_range(-spread_magnitude, spread_magnitude) \
+				+ up * randf_range(-spread_magnitude * 0.5, spread_magnitude * 0.5)
 	var fire_dir := (aim_dir + spread).normalized()
 
 	if shoot_sound and is_instance_valid(Audio):
@@ -156,13 +164,14 @@ func _shoot(npc: CogitoNPC, target: Node3D, muzzle_pos: Vector3) -> void:
 			flash.look_at(muzzle_pos + fire_dir)
 
 	var result := _cast_ray(npc, muzzle_pos, muzzle_pos + fire_dir * 50.0)
-	if result.is_empty():
-		print("[shoot] BULLET MISS — ray hit nothing")
-	elif not _result_hits_target(result, target):
-		var missed: Object = result["collider"]
-		print("[shoot] BULLET MISS — hit %s instead of player" % [missed.name if missed is Node else str(missed)])
-	else:
-		print("[shoot] BULLET HIT")
+	if debug_shoot:
+		if result.is_empty():
+			print("[shoot] BULLET MISS — ray hit nothing")
+		elif not _result_hits_target(result, target):
+			var missed: Object = result["collider"]
+			print("[shoot] BULLET MISS — hit %s instead of player" % [missed.name if missed is Node else str(missed)])
+		else:
+			print("[shoot] BULLET HIT")
 	if not result.is_empty() and _result_hits_target(result, target):
 		var hit: Object = result["collider"]
 		if hit.has_method("decrease_attribute"):
@@ -170,4 +179,5 @@ func _shoot(npc: CogitoNPC, target: Node3D, muzzle_pos: Vector3) -> void:
 		elif hit.has_method("take_damage"):
 			hit.take_damage(damage)
 		elif hit.has_signal("damage_received"):
-			hit.damage_received.emit(damage, (target.global_position - npc.global_position).normalized(), target.global_position)
+			var dir: Vector3 = (target.global_position - npc.global_position).normalized()
+			hit.damage_received.emit(damage, dir, target.global_position)

@@ -3,41 +3,38 @@ class_name ScavPerception
 
 ## SENSOR ONLY — writes blackboard, never calls goto or moves the agent.
 ## Alert is a pure time-latch: once the player is seen, COMBAT holds for
-## combat_hold seconds after the LAST successful sight check. Brief FOV/LOS
-## flicker cannot drop alert to PATROL because the latch is time-based.
+## ai_profile.combat_hold seconds after the LAST successful sight check. Brief
+## FOV/LOS flicker cannot drop alert to PATROL because the latch is time-based.
+##
+## Vision/hearing/alert TUNING lives on the host's `ai_profile` (AIProfile
+## Resource) so different factions feel different without touching this script.
 
-@export_group("Vision")
-@export var sight_range: float = 25.0
-@export_range(10.0, 360.0, 1.0, "suffix:°") var fov_degrees: float = 110.0
-@export var eye_height: float = 1.6
+@export_group("Targeting")
 @export_flags_3d_physics var los_mask: int = 3
 @export var target_group: StringName = &"Player"
-
-@export_group("Hearing")
-## Effective hearing range = loudness * hear_k.
-## footstep(10)→6 m  sprint(20)→12 m  gunshot(80)→48 m
-@export var hear_k: float = 0.6
-## In COMBAT, ignore sounds quieter than this (footsteps/movement).
-@export var combat_hearing_loudness: float = 30.0
-
-@export_group("Combat")
-## Seconds after losing sight before dropping COMBAT → SUSPICIOUS.
-@export var combat_hold: float = 4.0
 
 @export_group("Debug")
 @export var debug_perception: bool = false
 
 enum Alert { RELAXED = 0, SUSPICIOUS = 1, COMBAT = 2 }
 
-var _host: CogitoNPC
+# Fallback tuning used only if ai_profile is left unassigned (e.g. mid-setup).
+const _DEFAULT_FOV_DEGREES: float = 110.0
+const _DEFAULT_SIGHT_RANGE: float = 25.0
+const _DEFAULT_EYE_HEIGHT: float = 1.6
+const _DEFAULT_HEAR_K: float = 0.6
+const _DEFAULT_COMBAT_HEARING_LOUDNESS: float = 30.0
+const _DEFAULT_COMBAT_HOLD: float = 4.0
+
+var _host: HostileNPC
 var _bb: Blackboard
 var _prev_alert: int = -1
 
 
 func _ready() -> void:
-	_host = get_parent() as CogitoNPC
+	_host = get_parent() as HostileNPC
 	if _host == null:
-		push_error("ScavPerception must be a child of CogitoNPC.")
+		push_error("ScavPerception must be a child of a HostileNPC.")
 		set_physics_process(false)
 		return
 
@@ -57,14 +54,22 @@ func _physics_process(_delta: float) -> void:
 			return
 		_bb = bt.blackboard
 
+	# Non-hostile NPCs never escalate past RELAXED — they patrol and never
+	# attack. NEUTRAL and FRIENDLY currently behave identically; that split is
+	# reserved for future behavior (e.g. retaliation, following).
+	if not _is_hostile():
+		_bb.set_var(&"alert", Alert.RELAXED)
+		_prev_alert = Alert.RELAXED
+		return
+
 	var now: float = Time.get_ticks_msec() / 1000.0
 
 	# --- Vision ---
 	var t := _find_target()
-	var visible: bool = t != null and _can_see(t)
+	var can_see_target: bool = t != null and _can_see(t)
 
-	_bb.set_var(&"target_visible", visible)
-	if visible:
+	_bb.set_var(&"target_visible", can_see_target)
+	if can_see_target:
 		_bb.set_var(&"target", t)
 		_bb.set_var(&"last_seen_time", now)
 		_bb.set_var(&"last_known_pos", t.global_position)
@@ -75,7 +80,7 @@ func _physics_process(_delta: float) -> void:
 	var has_lk: bool = _bb.get_var(&"has_last_known", false)
 
 	var alert: int
-	if (now - last_seen) <= combat_hold:
+	if (now - last_seen) <= _combat_hold():
 		alert = Alert.COMBAT
 	elif has_lk:
 		alert = Alert.SUSPICIOUS
@@ -89,8 +94,8 @@ func _physics_process(_delta: float) -> void:
 
 	if debug_perception and alert != _prev_alert:
 		var names: PackedStringArray = ["RELAXED", "SUSPICIOUS", "COMBAT"]
-		print("[Scav:%s] %s  visible=%s  has_lk=%s  dt_seen=%.1fs" % [
-			_host.name, names[alert], visible, has_lk,
+		print("[%s] %s  visible=%s  has_lk=%s  dt_seen=%.1fs" % [
+			_host.name, names[alert], can_see_target, has_lk,
 			now - last_seen if last_seen > -999.0 else INF,
 		])
 	_prev_alert = alert
@@ -104,15 +109,15 @@ func _find_target() -> Node3D:
 
 
 func _can_see(target: Node3D) -> bool:
-	var eye := global_position + Vector3.UP * eye_height
+	var eye := global_position + Vector3.UP * _eye_height()
 	var to_t := target.global_position - eye
-	if to_t.length() > sight_range:
+	if to_t.length() > _sight_range():
 		return false
 
 	var forward := -_host.global_transform.basis.z
 	var flat := Vector3(to_t.x, 0.0, to_t.z)
 	if flat.length_squared() > 0.0001:
-		if rad_to_deg(forward.angle_to(flat.normalized())) > fov_degrees * 0.5:
+		if rad_to_deg(forward.angle_to(flat.normalized())) > _fov_degrees() * 0.5:
 			return false
 
 	# Multi-point LOS: head, chest, pelvis — pass target for hitbox-child check
@@ -156,11 +161,14 @@ func _on_sound_emitted(pos: Vector3, loudness: float, _kind: StringName, emitter
 		return
 	if _bb == null:
 		return
-
-	var alert: int = _bb.get_var(&"alert", Alert.RELAXED)
-	if alert == Alert.COMBAT and loudness < combat_hearing_loudness:
+	if not _is_hostile():
 		return
 
+	var alert: int = _bb.get_var(&"alert", Alert.RELAXED)
+	if alert == Alert.COMBAT and loudness < _combat_hearing_loudness():
+		return
+
+	var hear_k: float = _hear_k()
 	var dist: float = global_position.distance_to(pos)
 	if dist > loudness * hear_k:
 		return
@@ -175,6 +183,31 @@ func _on_sound_emitted(pos: Vector3, loudness: float, _kind: StringName, emitter
 		_bb.set_var(&"last_known_pos", pos)
 
 	if debug_perception:
-		print("[Scav:%s] HEARD loudness=%.0f dist=%.1f/%.1fm" % [
+		print("[%s] HEARD loudness=%.0f dist=%.1f/%.1fm" % [
 			_host.name, loudness, dist, loudness * hear_k,
 		])
+
+
+# ── Profile-driven tuning (with fallbacks if ai_profile is unassigned) ────────
+
+func _fov_degrees() -> float:
+	return _host.ai_profile.fov_degrees if _host.ai_profile else _DEFAULT_FOV_DEGREES
+
+func _sight_range() -> float:
+	return _host.ai_profile.sight_range if _host.ai_profile else _DEFAULT_SIGHT_RANGE
+
+func _eye_height() -> float:
+	return _host.ai_profile.eye_height if _host.ai_profile else _DEFAULT_EYE_HEIGHT
+
+func _hear_k() -> float:
+	return _host.ai_profile.hear_k if _host.ai_profile else _DEFAULT_HEAR_K
+
+func _combat_hearing_loudness() -> float:
+	return _host.ai_profile.combat_hearing_loudness if _host.ai_profile else _DEFAULT_COMBAT_HEARING_LOUDNESS
+
+func _combat_hold() -> float:
+	return _host.ai_profile.combat_hold if _host.ai_profile else _DEFAULT_COMBAT_HOLD
+
+## No profile assigned = default to hostile (matches pre-alignment behavior).
+func _is_hostile() -> bool:
+	return _host.ai_profile == null or _host.ai_profile.alignment == AIProfile.Alignment.HOSTILE

@@ -24,6 +24,7 @@ script = ExtResource("5_33d6f")
 [sub_resource type="BTAction" id="BTAction_ethxh"]
 custom_name = "ShootTarget"
 script = ExtResource("4_id76j")
+debug_shoot = true
 
 [sub_resource type="BTAction" id="BTAction_c8q6g"]
 custom_name = "MoveToTarget"
