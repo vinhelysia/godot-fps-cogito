@@ -78,6 +78,12 @@ func bind_to_quickslot(itemslot_to_bind: InventorySlotPD, quickslot_to_bind: Cog
 	var slot_index : int = quickslot_containers.find(quickslot_to_bind, 0)
 	
 	if slot_index > -1:
+		# Guard: Only allow binding the correct equipment weapon
+		var expected_origin = -10 - slot_index
+		if itemslot_to_bind.origin_index != expected_origin:
+			CogitoGlobals.debug_log(true, "CogitoQuickSlots.gd", "Rejected quickslot bind: item not equipped in correct slot.")
+			return
+			
 		if !allow_multiple_quickslot_binds:
 			unbind_itemslot_from_quickslots(itemslot_to_bind)
 		inventory_reference.assigned_quickslots[slot_index] = itemslot_to_bind
@@ -150,6 +156,10 @@ func update_inventory_status(is_open: bool):
 
 
 func on_auto_quickslot_new_item(slot_data: InventorySlotPD) -> void:
+	# Skip auto-quickslot binding entirely for items that are not equipped weapons
+	if slot_data.origin_index > -10 or slot_data.origin_index < -13:
+		return
+		
 	if !slot_data.inventory_item.can_auto_slot: # Checking if this item can auto slot.
 		return
 	

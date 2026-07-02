@@ -13,6 +13,10 @@ extends BTAction
 ## Reaction beat: one deliberate pause at the START of each engagement
 ## (guarded by combat_reacted on the blackboard — persists across re-entries
 ## within the same COMBAT session; cleared by perception on RELAXED).
+##
+## Burst fire: rounds are grouped into bursts of ai_profile.burst_rounds_min-
+## max, separated by a burst_pause_min-max pause — trigger discipline, not
+## a full reposition (see btc_should_strafe.gd / bt_strafe.gd for that).
 
 @export var shoot_sound: AudioStream
 @export var muzzle_flash_scene: PackedScene
@@ -22,6 +26,8 @@ var _fire_timer: float = 0.0
 var _reaction_timer: float = 0.0
 var _has_reacted: bool = false
 var _los_lost_timer: float = 0.0
+var _rounds_left_in_burst: int = 0
+var _burst_pause_timer: float = 0.0
 
 
 func _enter() -> void:
@@ -31,6 +37,9 @@ func _enter() -> void:
 	_has_reacted = blackboard.get_var(&"combat_reacted", false)
 	if not _has_reacted:
 		_reaction_timer = npc.ai_profile.reaction_delay if npc and npc.ai_profile else 0.3
+	# Fresh burst each time this task (re)becomes active.
+	_rounds_left_in_burst = 0
+	_burst_pause_timer = 0.0
 
 
 func _tick(delta: float) -> Status:
@@ -87,18 +96,45 @@ func _tick(delta: float) -> Status:
 			blackboard.set_var(&"combat_reacted", true)
 		return RUNNING
 
+	# Burst pause — a deliberate gap between bursts (trigger discipline),
+	# separate from the larger-scale strafe/reposition beat.
+	if _burst_pause_timer > 0.0:
+		_burst_pause_timer -= delta
+		return RUNNING
+
 	_fire_timer -= delta
 	if _fire_timer <= 0.0:
 		_fire_timer = npc.effective_fire_cooldown()
+		if _rounds_left_in_burst <= 0:
+			_rounds_left_in_burst = _roll_burst_rounds(npc)
 		if debug_shoot:
-			print("[shoot] FIRE ammo=%d dist=%.1f" % [ammo, dist])
-		_shoot(npc, target as Node3D, muzzle_pos)
+			print("[shoot] FIRE ammo=%d dist=%.1f burst_left=%d" % [ammo, dist, _rounds_left_in_burst])
+		_shoot(npc, target as Node3D, muzzle_pos, dist)
 		ammo -= 1
 		blackboard.set_var(&"ammo", ammo)
+		var shots: int = blackboard.get_var(&"shots_fired_since_strafe", 0, false)
+		blackboard.set_var(&"shots_fired_since_strafe", shots + 1)
+		_rounds_left_in_burst -= 1
+		if _rounds_left_in_burst <= 0:
+			_burst_pause_timer = _roll_burst_pause(npc)
 		if ammo <= 0:
 			return FAILURE
 
 	return RUNNING
+
+
+func _roll_burst_rounds(npc: HostileNPC) -> int:
+	var profile: AIProfile = npc.ai_profile
+	var lo: int = profile.burst_rounds_min if profile else 2
+	var hi: int = profile.burst_rounds_max if profile else 4
+	return randi_range(mini(lo, hi), maxi(lo, hi))
+
+
+func _roll_burst_pause(npc: HostileNPC) -> float:
+	var profile: AIProfile = npc.ai_profile
+	var lo: float = profile.burst_pause_min if profile else 0.3
+	var hi: float = profile.burst_pause_max if profile else 0.8
+	return randf_range(minf(lo, hi), maxf(lo, hi))
 
 
 func _brake(npc: HostileNPC, delta: float) -> void:
@@ -132,15 +168,49 @@ func _result_hits_target(result: Dictionary, target: Node3D) -> bool:
 	return hit == target or (hit is Node and (hit as Node).is_in_group(&"Player"))
 
 
-func _shoot(npc: HostileNPC, target: Node3D, muzzle_pos: Vector3) -> void:
+## Base spread (from ai_profile.spread(), accuracy-derived) widened by:
+## - distance: harder to hold a precise sight picture on a small far target.
+## - this NPC's own movement: firing while moving is less precise (bt_shoot
+##   already brakes to a stop before firing, so this is mostly a no-op today,
+##   but stays correct if that ever changes).
+## - the target's lateral (perpendicular-to-aim) speed: a strafing target is
+##   harder to hit than one standing still or closing straight on.
+func _spread_magnitude(npc: HostileNPC, target: Node3D, aim_dir: Vector3, dist: float) -> float:
+	var profile: AIProfile = npc.ai_profile
+	var base: float = profile.spread() if profile else 0.5
+	var engage_range: float = profile.preferred_engage_range if profile else 18.0
+
+	var dist_t: float = clampf(dist / maxf(engage_range, 0.01), 0.0, 1.0)
+	var dist_mult: float = lerpf(1.0, 1.5, dist_t)
+
+	var shooter_speed: float = Vector3(npc.velocity.x, 0.0, npc.velocity.z).length()
+	var shooter_mult: float = clampf(1.0 + shooter_speed / 6.0, 1.0, 1.8)
+
+	var target_velocity := Vector3.ZERO
+	if "main_velocity" in target:
+		target_velocity = target.main_velocity
+	elif "velocity" in target:
+		target_velocity = target.velocity
+	var right := aim_dir.cross(Vector3.UP)
+	var lateral_speed: float = 0.0
+	if right.length_squared() > 0.0001:
+		lateral_speed = absf(Vector3(target_velocity.x, 0.0, target_velocity.z).dot(right.normalized()))
+	var target_mult: float = clampf(1.0 + lateral_speed / 4.0, 1.0, 2.0)
+
+	return base * dist_mult * shooter_mult * target_mult
+
+
+func _shoot(npc: HostileNPC, target: Node3D, muzzle_pos: Vector3, dist: float) -> void:
 	var aim_pos := target.global_position + Vector3(0.0, 0.5, 0.0)
 	var aim_dir := (aim_pos - muzzle_pos).normalized()
 	if debug_shoot:
 		print("[shoot] GEOM npc_pos=%s muzzle=%s target=%s(%s) aim_pos=%s aim_dir=%s" % [
 			npc.global_position, muzzle_pos, target.name, target.global_position, aim_pos, aim_dir])
 
-	# Higher ai_profile.accuracy (0-1) = better shooter = LESS spread.
-	var spread_magnitude: float = npc.ai_profile.spread() if npc.ai_profile else 0.5
+	# Higher ai_profile.accuracy (0-1) = better shooter = LESS spread, further
+	# widened by distance / this NPC's own movement / the target's lateral
+	# (strafing) speed — all independent of accuracy itself.
+	var spread_magnitude: float = _spread_magnitude(npc, target, aim_dir, dist)
 	var damage: float = npc.weapon_damage()
 
 	var right := aim_dir.cross(Vector3.UP).normalized()

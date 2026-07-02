@@ -4,6 +4,9 @@ class_name WieldableItemPD
 # Signal that gets sent when the wiedlable charge changes. Currently used to update Slot UI
 signal charge_changed()
 
+enum WeaponSlot { PRIMARY, HOLSTER, MELEE }
+@export var weapon_slot: WeaponSlot = WeaponSlot.PRIMARY
+
 @export_group("Wieldable settings")
 @export var wieldable_scene : PackedScene
 ## Icon that is displayed on the HUD when item is wielded. If NULL, the item icon will be used instead.

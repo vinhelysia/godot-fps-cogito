@@ -5,6 +5,7 @@ var player_state_dir : String = CogitoSceneManager.cogito_state_dir + CogitoScen
 
 @export var version : int = 1
 @export var player_inventory : CogitoInventory
+@export var player_equipment : CogitoEquipment
 
 @export var player_quickslots : Array[InventorySlotPD]
 

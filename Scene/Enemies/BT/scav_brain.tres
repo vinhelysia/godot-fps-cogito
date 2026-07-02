@@ -8,6 +8,8 @@
 [ext_resource type="Script" uid="uid://ck73n87sm7ua2" path="res://Scripts/Enemies/BT/Tasks/btc_has_last_known.gd" id="7_daogp"]
 [ext_resource type="Script" uid="uid://ibaffq1fj70y" path="res://Scripts/Enemies/BT/Tasks/bt_look_around.gd" id="8_wourw"]
 [ext_resource type="Script" uid="uid://dy4dufpwoytd7" path="res://Scripts/Enemies/BT/Tasks/bt_patrol.gd" id="9_iv4tx"]
+[ext_resource type="Script" uid="uid://dw74x0arhesi1" path="res://Scripts/Enemies/BT/Tasks/bt_strafe.gd" id="10_strafe"]
+[ext_resource type="Script" uid="uid://x1uxpt210y4y" path="res://Scripts/Enemies/BT/Tasks/btc_should_strafe.gd" id="11_shouldstrafe"]
 
 [sub_resource type="BTCondition" id="BTCondition_yflyk"]
 custom_name = "IsCombatAlert"
@@ -21,6 +23,18 @@ script = ExtResource("2_k5wgg")
 custom_name = "ReloadWeapon"
 script = ExtResource("5_33d6f")
 
+[sub_resource type="BTCondition" id="BTCondition_shouldstrafe"]
+custom_name = "ShouldStrafe"
+script = ExtResource("11_shouldstrafe")
+
+[sub_resource type="BTAction" id="BTAction_strafe"]
+custom_name = "Strafe"
+script = ExtResource("10_strafe")
+
+[sub_resource type="BTDynamicSequence" id="BTSequence_strafe"]
+custom_name = "StrafeSequence"
+children = [SubResource("BTCondition_shouldstrafe"), SubResource("BTAction_strafe")]
+
 [sub_resource type="BTAction" id="BTAction_ethxh"]
 custom_name = "ShootTarget"
 script = ExtResource("4_id76j")
@@ -32,7 +46,7 @@ script = ExtResource("6_c8q6g")
 
 [sub_resource type="BTDynamicSelector" id="BTSelector_daogp"]
 custom_name = "CombatActions"
-children = [SubResource("BTAction_33d6f"), SubResource("BTAction_ethxh"), SubResource("BTAction_c8q6g")]
+children = [SubResource("BTAction_33d6f"), SubResource("BTSequence_strafe"), SubResource("BTAction_ethxh"), SubResource("BTAction_c8q6g")]
 
 [sub_resource type="BTDynamicSequence" id="BTSequence_wourw"]
 custom_name = "CombatSequence"

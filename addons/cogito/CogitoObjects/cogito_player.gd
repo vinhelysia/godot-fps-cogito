@@ -33,6 +33,7 @@ var is_showing_ui : bool
 
 ## Inventory resource that stores the player inventory.
 @export var inventory_data : CogitoInventory
+@export var equipment: CogitoEquipment
 
 @export_group("Audio")
 ## AudioStream that gets played when the player jumps.
@@ -217,6 +218,11 @@ var radius : float
 func _ready():
 	#Some Setup steps
 	CogitoSceneManager._current_player_node = self
+	if equipment == null:
+		equipment = CogitoEquipment.new()
+	equipment.changed_slot.connect(_on_equipment_slot_changed)
+	if inventory_data:
+		inventory_data.owner = self
 	player_interaction_component.exclude_player(get_rid())
 
 	randomize()
@@ -1326,6 +1332,29 @@ class StepResult:
 	var is_step_up: bool = false
 
 
+
+func _on_equipment_slot_changed(slot_id: StringName):
+	# If slot_id is one of the weapon slots, we update the quickslots
+	if CogitoEquipment.EQUIPMENT_ORIGIN.has(slot_id):
+		# Find the quickslot index:
+		# primary_1 -> 0, primary_2 -> 1, holster -> 2, melee -> 3
+		var quickslot_idx = -10 - CogitoEquipment.EQUIPMENT_ORIGIN[slot_id]
+		
+		# Let's find the Player_HUD and the QuickSlots node
+		var hud = get_node_or_null(player_hud)
+		if hud:
+			var quick_slots = hud.get_node_or_null("InventoryInterface/QuickSlots")
+			if quick_slots:
+				var slot_data = equipment.get_equipped(slot_id)
+				if slot_data:
+					# Bind to quickslot container
+					var container = quick_slots.quickslot_containers[quickslot_idx]
+					quick_slots.bind_to_quickslot(slot_data, container)
+				else:
+					# Unbind quickslot
+					var container = quick_slots.quickslot_containers[quickslot_idx]
+					quick_slots.unbind_quickslot(container)
+					container.clear_this_quickslot()
 
 func _on_player_state_loaded():
 	#TODO - reset look on load if needed

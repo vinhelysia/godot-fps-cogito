@@ -37,9 +37,21 @@ func _init():
 	move_to_target.custom_name = "MoveToTarget"
 	move_to_target.position_var = &"last_known_pos"
 
-	combat_actions.add_child(reload)   # 1st: reload if empty
-	combat_actions.add_child(shoot)    # 2nd: shoot if LOS+range
-	combat_actions.add_child(move_to_target)  # 3rd: chase
+	var should_strafe := load("res://Scripts/Enemies/BT/Tasks/btc_should_strafe.gd").new()
+	should_strafe.custom_name = "ShouldStrafe"
+
+	var strafe := load("res://Scripts/Enemies/BT/Tasks/bt_strafe.gd").new()
+	strafe.custom_name = "Strafe"
+
+	var strafe_seq := BTDynamicSequence.new()
+	strafe_seq.custom_name = "StrafeSequence"
+	strafe_seq.add_child(should_strafe)
+	strafe_seq.add_child(strafe)
+
+	combat_actions.add_child(reload)     # 1st: reload if empty
+	combat_actions.add_child(strafe_seq) # 2nd: reposition after enough shots fired
+	combat_actions.add_child(shoot)      # 3rd: shoot if LOS+range
+	combat_actions.add_child(move_to_target)  # 4th: chase
 
 	combat_seq.add_child(cond_combat)
 	combat_seq.add_child(face)

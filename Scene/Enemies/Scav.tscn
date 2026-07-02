@@ -3,13 +3,51 @@
 [ext_resource type="PackedScene" uid="uid://b2cccsfb5tikx" path="res://addons/cogito/CogitoNPC/cogito_npc.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://b0fnql6y015h0" path="res://Scripts/Enemies/scav.gd" id="2_scav"]
 [ext_resource type="Script" uid="uid://dkau1vh8suuuu" path="res://Scripts/Enemies/scav_perception.gd" id="3_4t50h"]
+[ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.png" id="4_bnjg6"]
 [ext_resource type="Resource" uid="uid://curftyaxcxdcf" path="res://Scene/Enemies/LootTables/scav_loot_table.tres" id="4_loot"]
 [ext_resource type="PackedScene" uid="uid://eq5tc21gdk8" path="res://addons/cogito/PackedScenes/loot_chest.tscn" id="5_chest"]
+[ext_resource type="Texture2D" uid="uid://c1blj5u0t6uq4" path="res://Scene/Weapom/Firearms/AR/AK47/ak47_qucik.png" id="5_gxkms"]
 [ext_resource type="Script" uid="uid://d2dr6c2kvr57f" path="res://addons/cogito/Components/LootComponent.gd" id="6_lootcomp"]
+[ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="6_q2n43"]
 [ext_resource type="BehaviorTree" uid="uid://dootm3wprrons" path="res://Scene/Enemies/BT/scav_brain.tres" id="7_brain"]
-[ext_resource type="Resource" path="res://Scene/Enemies/Profiles/scav_profile.tres" id="8_profile"]
-[ext_resource type="Resource" uid="uid://yv04ygxufxb1" path="res://Scene/Weapom/Firearms/AR/AK47/Ak-47_Wieldable.tres" id="9_wieldable"]
-[ext_resource type="Resource" uid="uid://dr3aharu3mmkm" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tres" id="10_weapondata"]
+[ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tscn" id="7_rjfry"]
+[ext_resource type="PackedScene" uid="uid://bc8jxhqittw87" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn" id="8_h1b52"]
+[ext_resource type="Resource" uid="uid://dj4by52i4ocd7" path="res://Scene/Enemies/Profiles/scav_profile.tres" id="8_profile"]
+[ext_resource type="Script" uid="uid://n2v7dh3aksy2" path="res://Scripts/Weapons/Types/AssaultRifle_Resource.gd" id="9_cgytp"]
+[ext_resource type="Resource" uid="uid://dr26ug8vis6t1" path="res://Scene/Enemies/Factions/scav_faction.tres" id="11_faction"]
+[ext_resource type="Resource" path="res://Scene/Enemies/Factions/player_faction.tres" id="12_playerfaction"]
+
+[sub_resource type="Resource" id="Resource_bnjg6"]
+resource_local_to_scene = true
+script = ExtResource("6_q2n43")
+wieldable_scene = ExtResource("7_rjfry")
+quickslot_icon = ExtResource("5_gxkms")
+charge_max = 31.0
+ammo_item_name = "7.62x39mm"
+charge_current = 31.0
+wieldable_range = 1000.0
+wieldable_damage = 30.0
+name = "AK-47"
+description = "Scavenged from an abandoned military cache, this rifle has seen better days, but it still spits lead without hesitation. It's loud, it's messy, and it's exactly what you need to survive the next wave. Just watch your ammo counter—7.62 rounds go fast when you're holding down the trigger"
+icon = ExtResource("4_bnjg6")
+slot_background_preset = 1
+drop_scene = "uid://cpoyxgguqsn3m"
+item_size = Vector2(4, 2)
+can_auto_slot = true
+metadata/_custom_type_script = "uid://bkxgkf3pj8kb8"
+
+[sub_resource type="Resource" id="Resource_gxkms"]
+resource_local_to_scene = true
+script = ExtResource("9_cgytp")
+fireRate = 600.0
+weaponName = "AK 47"
+recoilVertical = 0.07
+recoilHorizontal = 0.06
+recoilRecovery = 6.0
+Type = 2
+bulletProjectileToLoad = ExtResource("8_h1b52")
+weaponVelocity = 716
+metadata/_custom_type_script = "uid://n2v7dh3aksy2"
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_ojppo"]
 var/target/name = &"target"
@@ -71,40 +109,52 @@ var/combat_reacted/type = 1
 var/combat_reacted/value = false
 var/combat_reacted/hint = 0
 var/combat_reacted/hint_string = ""
+var/detection_level/name = &"detection_level"
+var/detection_level/type = 3
+var/detection_level/value = 0.0
+var/detection_level/hint = 0
+var/detection_level/hint_string = ""
+var/shots_fired_since_strafe/name = &"shots_fired_since_strafe"
+var/shots_fired_since_strafe/type = 2
+var/shots_fired_since_strafe/value = 0
+var/shots_fired_since_strafe/hint = 0
+var/shots_fired_since_strafe/hint_string = ""
 
 [node name="Scav" unique_id=1240844793 instance=ExtResource("1_base")]
 script = ExtResource("2_scav")
+ai_profile = ExtResource("8_profile")
+equipped_wieldable = SubResource("Resource_bnjg6")
+equipped_weapon_data = SubResource("Resource_gxkms")
+faction = ExtResource("11_faction")
+player_faction = ExtResource("12_playerfaction")
 cogito_name = "Scav"
 display_name = "Scav"
 sprint_speed = 5.0
-ai_profile = ExtResource("8_profile")
-equipped_wieldable = ExtResource("9_wieldable")
-equipped_weapon_data = ExtResource("10_weapondata")
 
 [node name="Skeleton3D" parent="Rig" parent_id_path=PackedInt32Array(1075982299) index="0" unique_id=1082083865]
-bones/1/position = Vector3(0.003931567, 0.08586189, 0.87247074)
-bones/1/rotation = Quaternion(0.7578911, -0.08683239, -0.07322839, 0.64241654)
-bones/3/rotation = Quaternion(-0.034124285, -0.00014875138, 3.5373232e-05, 0.9994176)
-bones/4/rotation = Quaternion(0.12664422, -0.0004982061, 0.0007464168, 0.9919479)
-bones/5/rotation = Quaternion(0.025950732, -0.00023302448, -0.0002456402, 0.99966323)
-bones/6/rotation = Quaternion(-0.022384554, 0.09604803, 0.0009970507, 0.9951245)
-bones/7/rotation = Quaternion(-0.6073472, -0.36813062, -0.3991856, 0.57987934)
-bones/8/rotation = Quaternion(-0.26397872, 0.6708234, -0.51289755, 0.466098)
-bones/9/rotation = Quaternion(0.25193554, 0.018214127, 0.0028330337, 0.9675685)
-bones/26/rotation = Quaternion(-0.6435872, 0.30623454, 0.33354923, 0.6170582)
-bones/27/rotation = Quaternion(-0.29267335, -0.6797507, 0.47310525, 0.47796744)
-bones/28/rotation = Quaternion(0.36745682, -0.15077578, 0.060501505, 0.9157411)
-bones/45/rotation = Quaternion(0.9610503, 0.1114464, -0.013879527, 0.2525264)
-bones/46/rotation = Quaternion(0.21572283, -0.10749859, 0.024376662, 0.9702132)
-bones/47/rotation = Quaternion(-0.5062729, 0.022206308, 0.090841725, 0.8572878)
-bones/48/rotation = Quaternion(-0.0001414078, 0.964279, -0.26488823, -0.0005004073)
-bones/49/rotation = Quaternion(0.9912902, -0.12579873, 0.014798651, 0.03604706)
-bones/50/rotation = Quaternion(0.15656869, 0.34461367, -0.059618935, 0.92367375)
-bones/51/rotation = Quaternion(-0.5939719, -0.051677287, -0.15929312, 0.7868625)
-bones/52/rotation = Quaternion(-0.0001370481, 0.9643069, -0.26478696, -0.0004994204)
+bones/1/position = Vector3(-0.0014456566, 0.08555626, 0.8770237)
+bones/1/rotation = Quaternion(0.75622106, -0.08602639, -0.07349578, 0.6444592)
+bones/3/rotation = Quaternion(-0.033153195, 0.00020718385, 0.0001207062, 0.99945027)
+bones/4/rotation = Quaternion(0.13186468, 0.0005891313, 0.00043349256, 0.99126744)
+bones/5/rotation = Quaternion(0.022811675, -0.00023462313, -0.0002441973, 0.9997397)
+bones/6/rotation = Quaternion(-0.002008415, 0.09603557, -0.0017916833, 0.9953743)
+bones/7/rotation = Quaternion(-0.6002682, -0.37294605, -0.3946907, 0.58720404)
+bones/8/rotation = Quaternion(-0.28515488, 0.6733637, -0.49690235, 0.467286)
+bones/9/rotation = Quaternion(0.2753344, 0.04139318, -0.0042339987, 0.96044767)
+bones/26/rotation = Quaternion(-0.6363917, 0.31008008, 0.32997718, 0.62447673)
+bones/27/rotation = Quaternion(-0.29560202, -0.68148047, 0.46582186, 0.48084718)
+bones/28/rotation = Quaternion(0.36712164, -0.15575778, 0.06250049, 0.91490704)
+bones/45/rotation = Quaternion(0.9654738, 0.11111028, -0.013562522, 0.23522548)
+bones/46/rotation = Quaternion(0.17820868, -0.109245025, 0.020291485, 0.9776991)
+bones/47/rotation = Quaternion(-0.4953397, 0.02000188, 0.09410374, 0.86335564)
+bones/48/rotation = Quaternion(-0.0001577397, 0.96417105, -0.26528087, -0.00050443335)
+bones/49/rotation = Quaternion(0.99358374, -0.11040619, 0.012847093, 0.020901082)
+bones/50/rotation = Quaternion(0.13550636, 0.3484402, -0.051741023, 0.92604023)
+bones/51/rotation = Quaternion(-0.57866174, -0.05129651, -0.1576594, 0.79853785)
+bones/52/rotation = Quaternion(-0.00013704835, 0.9643069, -0.26478696, -0.00049942004)
 
 [node name="BoneAttachment3D" parent="Rig/Skeleton3D" index="1" unique_id=537023208]
-transform = Transform3D(0.99777585, -0.05896979, -0.03107825, 0.050688628, 0.9740079, -0.22076967, 0.043289214, 0.21870336, 0.9748307, -0.0154407695, 1.5221574, -0.0057307947)
+transform = Transform3D(0.99807227, -0.056718327, -0.025194317, 0.0481787, 0.96398467, -0.2615583, 0.03912209, 0.25984022, 0.9648588, -0.019860985, 1.526547, -0.0058629904)
 
 [node name="CogitoHealthAttribute" parent="." index="8" unique_id=1621381883]
 value_max = 80.0

@@ -221,6 +221,8 @@ func clear_external_inventory():
 		external_inventory_owner = null
 
 
+var equipment_slots_ui: Dictionary = {}
+
 func set_player_inventory_data(inventory_data : CogitoInventory):
 	inventory_data.owner = CogitoSceneManager._current_player_node  # Setting player inventory owner reference to player node
 	
@@ -237,6 +239,42 @@ func set_player_inventory_data(inventory_data : CogitoInventory):
 	if !inventory_open.is_connected(quick_slots.update_inventory_status):
 		inventory_open.connect(quick_slots.update_inventory_status)
 	grabbed_slot_node.using_grid(inventory_data.grid)
+
+	setup_equipment_ui()
+	var player = CogitoSceneManager._current_player_node
+	if player and player.get("equipment") != null:
+		for slot_id in equipment_slots_ui:
+			var slot_node = equipment_slots_ui[slot_id]
+			slot_node.set_equipment(player.equipment, self)
+			if not slot_node.equipment_slot_clicked.is_connected(_on_equipment_slot_pressed):
+				slot_node.equipment_slot_clicked.connect(_on_equipment_slot_pressed)
+
+
+func setup_equipment_ui():
+	var player_inv_tab = get_node_or_null("CogitoTabMenu/TAB_player_inventory")
+	if not player_inv_tab:
+		return
+
+	if player_inv_tab.has_node("EquipmentPanel"):
+		return
+
+	# Capture the tab's pre-existing content (pockets grid + external
+	# container area) BEFORE adding the panel, so it isn't itself swept up
+	# as one of the "existing children" below.
+	var children = player_inv_tab.get_children()
+
+	var equip_panel = load("res://Scripts/Inventory/EquipmentPanel.tscn").instantiate()
+	equip_panel.name = "EquipmentPanel"
+	player_inv_tab.add_child(equip_panel) # Enters tree now, so its @onready vars resolve.
+
+	# Move the pre-existing content into the panel's pockets placeholder,
+	# same as before — only the wrapper/labeling around it is new.
+	var pockets_slot = equip_panel.get_pockets_slot()
+	for child in children:
+		player_inv_tab.remove_child(child)
+		pockets_slot.add_child(child)
+
+	equipment_slots_ui = equip_panel.collect_equipment_slots()
 
 
 # Inventory handling on gamepad buttons
@@ -303,6 +341,56 @@ func on_inventory_button_press(inventory_data: CogitoInventory, index: int, acti
 
 	# When connecting to the signal, we have bind the inventory_ui so we can use that to set focus.
 	local_inventory_ui.slot_array[index].grab_focus()
+	update_grabbed_slot()
+
+
+func _on_equipment_slot_pressed(slot_id: StringName, action: String):
+	var player = get_parent().player
+	if not player or not player.get("equipment"):
+		return
+
+	var equipment = player.equipment
+	match [grabbed_slot_data, action]:
+		[null, "inventory_move_item"]:
+			var slot_to_grab = equipment.get_equipped(slot_id)
+			if slot_to_grab:
+				if slot_to_grab.inventory_item and slot_to_grab.inventory_item.is_being_wielded:
+					Audio.play_sound(sound_error)
+					player.player_interaction_component.send_hint(null, "Can't move item while it is being wielded.")
+				else:
+					grabbed_slot_data = equipment.unequip(slot_id)
+			else:
+				Audio.play_sound(sound_error)
+		[_, "inventory_move_item"]:
+			if equipment.can_equip(slot_id, grabbed_slot_data):
+				grabbed_slot_data = equipment.equip(slot_id, grabbed_slot_data)
+			else:
+				Audio.play_sound(sound_error)
+		[null, "inventory_use_item"]:
+			var slot_data = equipment.get_equipped(slot_id)
+			if slot_data and slot_data.inventory_item and slot_data.inventory_item.has_method("use"):
+				slot_data.inventory_item.use(player)
+		[_, "inventory_use_item"]:
+			Audio.play_sound(sound_error)
+		[null, "inventory_drop_item"]:
+			var slot_to_drop = equipment.get_equipped(slot_id)
+			if slot_to_drop:
+				if slot_to_drop.inventory_item.has_method("update_wieldable_data") and slot_to_drop.inventory_item.is_being_wielded:
+					Audio.play_sound(sound_error)
+					player.player_interaction_component.send_hint(null, "Can't drop while wielding this item.")
+				elif not slot_to_drop.inventory_item.drop_scene or slot_to_drop.inventory_item.drop_scene == "":
+					Audio.play_sound(sound_error)
+					player.player_interaction_component.send_hint(null, "This item cannot be dropped (no drop scene configured).")
+				else:
+					var drop_data = slot_to_drop.duplicate()
+					equipment.unequip(slot_id)
+					if not _drop_item(drop_data):
+						Audio.play_sound(sound_error)
+						equipment.equip(slot_id, drop_data)
+						player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
+		[_, "inventory_drop_item"]:
+			Audio.play_sound(sound_error)
+			
 	update_grabbed_slot()
 
 

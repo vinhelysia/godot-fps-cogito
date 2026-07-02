@@ -4,7 +4,6 @@
 
 [resource]
 script = ExtResource("1_scav")
-alignment = 0
 accuracy = 0.15
-fire_rate_skill = 0.08
+fire_rate_skill = 0.7
 preferred_engage_range = 15.0

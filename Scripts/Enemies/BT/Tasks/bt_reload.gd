@@ -5,6 +5,9 @@ extends BTAction
 ##
 ## Magazine size comes from the agent's equipped weapon (charge_max); reload
 ## speed comes from the agent's ai_profile (faction skill) — NOT the weapon.
+##
+## Retreats straight away from the target while reloading instead of
+## braking to a stop — never caught standing still and exposed mid-reload.
 
 @export var reload_sound: AudioStream
 
@@ -42,11 +45,33 @@ func _tick(delta: float) -> Status:
 		return SUCCESS
 
 	if npc:
+		_move_while_reloading(npc, delta)
+
+	return RUNNING
+
+
+func _move_while_reloading(npc: HostileNPC, delta: float) -> void:
+	var target: Variant = blackboard.get_var(&"target", null, false)
+	var move_dir := Vector3.ZERO
+	if is_instance_valid(target) and target is Node3D:
+		move_dir = npc.global_position - (target as Node3D).global_position
+		move_dir.y = 0.0
+		if move_dir.length_squared() > 0.0001:
+			move_dir = move_dir.normalized()
+		else:
+			move_dir = Vector3.ZERO
+		npc.face_direction((target as Node3D).global_position)
+
+	if not npc.is_on_floor():
+		npc.velocity += npc.get_gravity() * delta
+
+	if move_dir != Vector3.ZERO:
+		npc.velocity.x = move_dir.x * npc.walk_speed
+		npc.velocity.z = move_dir.z * npc.walk_speed
+	else:
 		var rate: float = delta * npc.sprint_speed * 6.0
 		npc.velocity.x = move_toward(npc.velocity.x, 0.0, rate)
 		npc.velocity.z = move_toward(npc.velocity.z, 0.0, rate)
-		if not npc.is_on_floor():
-			npc.velocity += npc.get_gravity() * delta
-		npc.move_and_slide()
 
-	return RUNNING
+	npc.move_and_slide()
+	npc.update_animations(delta)

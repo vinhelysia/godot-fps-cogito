@@ -5,6 +5,7 @@
 [ext_resource type="AudioStream" uid="uid://lr1efmq0q16k" path="res://addons/cogito/Assets/Audio/Phazorknight/CogitoAmbience_v02.ogg" id="2_4p7si"]
 [ext_resource type="PackedScene" uid="uid://kicjwmh02uwf" path="res://addons/cogito/PackedScenes/cogito_player.tscn" id="3_xdnjf"]
 [ext_resource type="Script" uid="uid://btnha2whsheir" path="res://addons/cogito/InventoryPD/cogito_inventory.gd" id="4_3dqf0"]
+[ext_resource type="Script" path="res://Scripts/Inventory/pocket_inventory.gd" id="pocket_inventory_script"]
 [ext_resource type="PackedScene" uid="uid://bc4ey2218mco8" path="res://Scene/Object/House1.tscn" id="5_ha6b3"]
 [ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="5_hdm3a"]
 [ext_resource type="PackedScene" uid="uid://cpoyxgguqsn3m" path="res://Scene/Weapom/Firearms/AR/AK47/pickup_ak47.tscn" id="7_3dqf0"]
@@ -41,12 +42,13 @@ glow_intensity = 0.5
 glow_bloom = 0.2
 volumetric_fog_density = 0.03
 
-[sub_resource type="Resource" id="Resource_6epgb"]
+[sub_resource type="Resource" id="Resource_kdlys"]
 resource_local_to_scene = true
-script = ExtResource("4_3dqf0")
+script = ExtResource("pocket_inventory_script")
 grid = true
-inventory_size = Vector2i(9, 4)
-inventory_slots = Array[ExtResource("5_hdm3a")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
+pocket_size = Vector2i(2, 2)
+inventory_size = Vector2i(4, 2)
+inventory_slots = Array[ExtResource("5_hdm3a")]([null, null, null, null, null, null, null, null])
 
 [sub_resource type="NavigationMesh" id="NavMesh_scav"]
 vertices = PackedVector3Array(33.52365, 0.52703094, -38.21546, 33.52365, 0.52703094, -37.21546, 34.02365, 0.52703094, -36.96546, 32.77365, 0.52703094, -48.46546, 32.77365, 0.52703094, -38.46546, 49.02365, 0.52703094, -34.96546, 49.02365, 0.52703094, -48.46546, 34.02365, 0.52703094, -34.96546, 34.02365, 0.52703094, -25.965462, 40.02365, 0.52703094, -25.715462, 49.02365, 0.52703094, -25.965462, -74.72635, 0.52703094, -23.965462, -74.72635, 0.52703094, 122.28454, 49.52365, 0.52703094, 122.28454, 49.52365, 0.52703094, -23.965462)
@@ -97,7 +99,7 @@ shadow_enabled = true
 
 [node name="Player" parent="." unique_id=220182115 instance=ExtResource("3_xdnjf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.80206, 1.175818, -29.302485)
-inventory_data = SubResource("Resource_6epgb")
+inventory_data = SubResource("Resource_kdlys")
 
 [node name="7_62x51mm_Item" parent="." unique_id=1276708987 instance=ExtResource("11_lb3ao")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.17215, 1.002555, -29.340513)

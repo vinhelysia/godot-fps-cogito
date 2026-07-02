@@ -123,7 +123,21 @@ func load_player_state(player, passed_slot:String) -> void:
 		
 		# Applying the save state to player node.
 		player.inventory_data = _player_state.player_inventory # Loading inventory data from saved player state to current player inventory.
+		
+		if _player_state.get("player_equipment") != null:
+			player.equipment = _player_state.player_equipment
+		else:
+			player.equipment = CogitoEquipment.new()
+			
 		player.inventory_data.assigned_quickslots = _player_state.player_quickslots
+		# Rebuild quickslots from equipment slots as single source of truth
+		for slot_id in CogitoEquipment.EQUIPMENT_ORIGIN:
+			var slot_data = player.equipment.get_equipped(slot_id)
+			var quickslot_idx = -10 - CogitoEquipment.EQUIPMENT_ORIGIN[slot_id]
+			if slot_data:
+				player.inventory_data.assigned_quickslots[quickslot_idx] = slot_data
+			else:
+				player.inventory_data.assigned_quickslots[quickslot_idx] = null
 		
 		# Loading quests from player state with proper initialization:
 		CogitoQuestManager.active.clear_group()
@@ -223,6 +237,7 @@ func save_player_state(player, slot:String) -> void:
 	
 	# Writing the save state from current player node.
 	_player_state.player_inventory = player.inventory_data # Saving player inventory
+	_player_state.player_equipment = player.equipment
 	_player_state.player_quickslots = player.inventory_data.assigned_quickslots # Saving assigned quickslots
 	
 	# Saving current quests to player state.
@@ -250,6 +265,15 @@ func save_player_state(player, slot:String) -> void:
 			var item_save_data = item_slot.inventory_item.save()
 			_player_state.append_saved_wieldable_charges(item_save_data)
 			CogitoGlobals.debug_log(true,"CSM","Saved charge for " + str(item_slot.inventory_item) )
+			
+	# Save charges for items equipped in the equipment slots
+	if player.equipment:
+		for slot_id in player.equipment.slots:
+			var item_slot = player.equipment.get_equipped(slot_id)
+			if item_slot and item_slot.inventory_item and item_slot.inventory_item.has_method("update_wieldable_data"):
+				var item_save_data = item_slot.inventory_item.save()
+				_player_state.append_saved_wieldable_charges(item_save_data)
+				CogitoGlobals.debug_log(true,"CSM","Saved equipment charge for " + str(item_slot.inventory_item) )
 	
 	_player_state.player_current_scene = _current_scene_name
 	CogitoGlobals.debug_log(true,"CSM","Save_player_state(): setting player_current_scene to " + _current_scene_name)
