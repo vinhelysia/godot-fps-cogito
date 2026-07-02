@@ -19,16 +19,58 @@ var loaded_inventory_data : CogitoInventory
 var currently_focused_slot : SlotPanel
 
 func _ready():
-	label.text = inventory_name
+	_apply_theme()
+	_update_label()
 	button_take_all.hide()
 
 
 func set_inventory_data(inventory_data : CogitoInventory):
 	if !inventory_data.inventory_updated.is_connected(populate_item_grid):
 		inventory_data.inventory_updated.connect(populate_item_grid)
-	label.text = inventory_name
+	_update_label()
 	loaded_inventory_data = inventory_data
 	populate_item_grid(inventory_data)
+
+
+## Internal title is legacy chrome — section headers ("POCKETS", a corpse's
+## display_name strip, etc.) now come from whatever column layout embeds
+## this grid (see EquipmentPanel.tscn / Player_HUD.tscn's RightColumn), not
+## from this label. Kept around (rather than deleted) since callers can still
+## opt in by setting inventory_name.
+func _update_label() -> void:
+	label.text = inventory_name
+	label.visible = inventory_name != ""
+
+
+## Reuses EquipmentSlotUI's centralized theme constants (Scripts/Inventory/
+## equipment_slot_ui.gd) so this grid's chrome matches the equipment slots
+## instead of the stock light theme — no separate/new color values here.
+func _apply_theme() -> void:
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = EquipmentSlotUI.COLOR_BG_FILLED
+	panel_style.border_color = EquipmentSlotUI.COLOR_BORDER
+	panel_style.set_border_width_all(EquipmentSlotUI.BORDER_WIDTH)
+	panel_style.set_corner_radius_all(EquipmentSlotUI.CORNER_RADIUS)
+	panel_style.shadow_size = 0
+	add_theme_stylebox_override("panel", panel_style)
+
+	label.add_theme_color_override("font_color", EquipmentSlotUI.COLOR_HEADER_TEXT)
+	label.add_theme_font_size_override("font_size", EquipmentSlotUI.HEADER_FONT_SIZE)
+
+	var btn_normal := StyleBoxFlat.new()
+	btn_normal.bg_color = EquipmentSlotUI.COLOR_HEADER_BG
+	btn_normal.border_color = EquipmentSlotUI.COLOR_BORDER
+	btn_normal.set_border_width_all(EquipmentSlotUI.BORDER_WIDTH)
+	btn_normal.set_corner_radius_all(EquipmentSlotUI.CORNER_RADIUS)
+	var btn_hover := btn_normal.duplicate() as StyleBoxFlat
+	btn_hover.bg_color = EquipmentSlotUI.COLOR_BG_FILLED.lightened(0.15)
+	var btn_pressed := btn_normal.duplicate() as StyleBoxFlat
+	btn_pressed.bg_color = EquipmentSlotUI.COLOR_BG_FILLED.lightened(0.05)
+	button_take_all.add_theme_stylebox_override("normal", btn_normal)
+	button_take_all.add_theme_stylebox_override("hover", btn_hover)
+	button_take_all.add_theme_stylebox_override("pressed", btn_pressed)
+	button_take_all.add_theme_color_override("font_color", EquipmentSlotUI.COLOR_HEADER_TEXT)
+	button_take_all.add_theme_color_override("font_hover_color", EquipmentSlotUI.COLOR_AMMO_TEXT)
 
 
 func clear_inventory_data(inventory_data : CogitoInventory):

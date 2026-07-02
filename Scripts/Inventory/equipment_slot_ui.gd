@@ -44,10 +44,14 @@ const COLOR_PANEL_WRAPPER: Color = Color(0.02, 0.02, 0.02, 0.6)
 var equipment: CogitoEquipment
 var inventory_interface: Control
 
-signal equipment_slot_clicked(slot_id: StringName, action: String)
+## Carries the equipment instance this slot is bound to (player's or a
+## corpse's) so a single shared handler in inventory_interface.gd can route
+## the action to the right CogitoEquipment — no hardcoded player reference.
+signal equipment_slot_clicked(equipment_instance: CogitoEquipment, slot_id: StringName, action: String)
 
 var _tracked_inventory: CogitoInventory
 var _tracked_item: Object
+var _tracked_equipment: CogitoEquipment
 var _style_filled: StyleBoxFlat
 var _style_empty: StyleBoxFlat
 
@@ -105,8 +109,17 @@ func _apply_frame_style(has_item: bool) -> void:
 	add_theme_stylebox_override("panel", _style_filled if has_item else _style_empty)
 
 
+## Can be called repeatedly with a DIFFERENT equipment instance (e.g. this
+## same slot node showing corpse A, then corpse B) — disconnects from
+## whatever was tracked before so a looted corpse's equipment doesn't stay
+## referenced (and re-triggering update_slot() on us) forever after.
 func set_equipment(in_equipment: CogitoEquipment, in_interface: Control) -> void:
+	if _tracked_equipment and _tracked_equipment != in_equipment \
+			and _tracked_equipment.changed_slot.is_connected(_on_equipment_changed):
+		_tracked_equipment.changed_slot.disconnect(_on_equipment_changed)
+
 	equipment = in_equipment
+	_tracked_equipment = in_equipment
 	inventory_interface = in_interface
 	if equipment:
 		if not equipment.changed_slot.is_connected(_on_equipment_changed):
@@ -205,13 +218,13 @@ func _refresh_ammo_counter() -> void:
 
 func _on_gui_input(event: InputEvent):
 	if event.is_action_pressed("inventory_move_item"):
-		equipment_slot_clicked.emit(slot_id, "inventory_move_item")
+		equipment_slot_clicked.emit(equipment, slot_id, "inventory_move_item")
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_use_item"):
-		equipment_slot_clicked.emit(slot_id, "inventory_use_item")
+		equipment_slot_clicked.emit(equipment, slot_id, "inventory_use_item")
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory_drop_item"):
-		equipment_slot_clicked.emit(slot_id, "inventory_drop_item")
+		equipment_slot_clicked.emit(equipment, slot_id, "inventory_drop_item")
 		get_viewport().set_input_as_handled()
 
 

@@ -4,10 +4,9 @@
 [ext_resource type="Script" uid="uid://b0fnql6y015h0" path="res://Scripts/Enemies/scav.gd" id="2_scav"]
 [ext_resource type="Script" uid="uid://dkau1vh8suuuu" path="res://Scripts/Enemies/scav_perception.gd" id="3_4t50h"]
 [ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.png" id="4_bnjg6"]
-[ext_resource type="Resource" uid="uid://curftyaxcxdcf" path="res://Scene/Enemies/LootTables/scav_loot_table.tres" id="4_loot"]
-[ext_resource type="PackedScene" uid="uid://eq5tc21gdk8" path="res://addons/cogito/PackedScenes/loot_chest.tscn" id="5_chest"]
+[ext_resource type="PackedScene" path="res://Scene/Enemies/CorpseContainer.tscn" id="5_chest"]
 [ext_resource type="Texture2D" uid="uid://c1blj5u0t6uq4" path="res://Scene/Weapom/Firearms/AR/AK47/ak47_qucik.png" id="5_gxkms"]
-[ext_resource type="Script" uid="uid://d2dr6c2kvr57f" path="res://addons/cogito/Components/LootComponent.gd" id="6_lootcomp"]
+[ext_resource type="Script" uid="uid://cth50hd1c1wed" path="res://Scripts/Enemies/npc_loot_component.gd" id="6_lootcomp"]
 [ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="6_q2n43"]
 [ext_resource type="BehaviorTree" uid="uid://dootm3wprrons" path="res://Scene/Enemies/BT/scav_brain.tres" id="7_brain"]
 [ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tscn" id="7_rjfry"]
@@ -16,6 +15,7 @@
 [ext_resource type="Script" uid="uid://n2v7dh3aksy2" path="res://Scripts/Weapons/Types/AssaultRifle_Resource.gd" id="9_cgytp"]
 [ext_resource type="Resource" uid="uid://dr26ug8vis6t1" path="res://Scene/Enemies/Factions/scav_faction.tres" id="11_faction"]
 [ext_resource type="Resource" path="res://Scene/Enemies/Factions/player_faction.tres" id="12_playerfaction"]
+[ext_resource type="Resource" path="res://Scene/Enemies/Loadouts/scav_loadout.tres" id="13_loadout"]
 
 [sub_resource type="Resource" id="Resource_bnjg6"]
 resource_local_to_scene = true
@@ -119,6 +119,11 @@ var/shots_fired_since_strafe/type = 2
 var/shots_fired_since_strafe/value = 0
 var/shots_fired_since_strafe/hint = 0
 var/shots_fired_since_strafe/hint_string = ""
+var/no_reserve_ammo/name = &"no_reserve_ammo"
+var/no_reserve_ammo/type = 1
+var/no_reserve_ammo/value = false
+var/no_reserve_ammo/hint = 0
+var/no_reserve_ammo/hint_string = ""
 
 [node name="Scav" unique_id=1240844793 instance=ExtResource("1_base")]
 script = ExtResource("2_scav")
@@ -127,34 +132,36 @@ equipped_wieldable = SubResource("Resource_bnjg6")
 equipped_weapon_data = SubResource("Resource_gxkms")
 faction = ExtResource("11_faction")
 player_faction = ExtResource("12_playerfaction")
+loadout = ExtResource("13_loadout")
+debug_loadout = false
 cogito_name = "Scav"
 display_name = "Scav"
 sprint_speed = 5.0
 
 [node name="Skeleton3D" parent="Rig" parent_id_path=PackedInt32Array(1075982299) index="0" unique_id=1082083865]
-bones/1/position = Vector3(-0.0014456566, 0.08555626, 0.8770237)
-bones/1/rotation = Quaternion(0.75622106, -0.08602639, -0.07349578, 0.6444592)
-bones/3/rotation = Quaternion(-0.033153195, 0.00020718385, 0.0001207062, 0.99945027)
-bones/4/rotation = Quaternion(0.13186468, 0.0005891313, 0.00043349256, 0.99126744)
-bones/5/rotation = Quaternion(0.022811675, -0.00023462313, -0.0002441973, 0.9997397)
-bones/6/rotation = Quaternion(-0.002008415, 0.09603557, -0.0017916833, 0.9953743)
-bones/7/rotation = Quaternion(-0.6002682, -0.37294605, -0.3946907, 0.58720404)
-bones/8/rotation = Quaternion(-0.28515488, 0.6733637, -0.49690235, 0.467286)
-bones/9/rotation = Quaternion(0.2753344, 0.04139318, -0.0042339987, 0.96044767)
-bones/26/rotation = Quaternion(-0.6363917, 0.31008008, 0.32997718, 0.62447673)
-bones/27/rotation = Quaternion(-0.29560202, -0.68148047, 0.46582186, 0.48084718)
-bones/28/rotation = Quaternion(0.36712164, -0.15575778, 0.06250049, 0.91490704)
-bones/45/rotation = Quaternion(0.9654738, 0.11111028, -0.013562522, 0.23522548)
-bones/46/rotation = Quaternion(0.17820868, -0.109245025, 0.020291485, 0.9776991)
-bones/47/rotation = Quaternion(-0.4953397, 0.02000188, 0.09410374, 0.86335564)
-bones/48/rotation = Quaternion(-0.0001577397, 0.96417105, -0.26528087, -0.00050443335)
-bones/49/rotation = Quaternion(0.99358374, -0.11040619, 0.012847093, 0.020901082)
-bones/50/rotation = Quaternion(0.13550636, 0.3484402, -0.051741023, 0.92604023)
-bones/51/rotation = Quaternion(-0.57866174, -0.05129651, -0.1576594, 0.79853785)
-bones/52/rotation = Quaternion(-0.00013704835, 0.9643069, -0.26478696, -0.00049942004)
+bones/1/position = Vector3(-0.001544391, 0.0867689, 0.8739761)
+bones/1/rotation = Quaternion(0.76258045, -0.08677051, -0.07275193, 0.6369059)
+bones/3/rotation = Quaternion(-0.027529765, 2.0737278e-05, 0.00019502174, 0.999621)
+bones/4/rotation = Quaternion(0.15030104, 2.9860686e-05, 0.0003332826, 0.9886403)
+bones/5/rotation = Quaternion(0.010883007, -0.00024064319, -0.00023884482, 0.99994075)
+bones/6/rotation = Quaternion(-0.013734221, 0.09599715, -0.0031698316, 0.9952819)
+bones/7/rotation = Quaternion(-0.60675126, -0.3685404, -0.3988076, 0.5805028)
+bones/8/rotation = Quaternion(-0.26572314, 0.67104363, -0.5116173, 0.4661969)
+bones/9/rotation = Quaternion(0.27659005, 0.020146042, 0.0018279495, 0.96077514)
+bones/26/rotation = Quaternion(-0.64297587, 0.30656463, 0.33324555, 0.6176954)
+bones/27/rotation = Quaternion(-0.28535286, -0.67557293, 0.48998216, 0.4712668)
+bones/28/rotation = Quaternion(0.3682933, -0.13751833, 0.055181675, 0.91782564)
+bones/45/rotation = Quaternion(0.9565813, 0.115072265, -0.013244134, 0.26746097)
+bones/46/rotation = Quaternion(0.2211711, -0.10693997, 0.02476154, 0.9690377)
+bones/47/rotation = Quaternion(-0.4994451, 0.021306725, 0.09384464, 0.8609843)
+bones/48/rotation = Quaternion(-0.0001371752, 0.9643069, -0.26478696, -0.00049942016)
+bones/49/rotation = Quaternion(0.9914412, -0.12369931, 0.015379894, 0.038812216)
+bones/50/rotation = Quaternion(0.15722565, 0.34487173, -0.05996832, 0.92344326)
+bones/51/rotation = Quaternion(-0.59766084, -0.052247196, -0.15659638, 0.78456956)
+bones/52/rotation = Quaternion(-7.120907e-05, 0.9638699, -0.26637298, -0.00048596508)
 
 [node name="BoneAttachment3D" parent="Rig/Skeleton3D" index="1" unique_id=537023208]
-transform = Transform3D(0.99807227, -0.056718327, -0.025194317, 0.0481787, 0.96398467, -0.2615583, 0.03912209, 0.25984022, 0.9648588, -0.019860985, 1.526547, -0.0058629904)
+transform = Transform3D(0.9978155, -0.060894836, -0.025614113, 0.051254388, 0.9582174, -0.28141153, 0.041680396, 0.27948394, 0.95924526, -0.025456704, 1.5188999, 0.016786274)
 
 [node name="CogitoHealthAttribute" parent="." index="8" unique_id=1621381883]
 value_max = 80.0
@@ -169,7 +176,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.5)
 [node name="LootComponent" type="Node3D" parent="." index="15" unique_id=256628762 node_paths=PackedStringArray("health_component_to_monitor")]
 script = ExtResource("6_lootcomp")
 spawning_logic = 2
-loot_table = ExtResource("4_loot")
 amount_of_items_to_drop = 2
 loot_bag_scene = ExtResource("5_chest")
 health_component_to_monitor = NodePath("../CogitoHealthAttribute")

@@ -1,8 +1,12 @@
 extends CharacterBody3D
 class_name CogitoNPC
 
-## Emitted when received damage. Used with the HitboxComponent
-signal damage_received(damage_value:float)
+## Emitted when received damage. Used with the HitboxComponent. Always
+## emitted with 3 args in practice (Weapon_Resource._deal_damage(), the
+## shared player hitscan/damage code, calls .emit(damage, direction,
+## hit_position)) — declared here to match the real call site, not the
+## historical 1-arg version.
+signal damage_received(damage_value: float, bullet_direction: Vector3, bullet_position: Vector3)
 signal object_exits_tree()
 
 #region Cogito Interaction variables needed

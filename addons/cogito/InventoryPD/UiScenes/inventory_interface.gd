@@ -5,7 +5,17 @@ signal inventory_open(is_true: bool)
 
 @export var inventory_ui : Control
 @onready var grabbed_slot_node = $GrabbedSlot
-@onready var external_inventory_ui = $ExternalInventoryUI
+## Reparented (Player_HUD.tscn) into LayoutMargin/LayoutHBox/RightColumn so
+## the corpse/chest pockets grid and equipment panel sit in one column
+## instead of two independently-anchored floating blocks.
+@onready var external_inventory_ui = $LayoutMargin/LayoutHBox/RightColumn/ExternalInventoryUI
+## Shown alongside external_inventory_ui only for owners with a non-null
+## `equipment` property (corpses) — see set_external_inventory(). Owners
+## without one (fridge, chest, old containers) never touch this.
+@onready var external_equipment_panel = $LayoutMargin/LayoutHBox/RightColumn/ExternalEquipmentPanel
+## "POCKETS" section header above external_inventory_ui — only meaningful
+## (and shown) alongside external_equipment_panel; see set_external_inventory().
+@onready var external_pockets_header: Label = $LayoutMargin/LayoutHBox/RightColumn/ExternalPocketsHeader
 @onready var hot_bar_inventory = $HotBarInventory
 @onready var quick_slots : CogitoQuickslots = $QuickSlots
 @onready var info_panel = $InfoPanel
@@ -14,7 +24,7 @@ signal inventory_open(is_true: bool)
 @onready var drop_prompt: Control = $InfoPanel/MarginContainer/VBoxContainer/HBoxDrop
 @onready var assign_prompt: Control = $InfoPanel/MarginContainer/VBoxContainer/HBoxAssign
 @onready var use_prompt: Control = $InfoPanel/MarginContainer/VBoxContainer/HBoxUse
-@onready var cogito_tab_menu: CogitoTabMenu = $CogitoTabMenu
+@onready var cogito_tab_menu: CogitoTabMenu = $LayoutMargin/LayoutHBox/CogitoTabMenu
 
 
 ## Sound that plays as a generic error.
@@ -56,6 +66,18 @@ func _ready():
 		var ev := InputEventKey.new()
 		ev.physical_keycode = KEY_R
 		InputMap.action_add_event("inventory_rotate_item", ev)
+
+	# External equipment panel (corpses) — wired once here since the panel is
+	# a static, always-present (hidden by default) node; set_external_inventory()
+	# just rebinds WHICH CogitoEquipment its slots point to per owner.
+	external_equipment_slots_ui = external_equipment_panel.collect_equipment_slots()
+	for slot_id in external_equipment_slots_ui:
+		var slot_node = external_equipment_slots_ui[slot_id]
+		if not slot_node.equipment_slot_clicked.is_connected(_on_equipment_slot_pressed):
+			slot_node.equipment_slot_clicked.connect(_on_equipment_slot_pressed)
+
+	external_pockets_header.add_theme_font_size_override("font_size", EquipmentSlotUI.HEADER_FONT_SIZE)
+	external_pockets_header.add_theme_color_override("font_color", EquipmentSlotUI.COLOR_HEADER_TEXT)
 
 
 func _on_input_device_change(_device, _device_index):
@@ -117,6 +139,8 @@ func close_inventory():
 		grabbed_slot_node.hide()
 		info_panel.hide()
 		external_inventory_ui.hide()
+		external_equipment_panel.hide()
+		external_pockets_header.hide()
 
 		if is_using_hotbar:
 			hot_bar_inventory.show()
@@ -188,17 +212,35 @@ func _physics_process(_delta):
 func set_external_inventory(_external_inventory_owner):
 	external_inventory_owner = _external_inventory_owner
 	var inventory_data = external_inventory_owner.inventory_data
-	
+
 	inventory_data.owner = external_inventory_owner # Setting reference to external inventory owner node
 #	inventory_data.inventory_interact.connect(on_inventory_interact)
 	inventory_data.inventory_button_press.connect(on_inventory_button_press.bind(external_inventory_ui))
-	external_inventory_ui.inventory_name = external_inventory_owner.display_name
+	# No inventory_name here — the internal title label is legacy chrome
+	# (see InventoryUI.gd); section headers now come from the column layout
+	# ("POCKETS", a corpse's display_name strip on ExternalEquipmentPanel).
 	external_inventory_ui.set_inventory_data(inventory_data)
-	
+
 	external_inventory_ui.show()
 	external_inventory_ui.button_take_all.show()
 	if !external_inventory_ui.button_take_all.pressed.is_connected(_on_take_all_pressed):
 		external_inventory_ui.button_take_all.pressed.connect(_on_take_all_pressed)
+
+	# Corpses (or anything else with a CogitoEquipment) additionally get an
+	# equipment panel shown alongside the pockets grid above. Owners without
+	# one (fridge, chest, old containers) leave this hidden — the flat-grid
+	# path above is completely unchanged for them.
+	var owner_equipment: Variant = external_inventory_owner.get("equipment")
+	if owner_equipment is CogitoEquipment:
+		for slot_id in external_equipment_slots_ui:
+			external_equipment_slots_ui[slot_id].set_equipment(owner_equipment, self)
+		var header: String = external_inventory_owner.display_name if external_inventory_owner.display_name != "" else "BODY"
+		external_equipment_panel.set_header_text(header)
+		external_equipment_panel.show()
+		external_pockets_header.show()
+	else:
+		external_equipment_panel.hide()
+		external_pockets_header.hide()
 
 
 ## Loot Component added
@@ -206,22 +248,51 @@ func get_external_inventory():
 	return external_inventory_owner
 
 func _on_take_all_pressed():
-	external_inventory_owner.inventory_data.take_all_items(get_parent().player.inventory_data)
+	var player = get_parent().player
+	if not player:
+		return
+
+	var owner_equipment: Variant = external_inventory_owner.get("equipment")
+	if owner_equipment is CogitoEquipment:
+		_take_all_from_equipment(owner_equipment, player)
+
+	external_inventory_owner.inventory_data.take_all_items(player.inventory_data)
+
+
+## Best effort, equipment slots first then pockets (take_all_items() above,
+## unchanged): unequip everything and try to place it on the player.
+## PocketInventory.pick_up_slot_data() already does "equipment-routing first,
+## pockets fallback" internally (and already fires the same auto-quickslot-
+## bind signal on success for weapons), so this just has to sequence unequip
+## -> try placing -> re-equip on failure. Whatever doesn't fit anywhere
+## (player's own slots full too) stays equipped on the corpse.
+func _take_all_from_equipment(source_equipment: CogitoEquipment, player: Node) -> void:
+	var player_pockets: CogitoInventory = player.inventory_data
+	for slot_id in source_equipment.slots.keys():
+		var slot_data: InventorySlotPD = source_equipment.get_equipped(slot_id)
+		if slot_data == null:
+			continue
+		source_equipment.unequip(slot_id)
+		if not player_pockets.pick_up_slot_data(slot_data):
+			source_equipment.equip(slot_id, slot_data)
 
 
 func clear_external_inventory():
 	if external_inventory_owner:
 		var inventory_data = external_inventory_owner.inventory_data
-		
+
 #		inventory_data.inventory_interact.disconnect(on_inventory_interact)
 		inventory_data.inventory_button_press.disconnect(on_inventory_button_press)
 		external_inventory_ui.inventory_name = ""
 		external_inventory_ui.clear_inventory_data(inventory_data)
 		external_inventory_ui.hide()
+		external_equipment_panel.hide()
+		external_pockets_header.hide()
 		external_inventory_owner = null
 
 
 var equipment_slots_ui: Dictionary = {}
+var external_equipment_slots_ui: Dictionary = {}
 
 func set_player_inventory_data(inventory_data : CogitoInventory):
 	inventory_data.owner = CogitoSceneManager._current_player_node  # Setting player inventory owner reference to player node
@@ -251,30 +322,30 @@ func set_player_inventory_data(inventory_data : CogitoInventory):
 
 
 func setup_equipment_ui():
-	var player_inv_tab = get_node_or_null("CogitoTabMenu/TAB_player_inventory")
+	var player_inv_tab = get_node_or_null("LayoutMargin/LayoutHBox/CogitoTabMenu/TAB_player_inventory")
 	if not player_inv_tab:
 		return
 
 	if player_inv_tab.has_node("EquipmentPanel"):
 		return
 
-	# Capture the tab's pre-existing content (pockets grid + external
-	# container area) BEFORE adding the panel, so it isn't itself swept up
-	# as one of the "existing children" below.
-	var children = player_inv_tab.get_children()
-
+	# Pockets now live as static siblings below the panel (PocketsHeader,
+	# InventoryUI, PlayerCurrencies) instead of being swept into the panel's
+	# own pockets placeholder — the column is too narrow (~460px) for the
+	# equipment+pockets side-by-side layout, so show_pockets is off and the
+	# panel is just inserted above them.
 	var equip_panel = load("res://Scripts/Inventory/EquipmentPanel.tscn").instantiate()
 	equip_panel.name = "EquipmentPanel"
+	equip_panel.show_pockets = false
 	player_inv_tab.add_child(equip_panel) # Enters tree now, so its @onready vars resolve.
-
-	# Move the pre-existing content into the panel's pockets placeholder,
-	# same as before — only the wrapper/labeling around it is new.
-	var pockets_slot = equip_panel.get_pockets_slot()
-	for child in children:
-		player_inv_tab.remove_child(child)
-		pockets_slot.add_child(child)
+	player_inv_tab.move_child(equip_panel, 0)
 
 	equipment_slots_ui = equip_panel.collect_equipment_slots()
+
+	var pockets_header: Label = player_inv_tab.get_node_or_null("PocketsHeader")
+	if pockets_header:
+		pockets_header.add_theme_font_size_override("font_size", EquipmentSlotUI.HEADER_FONT_SIZE)
+		pockets_header.add_theme_color_override("font_color", EquipmentSlotUI.COLOR_HEADER_TEXT)
 
 
 # Inventory handling on gamepad buttons
@@ -344,36 +415,60 @@ func on_inventory_button_press(inventory_data: CogitoInventory, index: int, acti
 	update_grabbed_slot()
 
 
-func _on_equipment_slot_pressed(slot_id: StringName, action: String):
+## equipment_instance is whichever CogitoEquipment the clicked slot is bound
+## to (player's or a corpse's — see equipment_slot_ui.gd's set_equipment()).
+## "use"/"drop" only make sense for the player's own gear, so those actions
+## are rejected outright for any other instance; "move" (the drag flow) works
+## for both, letting items cross between the player and a corpse's equipment.
+func _on_equipment_slot_pressed(equipment_instance: CogitoEquipment, slot_id: StringName, action: String):
+	if equipment_instance == null:
+		return
 	var player = get_parent().player
 	if not player or not player.get("equipment"):
 		return
 
-	var equipment = player.equipment
+	# Guard by INSTANCE identity, not slot_id — "primary_1" etc. is the same
+	# string whether it's the player's slot or a corpse's.
+	var is_player_equipment: bool = equipment_instance == player.equipment
+
+	if not is_player_equipment and action != "inventory_move_item":
+		Audio.play_sound(sound_error)
+		update_grabbed_slot()
+		return
+
 	match [grabbed_slot_data, action]:
 		[null, "inventory_move_item"]:
-			var slot_to_grab = equipment.get_equipped(slot_id)
+			var slot_to_grab = equipment_instance.get_equipped(slot_id)
 			if slot_to_grab:
 				if slot_to_grab.inventory_item and slot_to_grab.inventory_item.is_being_wielded:
 					Audio.play_sound(sound_error)
 					player.player_interaction_component.send_hint(null, "Can't move item while it is being wielded.")
 				else:
-					grabbed_slot_data = equipment.unequip(slot_id)
+					grabbed_slot_data = equipment_instance.unequip(slot_id)
 			else:
 				Audio.play_sound(sound_error)
 		[_, "inventory_move_item"]:
-			if equipment.can_equip(slot_id, grabbed_slot_data):
-				grabbed_slot_data = equipment.equip(slot_id, grabbed_slot_data)
+			if equipment_instance.can_equip(slot_id, grabbed_slot_data):
+				var newly_equipped := grabbed_slot_data
+				grabbed_slot_data = equipment_instance.equip(slot_id, grabbed_slot_data)
+				# Player-only auto-quickslot-bind, mirroring PocketInventory
+				# .pick_up_slot_data()'s auto-equip routing (which emits this
+				# same signal when a weapon lands in an equipment slot via
+				# the pockets grid). This covers the OTHER path — dragging
+				# straight onto the equipment panel — so both paths behave
+				# consistently. Never fires for a corpse (guarded above).
+				if is_player_equipment:
+					_notify_player_equipped(newly_equipped)
 			else:
 				Audio.play_sound(sound_error)
 		[null, "inventory_use_item"]:
-			var slot_data = equipment.get_equipped(slot_id)
+			var slot_data = equipment_instance.get_equipped(slot_id)
 			if slot_data and slot_data.inventory_item and slot_data.inventory_item.has_method("use"):
 				slot_data.inventory_item.use(player)
 		[_, "inventory_use_item"]:
 			Audio.play_sound(sound_error)
 		[null, "inventory_drop_item"]:
-			var slot_to_drop = equipment.get_equipped(slot_id)
+			var slot_to_drop = equipment_instance.get_equipped(slot_id)
 			if slot_to_drop:
 				if slot_to_drop.inventory_item.has_method("update_wieldable_data") and slot_to_drop.inventory_item.is_being_wielded:
 					Audio.play_sound(sound_error)
@@ -383,15 +478,28 @@ func _on_equipment_slot_pressed(slot_id: StringName, action: String):
 					player.player_interaction_component.send_hint(null, "This item cannot be dropped (no drop scene configured).")
 				else:
 					var drop_data = slot_to_drop.duplicate()
-					equipment.unequip(slot_id)
+					equipment_instance.unequip(slot_id)
 					if not _drop_item(drop_data):
 						Audio.play_sound(sound_error)
-						equipment.equip(slot_id, drop_data)
+						equipment_instance.equip(slot_id, drop_data)
 						player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
 		[_, "inventory_drop_item"]:
 			Audio.play_sound(sound_error)
-			
+
 	update_grabbed_slot()
+
+
+## Mirrors PocketInventory.pick_up_slot_data()'s auto-quickslot-bind signal
+## for weapons equipped via a path that doesn't go through pick_up_slot_data
+## (dragging straight onto the equipment panel). Only ever called for the
+## player's own equipment (see the is_player_equipment guard at the call
+## site) — never for a corpse's.
+func _notify_player_equipped(slot_data: InventorySlotPD) -> void:
+	if slot_data == null:
+		return
+	var inv_data: Variant = inventory_ui.get("loaded_inventory_data")
+	if inv_data is CogitoInventory:
+		inv_data.picked_up_new_inventory_item.emit(slot_data)
 
 
 func update_grabbed_slot():

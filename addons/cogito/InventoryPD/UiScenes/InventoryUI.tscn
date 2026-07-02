@@ -36,6 +36,7 @@ columns = 8
 [node name="Button_TakeAll" type="Button" parent="MarginContainer/VBoxContainer" unique_id=511688978]
 visible = false
 layout_mode = 2
-text = "UI_BTN_take_all"
+size_flags_horizontal = 3
+text = "TAKE ALL"
 
 [connection signal="visibility_changed" from="." to="." method="_on_visibility_changed"]

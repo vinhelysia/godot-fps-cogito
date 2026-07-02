@@ -8,6 +8,14 @@ extends BTAction
 ##
 ## Retreats straight away from the target while reloading instead of
 ## braking to a stop — never caught standing still and exposed mid-reload.
+##
+## Finite ammo: an NPC with pockets (loadout assigned) draws the refill from
+## npc.take_reserve_ammo() instead of getting a free full mag. If reserve is
+## empty, this bails BEFORE the reload wait (no doomed reload animation) —
+## with ammo still at 0 and reloading still false, the CombatActions
+## selector's existing FAILURE-cascade naturally falls through to
+## MoveToTarget on its own; no BT structure changes needed. NPCs without
+## pockets (no loadout) keep the old free-refill behavior forever.
 
 @export var reload_sound: AudioStream
 
@@ -21,6 +29,11 @@ func _enter() -> void:
 	var ammo: int = blackboard.get_var(&"ammo", mag_size)
 	var reloading: bool = blackboard.get_var(&"reloading", false)
 	if ammo > 0 and not reloading:
+		_skip = true
+		return
+
+	if npc and npc.pockets != null and not npc.has_reserve_ammo():
+		blackboard.set_var(&"no_reserve_ammo", true)
 		_skip = true
 		return
 
@@ -40,7 +53,14 @@ func _tick(delta: float) -> Status:
 
 	_timer -= delta
 	if _timer <= 0.0:
-		blackboard.set_var(&"ammo", npc.magazine_size() if npc else 5)
+		var mag_size: int = npc.magazine_size() if npc else 5
+		if npc and npc.pockets != null:
+			var refill: int = npc.take_reserve_ammo(mag_size)
+			blackboard.set_var(&"ammo", refill)
+			blackboard.set_var(&"no_reserve_ammo", refill <= 0)
+		else:
+			blackboard.set_var(&"ammo", mag_size)
+			blackboard.set_var(&"no_reserve_ammo", false)
 		blackboard.set_var(&"reloading", false)
 		return SUCCESS
 
