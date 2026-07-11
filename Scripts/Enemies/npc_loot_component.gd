@@ -46,7 +46,13 @@ func _spawn_loot_container() -> void:
 	corpse.equipment = npc.equipment
 	corpse.pockets = npc.pockets
 	corpse.display_name = "Dead " + (npc.display_name if npc.display_name != "" else npc.cogito_name)
-	corpse.position = get_parent().global_position + Vector3(0.0, 0.5, 0.0)
+	corpse.text_when_closed = "Loot " + corpse.display_name
+	corpse.text_when_open = "Loot " + corpse.display_name
+	# Exact death position/rotation (no offset) — matches where CogitoHealthAttribute's
+	# spawn_on_death spawns the ragdoll, so CorpseContainer._find_ragdoll_skeleton()'s
+	# nearest-match search reliably finds this NPC's own ragdoll and not another one.
+	corpse.position = get_parent().global_position
+	corpse.rotation = get_parent().global_rotation
 	get_tree().current_scene.call_deferred("add_child", corpse)
 
 	CogitoGlobals.debug_log(debug_prints, "NPCLootComponent", "Spawned Corpse Container: " + str(corpse) + " at these coordinates: " + str(corpse.position))

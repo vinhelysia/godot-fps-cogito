@@ -31,6 +31,7 @@ func enter(weapon_data: Weapon_Resource, ads_fov: float, ads_time: float,
 		return false
 
 	is_aiming = true
+	_set_scope_rendering(true)
 	_apply_scope_sensitivity(player_interaction_component)
 	_cancel_tweens()
 	_play_transition(weapon_data, ads_fov, ads_time, ads_position, default_position, false)
@@ -51,6 +52,7 @@ func exit(weapon_data: Weapon_Resource, ads_fov: float, ads_time: float,
 		return
 
 	is_aiming = false
+	_set_scope_rendering(false)
 	_restore_scope_sensitivity(player_interaction_component)
 	_cancel_tweens()
 	_play_transition(weapon_data, ads_fov, ads_time, Vector3.ZERO, default_position,
@@ -130,11 +132,7 @@ func _cancel_tweens() -> void:
 func _apply_scope_sensitivity(pic: PlayerInteractionComponent) -> void:
 	if pic == null:
 		return
-	var sc: ScopeController = null
-	for child in _owner.get_children():
-		if child is ScopeController:
-			sc = child as ScopeController
-			break
+	var sc := _get_scope_controller()
 	if sc == null:
 		return
 	var player := pic.get_parent() if pic else null
@@ -142,6 +140,19 @@ func _apply_scope_sensitivity(pic: PlayerInteractionComponent) -> void:
 		return
 	_base_mouse_sens = player.MOUSE_SENS
 	player.MOUSE_SENS = _base_mouse_sens * sc.get_sensitivity_multiplier()
+
+
+func _set_scope_rendering(enabled: bool) -> void:
+	var sc := _get_scope_controller()
+	if sc:
+		sc.set_rendering_enabled(enabled)
+
+
+func _get_scope_controller() -> ScopeController:
+	for child in _owner.get_children():
+		if child is ScopeController:
+			return child as ScopeController
+	return null
 
 
 func _restore_scope_sensitivity(pic: PlayerInteractionComponent) -> void:

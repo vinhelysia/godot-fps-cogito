@@ -68,6 +68,8 @@ var _shake_roll: float = 0.0  # Track shake roll (in degrees) to apply additivel
 var _head_node: Node3D
 
 
+static func smoothing_weight(speed: float, delta: float) -> float:
+	return 1.0 - exp(-maxf(speed, 0.0) * maxf(delta, 0.0))
 func _ready() -> void:
 	_head_node = get_parent() as Node3D
 	_shake_noise = FastNoiseLite.new()
@@ -83,8 +85,8 @@ func _process(delta: float) -> void:
 		_shot_count = 0
 		_burst_drift = 0.0
 
-	target_rotation = lerp(target_rotation, Vector3.ZERO, return_speed * delta)
-	current_rotation = lerp(current_rotation, target_rotation, snappiness * delta)
+	target_rotation = target_rotation.lerp(Vector3.ZERO, smoothing_weight(return_speed, delta))
+	current_rotation = current_rotation.lerp(target_rotation, smoothing_weight(snappiness, delta))
 
 	var delta_rot := current_rotation - _prev_rotation
 	_prev_rotation = current_rotation
@@ -167,18 +169,3 @@ func _apply_shake() -> void:
 	
 	parent.position += _shake_offset
 	parent.rotation_degrees.z += _shake_roll
-
-
-# ── Backwards-compatible aliases (camelCase) ─────────────────────────────────
-
-# DEPRECATED: Use recoil_fire instead.
-func recoilFire(is_aiming: bool = false) -> void:
-	recoil_fire(is_aiming)
-
-# DEPRECATED: Use set_recoil instead.
-func setRecoil(new_recoil: Vector3) -> void:
-	set_recoil(new_recoil)
-
-# DEPRECATED: Use set_aim_recoil instead.
-func setAimRecoil(new_recoil: Vector3) -> void:
-	set_aim_recoil(new_recoil)

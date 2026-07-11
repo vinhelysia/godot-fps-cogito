@@ -51,6 +51,9 @@ func _ready() -> void:
 		set_physics_process(false)
 		return
 
+	# So the player's detection HUD can poll every active sensor in one group.
+	add_to_group(&"npc_perception")
+
 	var bt := _host.get_node_or_null("BTPlayer")
 	if bt:
 		_bb = bt.blackboard
@@ -59,6 +62,14 @@ func _ready() -> void:
 	if se:
 		se.sound_emitted.connect(_on_sound_emitted)
 
+## Stops all external lifecycle hooks before the dead HostileNPC is freed.
+func shutdown() -> void:
+	set_process(false)
+	set_physics_process(false)
+	remove_from_group(&"npc_perception")
+	var se := get_node_or_null("/root/SoundEvents")
+	if se and se.sound_emitted.is_connected(_on_sound_emitted):
+		se.sound_emitted.disconnect(_on_sound_emitted)
 
 func _physics_process(delta: float) -> void:
 	if _bb == null:
@@ -346,3 +357,14 @@ func _detect_decay_per_sec() -> float:
 
 func _is_hostile() -> bool:
 	return _host.is_hostile_to_player()
+
+
+# ── Public (read by the player's detection HUD) ───────────────────────────────
+
+## Current detection accumulator, 0..1 (0 = unseen, 1 = fully spotted).
+func detection_level() -> float:
+	return _detection
+
+## Only hostile sensors should light up the player's "being spotted" indicator.
+func is_hostile_sensor() -> bool:
+	return _is_hostile()

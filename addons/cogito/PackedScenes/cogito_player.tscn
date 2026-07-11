@@ -52,6 +52,7 @@ stream_4/stream = ExtResource("16_buq0c")
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bpb0d"]
 
 [node name="CogitoPlayer" type="CharacterBody3D" unique_id=220182115 node_paths=PackedStringArray("item_drop_shapecast") groups=["Player"]]
+collision_layer = 16
 script = ExtResource("1_87we8")
 pause_menu = NodePath("GUI/Panel/AspectRatioContainer/PauseMenu")
 player_hud = NodePath("GUI/Panel/AspectRatioContainer/Player_HUD")
@@ -121,6 +122,10 @@ libraries/ = ExtResource("10_tp6cj")
 [node name="Camera" type="Camera3D" parent="Body/Neck/Head/Eyes" unique_id=371341059]
 
 [node name="InteractionRaycast" parent="Body/Neck/Head/Eyes/Camera" unique_id=965846353 instance=ExtResource("10_2dndr")]
+collision_mask = 7
+
+[node name="InteractionShapecast" parent="Body/Neck/Head/Eyes/Camera/InteractionRaycast"]
+collision_mask = 7
 
 [node name="CarryablePosition" type="Marker3D" parent="Body/Neck/Head/Eyes/Camera" unique_id=155559737]
 unique_name_in_owner = true

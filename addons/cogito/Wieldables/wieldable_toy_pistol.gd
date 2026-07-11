@@ -39,8 +39,8 @@ func equip(_player_interaction_component: PlayerInteractionComponent):
 	player_interaction_component = _player_interaction_component
 	var rn = _get_recoil_node()
 	if rn:
-		rn.setRecoil(recoil_values)
-		rn.setAimRecoil(aim_recoil_values)
+		rn.set_recoil(recoil_values)
+		rn.set_aim_recoil(aim_recoil_values)
 
 
 func _ready() -> void:
@@ -78,7 +78,7 @@ func action_primary(_passed_item_reference : InventoryItemPD, _is_released: bool
 	_passed_item_reference.subtract(1) #Reducing ammo count
 
 	var rn = _get_recoil_node()
-	if rn: rn.recoilFire(false)
+	if rn: rn.recoil_fire(false)
 
 	# Gettting camera_collision pos from player interaction component:
 	var _camera_collision = player_interaction_component.Get_Camera_Collision()

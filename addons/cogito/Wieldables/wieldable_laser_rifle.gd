@@ -71,7 +71,7 @@ func _physics_process(_delta: float) -> void:
 			inventory_item_reference.subtract(1) # Reduce ammo
 
 			var rn = _get_recoil_node()
-			if rn: rn.recoilFire(false)
+			if rn: rn.recoil_fire(false)
 
 			if inventory_item_reference.charge_current <= 0: # Stop firing if out of ammo in clip.
 				is_firing = false
@@ -165,5 +165,5 @@ func equip(_player_interaction_component: PlayerInteractionComponent):
 	player_interaction_component = _player_interaction_component
 	var rn = _get_recoil_node()
 	if rn:
-		rn.setRecoil(recoil_values)
-		rn.setAimRecoil(aim_recoil_values)
+		rn.set_recoil(recoil_values)
+		rn.set_aim_recoil(aim_recoil_values)

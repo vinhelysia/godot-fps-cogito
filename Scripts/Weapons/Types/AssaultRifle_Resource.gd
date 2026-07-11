@@ -11,7 +11,6 @@ func _init() -> void:
 	locks_open_on_empty = false
 	magazine_capacity = 30
 	chamber_capacity = 1
-	supports_chamber_plus_one = true
 
 
 func get_fire_mode() -> FireMode:

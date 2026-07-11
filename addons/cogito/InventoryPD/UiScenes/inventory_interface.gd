@@ -42,6 +42,7 @@ var is_inventory_open : bool:
 		inventory_open.emit(is_inventory_open)
 var grabbed_slot_data: InventorySlotPD
 var external_inventory_owner : Node
+var _external_inventory_button_press: Callable
 var control_in_focus
 
 
@@ -50,6 +51,7 @@ func _ready():
 	InputHelper.device_changed.connect(_on_input_device_change)
 	# Calling this function once to set proper input icons
 	_on_input_device_change(InputHelper.device,InputHelper.device_index)
+	_external_inventory_button_press = on_inventory_button_press.bind(external_inventory_ui)
 
 	is_inventory_open = false
 	info_panel.hide()
@@ -210,12 +212,16 @@ func _physics_process(_delta):
 
 
 func set_external_inventory(_external_inventory_owner):
+	if external_inventory_owner != _external_inventory_owner:
+		clear_external_inventory()
 	external_inventory_owner = _external_inventory_owner
 	var inventory_data = external_inventory_owner.inventory_data
 
 	inventory_data.owner = external_inventory_owner # Setting reference to external inventory owner node
 #	inventory_data.inventory_interact.connect(on_inventory_interact)
-	inventory_data.inventory_button_press.connect(on_inventory_button_press.bind(external_inventory_ui))
+	var inventory_button_callback := _external_inventory_button_press
+	if not inventory_data.inventory_button_press.is_connected(inventory_button_callback):
+		inventory_data.inventory_button_press.connect(inventory_button_callback)
 	# No inventory_name here — the internal title label is legacy chrome
 	# (see InventoryUI.gd); section headers now come from the column layout
 	# ("POCKETS", a corpse's display_name strip on ExternalEquipmentPanel).
@@ -282,7 +288,11 @@ func clear_external_inventory():
 		var inventory_data = external_inventory_owner.inventory_data
 
 #		inventory_data.inventory_interact.disconnect(on_inventory_interact)
-		inventory_data.inventory_button_press.disconnect(on_inventory_button_press)
+		var inventory_button_callback := _external_inventory_button_press
+		if inventory_data.inventory_button_press.is_connected(inventory_button_callback):
+			inventory_data.inventory_button_press.disconnect(inventory_button_callback)
+		for slot_node in external_equipment_slots_ui.values():
+			slot_node.set_equipment(null, self)
 		external_inventory_ui.inventory_name = ""
 		external_inventory_ui.clear_inventory_data(inventory_data)
 		external_inventory_ui.hide()

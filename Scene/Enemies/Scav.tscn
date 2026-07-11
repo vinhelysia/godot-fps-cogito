@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c5b73hl6rjw60"]
 
 [ext_resource type="PackedScene" uid="uid://b2cccsfb5tikx" path="res://addons/cogito/CogitoNPC/cogito_npc.tscn" id="1_base"]
-[ext_resource type="Script" uid="uid://b0fnql6y015h0" path="res://Scripts/Enemies/scav.gd" id="2_scav"]
+[ext_resource type="Script" uid="uid://bu8ysvykd2ety" path="res://Scripts/Enemies/HostileNPC.gd" id="2_scav"]
 [ext_resource type="Script" uid="uid://dkau1vh8suuuu" path="res://Scripts/Enemies/scav_perception.gd" id="3_4t50h"]
 [ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.png" id="4_bnjg6"]
 [ext_resource type="PackedScene" path="res://Scene/Enemies/CorpseContainer.tscn" id="5_chest"]
@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://n2v7dh3aksy2" path="res://Scripts/Weapons/Types/AssaultRifle_Resource.gd" id="9_cgytp"]
 [ext_resource type="Resource" uid="uid://dr26ug8vis6t1" path="res://Scene/Enemies/Factions/scav_faction.tres" id="11_faction"]
 [ext_resource type="Resource" path="res://Scene/Enemies/Factions/player_faction.tres" id="12_playerfaction"]
-[ext_resource type="Resource" path="res://Scene/Enemies/Loadouts/scav_loadout.tres" id="13_loadout"]
+[ext_resource type="Resource" uid="uid://lbfw58nu7bix" path="res://Scene/Enemies/Loadouts/scav_loadout.tres" id="13_loadout"]
 
 [sub_resource type="Resource" id="Resource_bnjg6"]
 resource_local_to_scene = true
@@ -139,29 +139,29 @@ display_name = "Scav"
 sprint_speed = 5.0
 
 [node name="Skeleton3D" parent="Rig" parent_id_path=PackedInt32Array(1075982299) index="0" unique_id=1082083865]
-bones/1/position = Vector3(-0.001544391, 0.0867689, 0.8739761)
-bones/1/rotation = Quaternion(0.76258045, -0.08677051, -0.07275193, 0.6369059)
-bones/3/rotation = Quaternion(-0.027529765, 2.0737278e-05, 0.00019502174, 0.999621)
-bones/4/rotation = Quaternion(0.15030104, 2.9860686e-05, 0.0003332826, 0.9886403)
-bones/5/rotation = Quaternion(0.010883007, -0.00024064319, -0.00023884482, 0.99994075)
-bones/6/rotation = Quaternion(-0.013734221, 0.09599715, -0.0031698316, 0.9952819)
-bones/7/rotation = Quaternion(-0.60675126, -0.3685404, -0.3988076, 0.5805028)
-bones/8/rotation = Quaternion(-0.26572314, 0.67104363, -0.5116173, 0.4661969)
-bones/9/rotation = Quaternion(0.27659005, 0.020146042, 0.0018279495, 0.96077514)
-bones/26/rotation = Quaternion(-0.64297587, 0.30656463, 0.33324555, 0.6176954)
-bones/27/rotation = Quaternion(-0.28535286, -0.67557293, 0.48998216, 0.4712668)
-bones/28/rotation = Quaternion(0.3682933, -0.13751833, 0.055181675, 0.91782564)
-bones/45/rotation = Quaternion(0.9565813, 0.115072265, -0.013244134, 0.26746097)
-bones/46/rotation = Quaternion(0.2211711, -0.10693997, 0.02476154, 0.9690377)
-bones/47/rotation = Quaternion(-0.4994451, 0.021306725, 0.09384464, 0.8609843)
-bones/48/rotation = Quaternion(-0.0001371752, 0.9643069, -0.26478696, -0.00049942016)
-bones/49/rotation = Quaternion(0.9914412, -0.12369931, 0.015379894, 0.038812216)
-bones/50/rotation = Quaternion(0.15722565, 0.34487173, -0.05996832, 0.92344326)
-bones/51/rotation = Quaternion(-0.59766084, -0.052247196, -0.15659638, 0.78456956)
-bones/52/rotation = Quaternion(-7.120907e-05, 0.9638699, -0.26637298, -0.00048596508)
+bones/1/position = Vector3(0.005126236, 0.08625754, 0.87545)
+bones/1/rotation = Quaternion(0.76007503, -0.086052425, -0.07313094, 0.63994753)
+bones/3/rotation = Quaternion(-0.028790856, 0.00038885928, 0.00023932055, 0.9995854)
+bones/4/rotation = Quaternion(0.14496098, 0.0011645661, 0.00013247585, 0.9894367)
+bones/5/rotation = Quaternion(0.013670626, -0.00023924837, -0.00024011763, 0.9999065)
+bones/6/rotation = Quaternion(-0.0018725479, 0.09598446, -0.0035579696, 0.99537474)
+bones/7/rotation = Quaternion(-0.60238194, -0.37152022, -0.39603317, 0.5850355)
+bones/8/rotation = Quaternion(-0.27840614, 0.67255276, -0.5022081, 0.46685117)
+bones/9/rotation = Quaternion(0.28409216, 0.03383803, -0.0023827218, 0.9581967)
+bones/26/rotation = Quaternion(-0.63853663, 0.308943, 0.3310425, 0.6222829)
+bones/27/rotation = Quaternion(-0.2909965, -0.67877674, 0.477128, 0.47637403)
+bones/28/rotation = Quaternion(0.36766082, -0.14765309, 0.059248336, 0.9162499)
+bones/45/rotation = Quaternion(0.96045595, 0.10975387, -0.012932962, 0.25556093)
+bones/46/rotation = Quaternion(0.19967854, -0.10854817, 0.022703748, 0.9735659)
+bones/47/rotation = Quaternion(-0.50196904, 0.022100523, 0.09018785, 0.8598866)
+bones/48/rotation = Quaternion(-0.000137176, 0.9643069, -0.26478696, -0.0004994209)
+bones/49/rotation = Quaternion(0.9926154, -0.11800084, 0.014910971, 0.02383754)
+bones/50/rotation = Quaternion(0.13665332, 0.34772307, -0.05231975, 0.9261087)
+bones/51/rotation = Quaternion(-0.5856779, -0.049202975, -0.15959206, 0.7931525)
+bones/52/rotation = Quaternion(-0.00012003928, 0.9641921, -0.26520434, -0.0004952334)
 
 [node name="BoneAttachment3D" parent="Rig/Skeleton3D" index="1" unique_id=537023208]
-transform = Transform3D(0.9978155, -0.060894836, -0.025614113, 0.051254388, 0.9582174, -0.28141153, 0.041680396, 0.27948394, 0.95924526, -0.025456704, 1.5188999, 0.016786274)
+transform = Transform3D(0.99807876, -0.05798614, -0.021827042, 0.049208827, 0.9559395, -0.28941044, 0.037647158, 0.28778023, 0.9569562, -0.016272018, 1.5220306, 0.009316444)
 
 [node name="CogitoHealthAttribute" parent="." index="8" unique_id=1621381883]
 value_max = 80.0

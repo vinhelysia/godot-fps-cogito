@@ -1,108 +1,37 @@
-## scope_controller.gd
-## Script điều khiển scope: magnification, reticle type, shader params.
-##
-## Cách dùng:
-##   - Attach script này vào root node "Tac3014x24Riflescope" (Node3D)
-##   - Chỉnh magnification, reticle_type và các param từ Inspector
-##   - Gọi set_magnification() từ script khác để zoom programmatically
-##
-## ReticleType.PROCEDURAL:
-##   Reticle được vẽ trực tiếp bằng GDShader trên QuadMesh lens.
-##   Chỉnh các param nhóm "Procedural Reticle" từ Inspector.
-##
-## ReticleType.SUBVIEWPORT_2D:
-##   Reticle dùng CanvasLayer bên trong Scope SubViewport.
-##   Gán một PackedScene 2D vào reticle_2d_scene.
-##   Background trong suốt, 2D nodes vẽ đè lên ảnh camera 3D.
-##   Procedural reticle của shader sẽ bị ẩn tự động.
-
+## Scope: magnification + procedural shader reticle on lens mesh.
+## Attach to scope root (e.g. Tac3014x24Riflescope). Lens uses $Scope SubViewport.
 @tool
 class_name ScopeController
 extends Node3D
 
-# ---------------------------------------------------------------------------
-# Enums
-# ---------------------------------------------------------------------------
-
-enum ReticleType {
-	PROCEDURAL,       ## Shader vẽ reticle (mặc định, không cần scene phụ)
-	SUBVIEWPORT_2D,   ## CanvasLayer 2D bên trong Scope SubViewport
-}
-
-# ---------------------------------------------------------------------------
-# Exports — Magnification
-# ---------------------------------------------------------------------------
-
 @export_group("Magnification")
-
-## Độ phóng đại hiện tại (đơn vị: x). VD: 4.0 = 4x, 5.5 = 5.5x
-## Giá trị này điều khiển trực tiếp FOV của Camera3D trong Scope SubViewport.
 @export_range(1.0, 32.0, 0.5, "suffix:x") var magnification: float = 4.0:
 	set(value):
 		magnification = clampf(value, 1.0, 32.0)
 		_apply_magnification()
 
-## FOV (field of view) tương ứng với 1x (không phóng đại).
-## Mặc định 60°. Thay đổi nếu player camera dùng FOV khác.
 @export_range(30.0, 120.0, 1.0, "suffix:°") var base_fov_at_1x: float = 60.0:
 	set(value):
 		base_fov_at_1x = value
 		_apply_magnification()
 
-# ---------------------------------------------------------------------------
-# Exports — ADS Sensitivity
-# ---------------------------------------------------------------------------
-
 @export_group("ADS Sensitivity")
-
-## Hệ số nhân mouse sensitivity khi đang dùng scope này.
-## 1.0 = không thay đổi. 0.6 = giảm 40% (mặc định cho TAC30 1-4x).
 @export_range(0.1, 1.0, 0.01) var scope_sensitivity_multiplier: float = 0.6
 
-## Trả về hệ số nhân sensitivity. Gọi từ cogito_weapon.gd khi ADS enter/exit.
 func get_sensitivity_multiplier() -> float:
 	return scope_sensitivity_multiplier
 
-# ---------------------------------------------------------------------------
-# Exports — Reticle Type
-# ---------------------------------------------------------------------------
-
-@export_group("Reticle")
-
-## Chọn loại reticle: shader procedural hoặc CanvasLayer 2D
-@export var reticle_type: ReticleType = ReticleType.PROCEDURAL:
-	set(value):
-		reticle_type = value
-		_apply_reticle_type()
-
-## [Chỉ dùng khi reticle_type = SUBVIEWPORT_2D]
-## Gán PackedScene chứa các 2D node vẽ reticle (Node2D root, transparent bg)
-@export var reticle_2d_scene: PackedScene:
-	set(value):
-		reticle_2d_scene = value
-		if reticle_type == ReticleType.SUBVIEWPORT_2D:
-			_rebuild_reticle_layer()
-
-# ---------------------------------------------------------------------------
-# Exports — Procedural Reticle (ánh xạ 1:1 lên shader params)
-# ---------------------------------------------------------------------------
-
 @export_group("Procedural Reticle / Color")
-
 @export var reticle_color: Color = Color(0.89, 0.15, 0.21, 1.0):
 	set(v): reticle_color = v; _set_shader("reticle_color", v)
 
 @export_range(0.0, 1.0, 0.01) var reticle_opacity: float = 1.0:
-	set(v):
-		reticle_opacity = v
-		if reticle_type == ReticleType.PROCEDURAL:
-			_set_shader("reticle_opacity", v)
+	set(v): reticle_opacity = v; _set_shader("reticle_opacity", v)
 
 @export_range(0.0, 0.01, 0.0001) var reticle_aa: float = 0.003:
 	set(v): reticle_aa = v; _set_shader("reticle_aa", v)
 
 @export_group("Procedural Reticle / Crosshair")
-
 @export_range(0.0, 0.25, 0.001) var cross_length: float = 0.085:
 	set(v): cross_length = v; _set_shader("cross_length", v)
 
@@ -116,7 +45,6 @@ func get_sensitivity_multiplier() -> float:
 	set(v): center_dot_radius = v; _set_shader("center_dot_radius", v)
 
 @export_group("Procedural Reticle / Ring")
-
 @export_range(0.0, 0.5, 0.001) var ring_radius: float = 0.18:
 	set(v): ring_radius = v; _set_shader("ring_radius", v)
 
@@ -127,7 +55,6 @@ func get_sensitivity_multiplier() -> float:
 	set(v): ring_dot_radius = v; _set_shader("ring_dot_radius", v)
 
 @export_group("Procedural Reticle / BDC Stadia")
-
 @export_range(0, 10) var bdc_dot_count: int = 3:
 	set(v): bdc_dot_count = v; _set_shader("bdc_dot_count", v)
 
@@ -146,12 +73,7 @@ func get_sensitivity_multiplier() -> float:
 @export_range(0.001, 0.01, 0.0005) var stadia_thickness: float = 0.003:
 	set(v): stadia_thickness = v; _set_shader("stadia_thickness", v)
 
-# ---------------------------------------------------------------------------
-# Exports — Optics
-# ---------------------------------------------------------------------------
-
 @export_group("Optics")
-
 @export_range(0.0, 0.2, 0.001) var barrel_distortion: float = 0.04:
 	set(v): barrel_distortion = v; _set_shader("barrel_distortion", v)
 
@@ -177,7 +99,6 @@ func get_sensitivity_multiplier() -> float:
 	set(v): vignette_strength = v; _set_shader("vignette_strength", v)
 
 @export_group("Optics / Eyebox")
-
 @export_range(0.0, 1.0, 0.01) var eyebox_position: float = 0.2:
 	set(v): eyebox_position = v; _set_shader("eyebox_position", v)
 
@@ -193,114 +114,51 @@ func get_sensitivity_multiplier() -> float:
 @export_range(0.0, 1.0, 0.01) var shadow_fade_factor: float = 0.3:
 	set(v): shadow_fade_factor = v; _set_shader("shadow_fade_factor", v)
 
-# ---------------------------------------------------------------------------
-# Private state
-# ---------------------------------------------------------------------------
-
 @onready var _scope_vp: SubViewport = $Scope
 @onready var _scope_cam: Camera3D = $Scope/Camera3D
 @onready var _lens_mesh: MeshInstance3D = $MeshInstance3D
 
 var _shader_mat: ShaderMaterial = null
-var _reticle_layer: CanvasLayer = null  # Chỉ tồn tại khi dùng SUBVIEWPORT_2D
 
-# ---------------------------------------------------------------------------
-# Lifecycle
-# ---------------------------------------------------------------------------
+
+func _enter_tree() -> void:
+	set_rendering_enabled(false)
+
 
 func _ready() -> void:
+	set_rendering_enabled(false)
 	_shader_mat = _lens_mesh.material_override as ShaderMaterial
 	if _shader_mat == null:
-		push_error("ScopeController: MeshInstance3D không có ShaderMaterial override!")
+		push_error("ScopeController: MeshInstance3D missing ShaderMaterial override")
 		return
 	_apply_magnification()
-	_apply_reticle_type()
+	_set_shader("reticle_opacity", reticle_opacity)
 
-# ---------------------------------------------------------------------------
-# Public API — gọi từ script khác (ví dụ: player input handler)
-# ---------------------------------------------------------------------------
 
-## Đặt magnification mới. Giá trị sẽ bị clamp trong khoảng [1, 32].
-## Ví dụ: scope.set_magnification(5.5)
 func set_magnification(value: float) -> void:
-	magnification = value  # setter tự gọi _apply_magnification()
+	magnification = value
 
-## Trả về FOV thực tế đang dùng trên scope camera.
+
 func get_scope_fov() -> float:
 	if _scope_cam:
 		return _scope_cam.fov
 	return base_fov_at_1x / magnification
 
-## Chuyển đổi reticle type.
-## Ví dụ: scope.switch_reticle(ScopeController.ReticleType.SUBVIEWPORT_2D)
-func switch_reticle(type: ReticleType) -> void:
-	reticle_type = type  # setter tự gọi _apply_reticle_type()
 
-# ---------------------------------------------------------------------------
-# Private — Magnification
-# ---------------------------------------------------------------------------
+func set_rendering_enabled(enabled: bool) -> void:
+	var vp := _scope_vp if _scope_vp != null else get_node_or_null("Scope") as SubViewport
+	if vp == null:
+		return
+	vp.render_target_update_mode = (
+		SubViewport.UPDATE_ALWAYS if enabled else SubViewport.UPDATE_DISABLED
+	)
+
 
 func _apply_magnification() -> void:
 	if not is_node_ready():
 		return
-	# FOV giảm khi magnification tăng: fov = base / mag
-	# 1x → 60°,  4x → 15°,  5.5x → ~10.9°
 	_scope_cam.fov = base_fov_at_1x / magnification
 
-# ---------------------------------------------------------------------------
-# Private — Reticle
-# ---------------------------------------------------------------------------
-
-func _apply_reticle_type() -> void:
-	if not is_node_ready():
-		return
-	match reticle_type:
-		ReticleType.PROCEDURAL:
-			# Hiện procedural reticle
-			_set_shader("reticle_opacity", reticle_opacity)
-			# Xóa CanvasLayer 2D nếu đang tồn tại
-			_remove_reticle_layer()
-		ReticleType.SUBVIEWPORT_2D:
-			# Ẩn procedural reticle (opacity = 0)
-			_set_shader("reticle_opacity", 0.0)
-			# Tạo CanvasLayer bên trong Scope SubViewport
-			_setup_reticle_layer()
-
-func _setup_reticle_layer() -> void:
-	# Không tạo lại nếu đã tồn tại
-	if is_instance_valid(_reticle_layer):
-		return
-	_reticle_layer = CanvasLayer.new()
-	_reticle_layer.name = "ReticleLayer"
-	# Layer 10 đảm bảo vẽ đè lên ảnh 3D của camera trong cùng SubViewport
-	_reticle_layer.layer = 10
-	_scope_vp.add_child(_reticle_layer)
-	_load_reticle_scene()
-
-func _load_reticle_scene() -> void:
-	if not is_instance_valid(_reticle_layer):
-		return
-	# Xóa instance cũ
-	for child in _reticle_layer.get_children():
-		child.queue_free()
-	if reticle_2d_scene == null:
-		push_warning("ScopeController: reticle_2d_scene chưa được gán!")
-		return
-	var instance: Node = reticle_2d_scene.instantiate()
-	_reticle_layer.add_child(instance)
-
-func _rebuild_reticle_layer() -> void:
-	_remove_reticle_layer()
-	_setup_reticle_layer()
-
-func _remove_reticle_layer() -> void:
-	if is_instance_valid(_reticle_layer):
-		_reticle_layer.queue_free()
-		_reticle_layer = null
-
-# ---------------------------------------------------------------------------
-# Private — Shader helper
-# ---------------------------------------------------------------------------
 
 func _set_shader(param: String, value: Variant) -> void:
 	if _shader_mat == null:

@@ -25,12 +25,14 @@ func _ready():
 
 
 func set_inventory_data(inventory_data : CogitoInventory):
+	if loaded_inventory_data and loaded_inventory_data != inventory_data \
+			and loaded_inventory_data.inventory_updated.is_connected(populate_item_grid):
+		loaded_inventory_data.inventory_updated.disconnect(populate_item_grid)
+	loaded_inventory_data = inventory_data
 	if !inventory_data.inventory_updated.is_connected(populate_item_grid):
 		inventory_data.inventory_updated.connect(populate_item_grid)
 	_update_label()
-	loaded_inventory_data = inventory_data
 	populate_item_grid(inventory_data)
-
 
 ## Internal title is legacy chrome — section headers ("POCKETS", a corpse's
 ## display_name strip, etc.) now come from whatever column layout embeds
@@ -74,9 +76,11 @@ func _apply_theme() -> void:
 
 
 func clear_inventory_data(inventory_data : CogitoInventory):
-	inventory_data.inventory_updated.disconnect(populate_item_grid)
+	if inventory_data.inventory_updated.is_connected(populate_item_grid):
+		inventory_data.inventory_updated.disconnect(populate_item_grid)
+	if loaded_inventory_data == inventory_data:
+		loaded_inventory_data = null
 	slot_array.clear()
-
 
 func populate_item_grid(inventory_data : CogitoInventory) -> void:
 	CogitoGlobals.debug_log(true,"InventoryUI.gd", "Populate_item_grid called." )

@@ -6,7 +6,6 @@ const SAVE_VERSION: int = 1
 # Configuration parameters (static, configured via configure())
 var magazine_capacity: int = 30
 var chamber_capacity: int = 1
-var supports_chamber_plus_one: bool = true
 var auto_chambers_on_empty_reload: bool = true
 var locks_open_on_empty: bool = false
 
@@ -19,7 +18,6 @@ var bolt_locked_open: bool = false
 func configure(config: Dictionary) -> void:
 	magazine_capacity = config.get("magazine_capacity", 30)
 	chamber_capacity = config.get("chamber_capacity", 1)
-	supports_chamber_plus_one = config.get("supports_chamber_plus_one", true)
 	auto_chambers_on_empty_reload = config.get("auto_chambers_on_empty_reload", true)
 	locks_open_on_empty = config.get("locks_open_on_empty", false)
 	_clamp_dynamic_state()

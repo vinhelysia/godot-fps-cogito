@@ -767,10 +767,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.02381804, 0.23790002, 0)
 mesh = SubResource("ArrayMesh_xdpuh")
 skeleton = NodePath("")
 
-[node name="SubViewport" type="SubViewport" parent="." unique_id=2045629123]
-
-[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=98069597]
-
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=335488003]
 libraries/ = SubResource("AnimationLibrary_2ekfw")
 

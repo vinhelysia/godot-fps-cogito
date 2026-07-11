@@ -19,10 +19,8 @@ class_name CogitoFirearm
 
 enum ShootMotionMode { ANIMATION, TWEEN }
 enum ShellEjectTiming { ON_FIRE, ON_CYCLE }
-## Mutually-exclusive action states. CYCLING covers both bolt-action and pump
-## (no weapon is both). VENTING is the LMG heat-vent path (formerly _is_venting
-## with _is_reloading held true alongside).
-enum WeaponState { IDLE, CYCLING, RELOADING, VENTING }
+## Mutually-exclusive action states. CYCLING is bolt-action cycle-between-shots.
+enum WeaponState { IDLE, CYCLING, RELOADING }
 # ── EXPORTS (names preserved for .tscn compatibility) ────────────────────────
 
 @export_group("Weapon Configuration")
@@ -100,9 +98,6 @@ enum WeaponState { IDLE, CYCLING, RELOADING, VENTING }
 ## Minimum time (seconds) the trigger stays pulled.
 @export var trigger_min_hold_time: float = 0.1
 
-@export_group("Debug")
-@export var show_debug_ui: bool = true
-
 # ── Constants ────────────────────────────────────────────────────────────────
 
 const ADS_RECOIL_SCALE: float = 0.4
@@ -119,10 +114,8 @@ var _ammo: AmmoManager
 
 var _state: WeaponState = WeaponState.IDLE
 var _mechanics: FirearmMechanicalState = null
-var _debug_ui: FirearmDebugUI = null
 var _trigger_held: bool = false
 var _fire_cooldown: float = 0.0
-var _current_heat: float = 0.0
 var _sprint_blocked_press: bool = false
 var _item_ref: WieldableItemPD
 var _rest_rotation_degrees: Vector3 = Vector3.ZERO
@@ -135,6 +128,7 @@ var _hammer_part: Node3D = null
 var _hammer_tween: Tween = null
 var _audio_reload: AudioStreamPlayer3D
 var _reload_mechanics_snapshot: Dictionary = {}
+var _setup_valid: bool = false
 
 
 # ── Lifecycle ────────────────────────────────────────────────────────────────
@@ -142,7 +136,8 @@ var _reload_mechanics_snapshot: Dictionary = {}
 func _ready() -> void:
 	if wieldable_mesh:
 		wieldable_mesh.hide()
-	animation_player.animation_finished.connect(_on_anim_finished)
+	if animation_player:
+		animation_player.animation_finished.connect(_on_anim_finished)
 	_audio_reload = AudioStreamPlayer3D.new()
 	_audio_reload.bus = audio_stream_player_3d.bus if audio_stream_player_3d else "Master"
 	add_child(_audio_reload)
@@ -152,6 +147,10 @@ func _ready() -> void:
 	_shoot_motion = ShootMotionController.new(self)
 	_shoot_motion.shoot_visual_finished.connect(_on_shoot_visual_finished)
 	_ammo = AmmoManager.new(null)
+	_setup_valid = _validate_required_setup()
+	if not _setup_valid:
+		set_physics_process(false)
+		return
 	_sync_shoot_motion_config()
 	_capture_rest_state()
 	if bolt_part_node != NodePath(""):
@@ -161,12 +160,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if weapon_data == null:
+	if not _setup_valid or weapon_data == null:
 		return
 
 	_fire_cooldown = maxf(0.0, _fire_cooldown - delta)
 
-	# Auto-fire loop — only when state is IDLE (not reloading/venting/cycling).
+	# Auto-fire loop — only when state is IDLE (not reloading/cycling).
 	if _trigger_held and _state == WeaponState.IDLE and _fire_cooldown <= 0.0:
 		if _is_player_sprinting():
 			_trigger_held = false
@@ -175,28 +174,17 @@ func _physics_process(delta: float) -> void:
 		else:
 			_trigger_held = false
 
-	# Per-type per-frame work (e.g. LMG heat decay).
-	weapon_data.tick(self, delta)
-
-	# Update firearm debug UI if active
-	if _debug_ui and is_instance_valid(_debug_ui) and _mechanics:
-		var state_str := "IDLE"
-		match _state:
-			WeaponState.IDLE: state_str = "IDLE"
-			WeaponState.CYCLING: state_str = "CYCLING"
-			WeaponState.RELOADING: state_str = "RELOADING"
-			WeaponState.VENTING: state_str = "VENTING"
-		_debug_ui.update_debug_info(weapon_data.weaponName, state_str, _mechanics)
-
 
 # ── CogitoWieldable interface ────────────────────────────────────────────────
 
 func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 	player_interaction_component = _player_interaction_component
 	_item_ref = item_reference
-	_ammo.set_pic(player_interaction_component)
-	if bullet_point == null:
-		push_error("cogito_weapon: %%Bullet_Point Marker3D missing on weapon scene %s" % name)
+	if _ammo:
+		_ammo.set_pic(player_interaction_component)
+	if not _setup_valid:
+		_trigger_held = false
+		return
 	_reset_state()
 	_shoot_motion.cancel(false)
 	
@@ -211,18 +199,16 @@ func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 		_apply_mechanics_visual_state()
 		_commit_mechanics_to_item()
 
-	if show_debug_ui:
-		_debug_ui = FirearmDebugUI.new()
-		add_child(_debug_ui)
-		
-	animation_player.play(anim_equip)
+	if animation_player:
+		animation_player.play(anim_equip)
 	_configure_recoil()
 
 
 func unequip() -> void:
-	if _debug_ui and is_instance_valid(_debug_ui):
-		_debug_ui.queue_free()
-		_debug_ui = null
+	if not _setup_valid or _shoot_motion == null or _ads == null:
+		_trigger_held = false
+		_state = WeaponState.IDLE
+		return
 
 	if _state == WeaponState.RELOADING and not _reload_mechanics_snapshot.is_empty() and _mechanics:
 		_mechanics.restore_from_save_dict(_reload_mechanics_snapshot)
@@ -253,12 +239,14 @@ func unequip() -> void:
 				player_interaction_component)
 	else:
 		_ads.cancel_tweens_and_snap(weapon_data, ads_fov, default_position, ads_position)
-	animation_player.play(anim_unequip)
+	if animation_player:
+		animation_player.play(anim_unequip)
 
 
 func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool) -> void:
 	_item_ref = _passed_item_reference as WieldableItemPD
-	if weapon_data == null:
+	if not _setup_valid or weapon_data == null:
+		_trigger_held = false
 		return
 
 	if _is_released:
@@ -294,6 +282,8 @@ func action_primary(_passed_item_reference: InventoryItemPD, _is_released: bool)
 
 
 func action_secondary(_is_released: bool) -> void:
+	if not _setup_valid or weapon_data == null or _ads == null:
+		return
 	if _is_released:
 		if _bolt_root_tween:
 			_bolt_root_tween.kill()
@@ -315,22 +305,9 @@ func action_secondary(_is_released: bool) -> void:
 
 
 func reload() -> void:
-	if weapon_data == null or _state != WeaponState.IDLE or animation_player.is_playing():
+	if not _setup_valid or weapon_data == null or animation_player == null or _state != WeaponState.IDLE or animation_player.is_playing():
 		return
 	if _item_ref == null:
-		return
-
-	# Let resource handle special reload (LMG vent)
-	var reload_ctx := {"current_heat": _current_heat}
-	if weapon_data.on_reload(reload_ctx):
-		_shoot_motion.cancel(true)
-		_apply_rest_pose()
-		if reload_ctx.get("start_venting", false):
-			_state = WeaponState.VENTING
-			var vent_anim: String = reload_ctx.get("vent_animation", "")
-			if vent_anim != "":
-				animation_player.play(vent_anim)
-			_play_reload_sound()
 		return
 
 	# Mechanics-based ammo needed checks
@@ -340,10 +317,11 @@ func reload() -> void:
 
 	_shoot_motion.cancel(true)
 	_apply_rest_pose()
+	if not _play_anim(_get_reload_animation_name()):
+		return
 	if _mechanics:
 		_reload_mechanics_snapshot = _mechanics.to_save_dict()
 	_state = WeaponState.RELOADING
-	animation_player.play(_get_reload_animation_name())
 	_play_reload_sound()
 
 
@@ -365,7 +343,7 @@ func is_ads_active() -> bool:
 
 
 func should_suspend_container_motion() -> bool:
-	return animation_player.is_playing() \
+	return (animation_player != null and animation_player.is_playing()) \
 		or _state != WeaponState.IDLE \
 		or _trigger_held \
 		or (_shoot_motion != null and _shoot_motion.is_active)
@@ -374,6 +352,9 @@ func should_suspend_container_motion() -> bool:
 # ── Fire logic ───────────────────────────────────────────────────────────────
 
 func _try_fire() -> void:
+	if not _setup_valid or bullet_point == null or player_interaction_component == null:
+		_trigger_held = false
+		return
 	if _is_player_sprinting():
 		_trigger_held = false
 		return
@@ -388,11 +369,6 @@ func _try_fire() -> void:
 		return
 
 	var mode := weapon_data.get_fire_mode()
-
-	var fire_state := {"current_heat": _current_heat}
-	if not weapon_data.can_fire(fire_state):
-		_trigger_held = false
-		return
 
 	if _uses_animation_shoot_motion() and mode != Weapon_Resource.FireMode.AUTO and _is_shoot_animation_playing():
 		return
@@ -423,13 +399,16 @@ func _try_fire() -> void:
 		var emitter: Node = null
 		if player_interaction_component:
 			emitter = player_interaction_component.get_parent()
-		sound_events.sound_emitted.emit(bullet_point.global_position, 80.0, &"gunshot", emitter)
+		sound_events.sound_emitted.emit(bullet_point.global_position, weapon_data.gunshot_loudness, &"gunshot", emitter)
 
 	# Muzzle flash (first-person view)
 	_spawn_muzzle_flash_fpv()
 
 	# Delegate fire to resource (polymorphic dispatch)
 	var ctx := _build_fire_context()
+	if ctx.is_empty():
+		_trigger_held = false
+		return
 	weapon_data.fire(ctx)
 	if shell_eject_timing == ShellEjectTiming.ON_FIRE and not weapon_data.handles_own_shell_eject(self):
 		_spawn_shell_casing()
@@ -440,12 +419,13 @@ func _try_fire() -> void:
 	# Cooldown (polymorphic)
 	_fire_cooldown = weapon_data.get_fire_cooldown()
 
-	# Type-specific post-fire visuals + state (bolt cycle, pump, hammer, slide-lock,
-	# LMG heat).  Each Weapon_Resource subclass overrides play_post_fire_visual.
+	# Type-specific post-fire visuals + state (bolt cycle, hammer, slide-lock).
 	weapon_data.play_post_fire_visual(self)
 
 
 func _build_fire_context() -> Dictionary:
+	if not _setup_valid or bullet_point == null or player_interaction_component == null:
+		return {}
 	return {
 		"bullet_point": bullet_point,
 		"camera_collision": player_interaction_component.Get_Camera_Collision(),
@@ -503,14 +483,17 @@ func _complete_cycle_after_delay(delay: float, on_done: Callable) -> void:
 # ── Animation callbacks ──────────────────────────────────────────────────────
 
 func _on_anim_finished(anim_name: StringName) -> void:
+	# Connected in _ready() before validation runs — stay fail-closed here too.
+	if not _setup_valid:
+		return
+
 	# Reload finished — restock magazine and clear state.
 	if _is_reload_animation(anim_name):
 		_finish_reload_with_mechanics()
 		_state = WeaponState.IDLE
 		_capture_rest_state()
 
-	# Per-type anim transitions (bolt cycle, pump cycle, vent finished,
-	# slide-lock release, etc.).  Subclasses of Weapon_Resource handle their own.
+	# Per-type anim transitions (bolt cycle, slide-lock release, etc.).
 	if weapon_data:
 		weapon_data.on_anim_finished(self, anim_name)
 
@@ -604,29 +587,58 @@ func _apply_mechanics_visual_state() -> void:
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+## Play `anim_name` only if the AnimationPlayer really has it. Returns false (and warns)
+## otherwise, so callers never latch a WeaponState that only `animation_finished` can clear.
+func _play_anim(anim_name: String) -> bool:
+	if animation_player == null or anim_name == "" or not animation_player.has_animation(anim_name):
+		push_warning("cogito_weapon: %s has no animation '%s'" % [name, anim_name])
+		return false
+	animation_player.play(anim_name)
+	return true
+
+
+func _validate_required_setup() -> bool:
+	var missing := PackedStringArray()
+	if weapon_data == null:
+		missing.append("weapon_data")
+	if bullet_point == null:
+		missing.append("%Bullet_Point Marker3D")
+	if animation_player == null:
+		missing.append("AnimationPlayer")
+	if audio_stream_player_3d == null:
+		missing.append("AudioStreamPlayer3D")
+
+	# Configured-but-dangling optional wiring: warn loudly, don't brick the weapon —
+	# every consumer already degrades gracefully when these resolve to null.
+	# ponytail: warn-only; promote to fail-closed if a silent-null ever ships a bug.
+	for entry: Array in [["fire_part_node", fire_part_node], ["bolt_part_node", bolt_part_node],
+			["hammer_part_node", hammer_part_node]]:
+		var path: NodePath = entry[1]
+		if path != NodePath("") and (get_node_or_null(path) as Node3D) == null:
+			push_warning("cogito_weapon: %s has %s = '%s' but no Node3D there." % [name, entry[0], path])
+	if shell_casing_scene != null and shell_eject_point == null:
+		push_warning("cogito_weapon: %s has shell_casing_scene but no %%shell_eject_point Marker3D." % name)
+
+	if missing.is_empty():
+		return true
+	push_error("cogito_weapon: disabling %s; missing required setup: %s" % [name, ", ".join(missing)])
+	return false
+
+
 func _configure_recoil() -> void:
 	var rn := _get_recoil_node()
 	if rn and weapon_data:
 		var hip := Vector3(weapon_data.recoilVertical, weapon_data.recoilHorizontal, 0.0)
-		if rn.has_method("set_recoil"):
-			rn.set_recoil(hip)
-		else:
-			rn.setRecoil(hip)
-			
+		rn.set_recoil(hip)
 		var aim := aim_recoil_values if aim_recoil_values.length() > RECOIL_THRESHOLD else hip * ADS_RECOIL_SCALE
-		if rn.has_method("set_aim_recoil"):
-			rn.set_aim_recoil(aim)
-		elif rn.has_method("setAimRecoil"):
-			rn.setAimRecoil(aim)
+		rn.set_aim_recoil(aim)
+		rn.return_speed = weapon_data.recoilRecovery
 
 
 func _apply_recoil() -> void:
 	var rn := _get_recoil_node()
 	if rn:
-		if rn.has_method("recoil_fire"):
-			rn.recoil_fire(_ads.is_aiming)
-		else:
-			rn.recoilFire(_ads.is_aiming)
+		rn.recoil_fire(_ads.is_aiming)
 
 
 func _get_recoil_node() -> Node3D:
@@ -687,81 +699,6 @@ func _is_shoot_animation_playing() -> bool:
 	return animation_player.is_playing() and _is_shoot_animation_name(animation_player.current_animation)
 
 
-func _run_bolt_tween() -> void:
-	var bolt_res := weapon_data as BoltAction_Resource
-	if _bolt_cycle_tween:
-		_bolt_cycle_tween.kill()
-	if _bolt_root_tween:
-		_bolt_root_tween.kill()
-
-	# Capture rest transform now — works from any position (hip or ADS)
-	var base_pos := position
-	var base_rot := rotation
-
-	# Save the authoritative rest rotation before any tweening.
-	# Restored explicitly before _capture_rest_state() to prevent drift.
-	_bolt_pre_cycle_rest_rot = _rest_rotation_degrees
-
-	# Root viewmodel motion — eases to offset as bolt pulls back, returns as it closes
-	_bolt_root_tween = create_tween().set_trans(Tween.TRANS_SINE)
-	_bolt_root_tween.tween_property(self, "position",
-		base_pos + bolt_res.bolt_root_position_offset, bolt_res.bolt_root_out_duration)
-	_bolt_root_tween.parallel().tween_property(self, "rotation",
-		base_rot + bolt_res.bolt_root_rotation_offset, bolt_res.bolt_root_out_duration)
-	_bolt_root_tween.tween_property(self, "position", base_pos, bolt_res.bolt_root_return_duration)
-	_bolt_root_tween.parallel().tween_property(self, "rotation", base_rot, bolt_res.bolt_root_return_duration)
-
-	# Shell ejection timed to bolt pull-back moment — always handled here for bolt tween.
-	var shell_timer := create_tween()
-	shell_timer.tween_interval(bolt_res.shell_eject_delay)
-	shell_timer.tween_callback(_spawn_shell_casing)
-
-	# Bolt handle sequential tween
-	_bolt_cycle_tween = create_tween().set_trans(Tween.TRANS_SINE)
-	# 1. Unlock: rotate handle up
-	_bolt_cycle_tween.tween_property(_bolt_part, "rotation",
-		bolt_res.bolt_unlocked_rotation, bolt_res.bolt_unlock_duration)
-	# 2. Pause before pulling
-	_bolt_cycle_tween.tween_interval(0.067)
-	# 3. Pull bolt back
-	_bolt_cycle_tween.tween_property(_bolt_part, "position",
-		bolt_res.bolt_position_back, bolt_res.bolt_pull_duration)
-	# 4. Hold
-	_bolt_cycle_tween.tween_interval(bolt_res.bolt_hold_duration)
-	# 5. Push bolt forward
-	_bolt_cycle_tween.tween_property(_bolt_part, "position",
-		bolt_res.bolt_position_forward, bolt_res.bolt_push_duration)
-	# 6. Pause before locking
-	_bolt_cycle_tween.tween_interval(0.1)
-	# 7. Lock: rotate handle down
-	_bolt_cycle_tween.tween_property(_bolt_part, "rotation",
-		bolt_res.bolt_locked_rotation, bolt_res.bolt_lock_duration)
-	_bolt_cycle_tween.finished.connect(func():
-		_bolt_cycle_tween = null
-		if _bolt_root_tween:
-			_bolt_root_tween.kill()
-			_bolt_root_tween = null
-		# Restore rotation to pre-cycle rest value before _capture_rest_state() reads it
-		rotation_degrees = _bolt_pre_cycle_rest_rot
-		on_cycle_complete() # NEW: cycle mechanics and sync
-		_state = WeaponState.IDLE
-		_capture_rest_state()
-	)
-
-
-func _run_pistol_parts_tween() -> void:
-	var p_res := weapon_data as Pistol_Resource
-	if _hammer_part != null:
-		if _hammer_tween:
-			_hammer_tween.kill()
-		_hammer_tween = create_tween().set_trans(Tween.TRANS_SINE)
-		_hammer_tween.tween_property(_hammer_part, "rotation",
-			p_res.hammer_cocked_rotation, p_res.hammer_cock_duration)
-		_hammer_tween.tween_property(_hammer_part, "rotation",
-			p_res.hammer_rest_rotation, p_res.hammer_return_duration)
-		_hammer_tween.finished.connect(func(): _hammer_tween = null)
-
-
 func _sync_shoot_motion_config() -> void:
 	_shoot_motion.hip_shot_position_offset = hip_shot_position_offset
 	_shoot_motion.hip_shot_rotation_deg = hip_shot_rotation_deg
@@ -800,7 +737,6 @@ func _apply_rest_pose() -> void:
 func _reset_state() -> void:
 	_state = WeaponState.IDLE
 	_fire_cooldown = 0.0
-	_current_heat = 0.0
 	_trigger_held = false
 	_sprint_blocked_press = false
 	_ads.is_aiming = false

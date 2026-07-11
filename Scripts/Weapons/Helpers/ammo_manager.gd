@@ -93,18 +93,3 @@ func return_ammo(item_ref: WieldableItemPD, amount: int) -> void:
 	new_slot.quantity = 1
 	
 	inventory.pick_up_slot_data(new_slot)
-
-
-func finish_reload(item_ref: WieldableItemPD) -> void:
-	if item_ref == null:
-		return
-	var ammo_needed: int = ceili(item_ref.charge_max - item_ref.charge_current)
-	if ammo_needed <= 0:
-		return
-	var ammo_loaded: int = consume_ammo(item_ref, ammo_needed)
-	if ammo_loaded > 0:
-		var actual_added := mini(ammo_loaded, ammo_needed)
-		item_ref.add(actual_added)
-		var unused := ammo_loaded - actual_added
-		if unused > 0:
-			return_ammo(item_ref, unused)

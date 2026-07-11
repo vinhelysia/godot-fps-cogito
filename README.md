@@ -133,10 +133,10 @@ drive fire behaviour. Changing one without the other will break the weapon.
 | Script | Purpose |
 |--------|---------|
 | `Scripts/Weapons/cogito_weapon.gd` | Root orchestrator — bridges all sub-systems into Cogito's `CogitoWieldable` interface |
-| `Scripts/Weapons/Weapon_Resource.gd` | Base resource class — fire mode enum, virtual `fire()`, `can_fire()`, `on_post_fire()` |
+| `Scripts/Weapons/Weapon_Resource.gd` | Base resource class — fire mode enum, virtual `fire()`, `play_post_fire_visual()` |
 | `Scripts/Weapons/Types/BoltAction_Resource.gd` | Bolt-action data + bolt tween parameters |
-| `Scripts/Weapons/Types/AssaultRifle_Resource.gd` | Full-auto / burst data |
-| `Scripts/Weapons/Types/Shotgun_Resource.gd` | Pump-action and semi-auto shotgun data |
+| `Scripts/Weapons/Types/AssaultRifle_Resource.gd` | Full-auto data (AK-47) |
+| `Scripts/Weapons/Types/Pistol_Resource.gd` | Semi-auto pistol data (USP) |
 | `Scripts/Weapons/Helpers/ads_controller.gd` | ADS enter/exit tween logic |
 | `Scripts/Weapons/Helpers/shoot_motion_controller.gd` | Shoot kick tween |
 | `Scripts/Weapons/scope_controller.gd` | Scope SubViewport, magnification, reticle shader |

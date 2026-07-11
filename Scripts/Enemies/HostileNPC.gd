@@ -33,6 +33,11 @@ class_name HostileNPC
 @export var debug_loadout: bool = false
 
 @onready var bt_player: Node = $BTPlayer
+## Live character model (Skeleton3D + Mannequin mesh + alert indicator).
+## Hidden on death — the visible corpse becomes the ragdoll that
+## CogitoHealthAttribute's spawn_on_death already spawns separately (see
+## mannequin_ragdoll.tscn), not this frozen standing rig.
+@onready var rig: Node3D = $Rig
 
 ## Timestamp (Time.get_ticks_msec()/1000.0) of the last time this NPC took
 ## damage. ScavPerception polls this (comparing against its own
@@ -55,6 +60,10 @@ var _loadout_rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	super._ready()
+	# Lets mannequin_ragdoll.tscn except live NPCs from its physical bones'
+	# collisions (both default to layer 1, same as Environment — see that
+	# scene's _except_dynamic_actors()) without a dedicated physics layer.
+	add_to_group("hostile_npc")
 	var health := get_node_or_null("CogitoHealthAttribute")
 	if health:
 		health.death.connect(_on_death)
@@ -242,10 +251,30 @@ func _on_damage_received(_damage_value: float, _direction: Vector3, _hit_positio
 func _on_death() -> void:
 	if is_instance_valid(bt_player):
 		bt_player.active = false
-	# Disable collision with player (layer 2) but keep world collision (layer 1)
+	# The corpse owns persistence and loot after this signal. Keeping the source
+	# NPC alive would leave active AI and allow save/load to recreate it.
+	remove_from_group(&"Persist")
+	remove_from_group(&"hostile_npc")
 	collision_layer = 0
-	collision_mask = 1
+	collision_mask = 0
+	velocity = Vector3.ZERO
 
+	var perception := get_node_or_null("Perception")
+	if perception:
+		if perception.has_method(&"shutdown"):
+			perception.call(&"shutdown")
+		else:
+			perception.remove_from_group(&"npc_perception")
+			perception.set_process(false)
+			perception.set_physics_process(false)
+
+	# Disable every child process immediately; NPCLootComponent has already
+	# received the same death signal and hands the resources to the corpse before
+	# this deferred free executes.
+	process_mode = Node.PROCESS_MODE_DISABLED
+	if is_instance_valid(rig):
+		rig.hide()
+	call_deferred("queue_free")
 
 ## Magazine size for ammo bookkeeping. Falls back to a sane default if no
 ## weapon item is assigned yet (e.g. mid-setup in the editor).
@@ -267,6 +296,12 @@ func effective_fire_cooldown() -> float:
 	var base_cooldown: float = equipped_weapon_data.get_fire_cooldown() if equipped_weapon_data else 0.8
 	var skill: float = ai_profile.fire_rate_skill if ai_profile else 1.0
 	return base_cooldown / maxf(skill, 0.01)
+
+
+## How loud this NPC's shots are to other NPCs' hearing. Comes from the equipped
+## weapon (same field the player's guns use) so a suppressed scav is quieter.
+func gunshot_loudness() -> float:
+	return equipped_weapon_data.gunshot_loudness if equipped_weapon_data else 80.0
 
 
 ## No faction assigned = default to hostile (safe fallback so an unconfigured

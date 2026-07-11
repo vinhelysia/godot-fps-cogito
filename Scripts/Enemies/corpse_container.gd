@@ -23,6 +23,26 @@ class_name CorpseContainer extends CogitoContainer
 		pockets = value
 		inventory_data = value
 
+## Group tag set on mannequin_ragdoll.tscn's root — see _find_ragdoll_skeleton().
+const RAGDOLL_GROUP := "corpse_ragdoll"
+const BONE_HEAD := "DEF-head"
+const BONE_TORSO := "DEF-spine.002"
+const BONE_PELVIS := "DEF-hips"
+## Bone tracking (Task 2) only runs within this range of the player — matches
+## the loot-anywhere-on-body requirement without paying a per-frame cost for
+## every corpse in the level.
+const TRACK_RADIUS := 5.0
+
+@onready var head_shape: CollisionShape3D = $HeadShape
+@onready var torso_shape: CollisionShape3D = $TorsoShape
+@onready var pelvis_shape: CollisionShape3D = $PelvisShape
+
+var _player: Node3D
+var _skeleton: Skeleton3D
+var _bone_head: int = -1
+var _bone_torso: int = -1
+var _bone_pelvis: int = -1
+
 
 func _ready() -> void:
 	super._ready()
@@ -34,14 +54,73 @@ func _ready() -> void:
 ## Deferred (like LootDropContainer._set_up_references()) so this doesn't run
 ## while the scene tree is still mid-setup for whatever spawned this corpse.
 func _set_up_references() -> void:
-	var player := get_tree().get_first_node_in_group("Player")
-	if player == null:
+	_player = get_tree().get_first_node_in_group("Player")
+	if _player == null:
 		return
-	var player_hud: CogitoPlayerHudManager = player.find_child("Player_HUD", true, true)
+	var player_hud: CogitoPlayerHudManager = _player.find_child("Player_HUD", true, true)
 	if player_hud == null:
 		return
 	if not toggle_inventory.is_connected(player_hud.toggle_inventory_interface):
 		toggle_inventory.connect(player_hud.toggle_inventory_interface)
+	_find_ragdoll_skeleton()
+
+
+## CogitoHealthAttribute.on_death() (addons/cogito, not whitelisted for this
+## task) spawns mannequin_ragdoll.tscn synchronously — before this corpse's
+## own (deferred) _ready() even runs — at the exact same death position, but
+## hands back no reference. Matching by group + nearest-distance instead of
+## touching that spawner is the only way to find it without editing an
+## out-of-whitelist file. "claimed" metadata guards the rare case of two
+## NPCs dying close together in the same frame.
+func _find_ragdoll_skeleton() -> void:
+	var best: Node3D = null
+	var best_dist := INF
+	for ragdoll in get_tree().get_nodes_in_group(RAGDOLL_GROUP):
+		if ragdoll.get_meta("claimed", false):
+			continue
+		var dist: float = ragdoll.global_position.distance_to(global_position)
+		if dist < best_dist:
+			best_dist = dist
+			best = ragdoll
+	if best == null:
+		push_warning("CorpseContainer (%s): no unclaimed mannequin_ragdoll found nearby — loot volumes will stay at their default standing pose instead of following the corpse." % name)
+		return
+
+	best.set_meta("claimed", true)
+	_skeleton = best.get_node_or_null("Rig/SkeletonRagdoll") as Skeleton3D
+	if _skeleton == null:
+		push_warning("CorpseContainer (%s): matched ragdoll has no Rig/SkeletonRagdoll — loot volumes will not track bone positions." % name)
+		return
+
+	_bone_head = _skeleton.find_bone(BONE_HEAD)
+	_bone_torso = _skeleton.find_bone(BONE_TORSO)
+	_bone_pelvis = _skeleton.find_bone(BONE_PELVIS)
+
+	# Deliberately NOT reparenting onto the ragdoll here (scene-tree-wise this
+	# stays a child of current_scene, same as before): CorpseContainer.save()
+	# persists get_parent().get_path(), and load_scene_state() (cogito_scene_
+	# manager.gd) does get_node(node_data["parent"]).add_child(new_object) —
+	# if that parent were the ragdoll (never in the "Persist" group, freshly
+	# re-instantiated with a different name every death, never saved), the
+	# saved path would resolve to nothing after a reload and the corpse would
+	# silently never re-enter the tree. Tracking bone positions every physics
+	# frame (below) rides the body just as well without that regression.
+
+
+func _physics_process(_delta: float) -> void:
+	if _skeleton == null or _player == null or not is_instance_valid(_player):
+		return
+	if global_position.distance_to(_player.global_position) > TRACK_RADIUS:
+		return
+	_track_bone(head_shape, _bone_head)
+	_track_bone(torso_shape, _bone_torso)
+	_track_bone(pelvis_shape, _bone_pelvis)
+
+
+func _track_bone(shape: CollisionShape3D, bone_idx: int) -> void:
+	if bone_idx < 0:
+		return
+	shape.global_transform = _skeleton.global_transform * _skeleton.get_bone_global_pose(bone_idx)
 
 
 ## CogitoContainer.save() (read-only base) has no idea `equipment` exists —

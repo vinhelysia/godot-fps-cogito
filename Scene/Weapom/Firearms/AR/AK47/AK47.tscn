@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cwy7qmjow61wl" path="res://Scripts/Weapons/cogito_weapon.gd" id="1_awh6b"]
 [ext_resource type="Resource" uid="uid://dr3aharu3mmkm" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tres" id="2_66jaj"]
-[ext_resource type="PackedScene" uid="uid://f0lviuikv26i" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39shell_casing_fx.tscn.tscn" id="3_ag60c"]
+[ext_resource type="PackedScene" uid="uid://f0lviuikv26i" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39shell_casing_fx.tscn" id="3_ag60c"]
 [ext_resource type="AudioStream" uid="uid://bt13lvujeulm7" path="res://Assets/SFX/Firearm/AK-47/shoot.wav" id="3_pkyv7"]
 [ext_resource type="PackedScene" uid="uid://dd7uf7xlh4l1w" path="res://Scene/VFX/MuzzleFlash/muzzle_flash/effects/muzzle_flash/muzzle_flash_01.tscn" id="4_yu6ap"]
 [ext_resource type="AudioStream" uid="uid://b38ucnv6ewqcf" path="res://Assets/SFX/Firearm/AK-47/ak_reload.ogg" id="5_wudpt"]
@@ -1044,10 +1044,6 @@ skeleton = NodePath("")
 transform = Transform3D(-4.3711374e-08, 0, 0.99999976, 0, 0.99999976, 0, -0.99999976, 0, -4.3711374e-08, 1.8566691e-08, -0.31738257, 0.4247564)
 mesh = SubResource("ArrayMesh_g6a2n")
 skeleton = NodePath("")
-
-[node name="SubViewport" type="SubViewport" parent="." unique_id=25578981]
-
-[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=1528756918]
 
 [node name="shell_eject_point" type="Marker3D" parent="." unique_id=725094400]
 unique_name_in_owner = true

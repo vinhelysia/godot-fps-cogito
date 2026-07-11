@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://cp6ih5a86n4xs"]
 
-[ext_resource type="Texture2D" uid="uid://cbfwxuq4cq435" path="res://Assets/Plzzz/crate_Texture_BaseColor_v02.png" id="1_q6jxc"]
+[ext_resource type="Texture2D" uid="uid://cbfwxuq4cq435" path="res://Assets/crate_Texture_BaseColor_v02.png" id="1_q6jxc"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s01om"]
 resource_name = "Weapon_Crate_M"
@@ -89,9 +89,7 @@ shadow_mesh = SubResource("ArrayMesh_peax3")
 [sub_resource type="BoxShape3D" id="BoxShape3D_eyrtc"]
 size = Vector3(97.68349, 40.51294, 10.262)
 
-[node name="Crate" type="RigidBody3D" unique_id=1741609525]
-mass = 4.0
-freeze = true
+[node name="Crate" type="StaticBody3D" unique_id=1148138164]
 
 [node name="SM_WeaponCrate_05_B" type="MeshInstance3D" parent="." unique_id=259471790]
 transform = Transform3D(0.013440137, 0, 0, 0, -5.8748706e-10, -0.013440137, 0, 0.013440137, -5.8748706e-10, 0, 0, 0)

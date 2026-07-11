@@ -493,10 +493,6 @@ skeleton = NodePath("")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11561626, 0.17186859, 0.0009773622)
 base_fov_at_1x = 60.0
 
-[node name="SubViewport" type="SubViewport" parent="." unique_id=1010963431]
-
-[node name="Camera3D" type="Camera3D" parent="SubViewport" unique_id=669320740]
-
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1612865397]
 libraries/ = SubResource("AnimationLibrary_n1hoc")
 

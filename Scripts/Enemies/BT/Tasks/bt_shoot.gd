@@ -29,6 +29,9 @@ var _los_lost_timer: float = 0.0
 var _rounds_left_in_burst: int = 0
 var _burst_pause_timer: float = 0.0
 
+## Keep world obstruction checks (layer 1) while also querying Player (layer 5).
+const HITSCAN_MASK: int = (1 << 0) | (1 << 4)
+
 
 func _enter() -> void:
 	var npc := agent as HostileNPC
@@ -157,7 +160,7 @@ func _cast_ray(npc: HostileNPC, from: Vector3, to: Vector3) -> Dictionary:
 	var space: PhysicsDirectSpaceState3D = npc.get_world_3d().direct_space_state
 	var params := PhysicsRayQueryParameters3D.create(from, to)
 	params.exclude = [npc.get_rid()]
-	params.collision_mask = 3
+	params.collision_mask = HITSCAN_MASK
 	return space.intersect_ray(params)
 
 
@@ -224,7 +227,7 @@ func _shoot(npc: HostileNPC, target: Node3D, muzzle_pos: Vector3, dist: float) -
 
 	var se := npc.get_node_or_null("/root/SoundEvents")
 	if se:
-		se.sound_emitted.emit(muzzle_pos, 80.0, &"gunshot", npc)
+		se.sound_emitted.emit(muzzle_pos, npc.gunshot_loudness(), &"gunshot", npc)
 
 	if muzzle_flash_scene:
 		var flash := muzzle_flash_scene.instantiate() as Node3D

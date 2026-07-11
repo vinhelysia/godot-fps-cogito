@@ -1,17 +1,18 @@
 [gd_scene format=3 uid="uid://bc4ey2218mco8"]
 
-[ext_resource type="Texture2D" uid="uid://ivq7k6ixcy2r" path="res://addons/kenney_prototype_textures/dark/texture_04.png" id="1_iiwd3"]
-[ext_resource type="Texture2D" uid="uid://cn2b5swufqnq4" path="res://addons/kenney_prototype_textures/red/texture_05.png" id="2_oqwwa"]
+[ext_resource type="Texture2D" uid="uid://bc536g8kahgmu" path="res://addons/kenney_prototype_textures/light/texture_04.png" id="1_iiwd3"]
+[ext_resource type="Texture2D" uid="uid://bb2xvpi5xga8y" path="res://addons/kenney_prototype_textures/light/texture_01.png" id="2_oqwwa"]
 [ext_resource type="AudioStream" uid="uid://dje0ryitb2437" path="res://Assets/SFX/SlideDoor/DoorSlideOpen.ogg" id="3_fatix"]
 [ext_resource type="Script" uid="uid://cismjpvxmsbf2" path="res://addons/cogito/CogitoObjects/cogito_door.gd" id="3_lgqu4"]
-[ext_resource type="Texture2D" uid="uid://cyelexk5chi8j" path="res://addons/kenney_prototype_textures/dark/texture_09.png" id="3_oqwwa"]
+[ext_resource type="Texture2D" uid="uid://crcxi274pnkj8" path="res://addons/kenney_prototype_textures/light/texture_09.png" id="3_oqwwa"]
 [ext_resource type="PackedScene" uid="uid://l61jtpfxu5x5" path="res://addons/cogito/Components/Interactions/BasicInteraction.tscn" id="4_lgqu4"]
 [ext_resource type="AudioStream" uid="uid://de4nh86bta3vc" path="res://Assets/SFX/SlideDoor/DoorSlideClose.ogg" id="4_qjye1"]
 [ext_resource type="Script" uid="uid://dohpdn3hnc12v" path="res://addons/cogito/CogitoObjects/cogito_button.gd" id="6_62jy6"]
-[ext_resource type="Texture2D" uid="uid://bnm18vecvbe35" path="res://addons/kenney_prototype_textures/dark/texture_08.png" id="7_7lbyg"]
+[ext_resource type="Texture2D" uid="uid://dh6gd1mh35b0o" path="res://addons/kenney_prototype_textures/light/texture_08.png" id="7_7lbyg"]
 [ext_resource type="PackedScene" uid="uid://c2r7ib4rrrdfj" path="res://addons/cogito/DemoScenes/DemoPrefabs/ksi_table_long.tscn" id="12_sp2ue"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kl144"]
+albedo_color = Color(0.52, 0.51, 0.49, 1)
 albedo_texture = ExtResource("2_oqwwa")
 uv1_scale = Vector3(5, 5, 5)
 
@@ -19,6 +20,7 @@ uv1_scale = Vector3(5, 5, 5)
 size = Vector3(1, 1, 0.12)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7lbyg"]
+albedo_color = Color(0.3, 0.28, 0.26, 1)
 albedo_texture = ExtResource("1_iiwd3")
 
 [sub_resource type="BoxMesh" id="BoxMesh_u16t1"]
@@ -26,6 +28,7 @@ material = SubResource("StandardMaterial3D_7lbyg")
 size = Vector3(1, 1, 0.12)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_62jy6"]
+albedo_color = Color(0.7, 0.65, 0.3, 1)
 albedo_texture = ExtResource("3_oqwwa")
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_7lbyg"]
@@ -40,6 +43,7 @@ height = 0.25
 radius = 0.05
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_u16t1"]
+albedo_color = Color(0.34, 0.32, 0.29, 1)
 albedo_texture = ExtResource("7_7lbyg")
 uv1_scale = Vector3(10, 10, 10)
 

@@ -121,12 +121,9 @@ func set_equipment(in_equipment: CogitoEquipment, in_interface: Control) -> void
 	equipment = in_equipment
 	_tracked_equipment = in_equipment
 	inventory_interface = in_interface
-	if equipment:
-		if not equipment.changed_slot.is_connected(_on_equipment_changed):
-			equipment.changed_slot.connect(_on_equipment_changed)
-		update_slot()
-	_connect_inventory_updated()
-
+	if equipment and not equipment.changed_slot.is_connected(_on_equipment_changed):
+		equipment.changed_slot.connect(_on_equipment_changed)
+	update_slot()
 
 ## Ammo counter also refreshes on the player's inventory_updated (e.g. ammo
 ## consumed from the inventory during reload), in addition to the direct
@@ -139,12 +136,24 @@ func _connect_inventory_updated() -> void:
 	if inv_ui == null:
 		return
 	var inv_data: Variant = inv_ui.get("loaded_inventory_data")
-	if inv_data == null or not (inv_data is CogitoInventory) or inv_data == _tracked_inventory:
+	if not (inv_data is CogitoInventory):
 		return
-	_tracked_inventory = inv_data
-	if not inv_data.inventory_updated.is_connected(_on_inventory_updated):
-		inv_data.inventory_updated.connect(_on_inventory_updated)
+	_set_tracked_inventory(inv_data)
 
+
+func _set_tracked_inventory(inventory_data: CogitoInventory) -> void:
+	if inventory_data == _tracked_inventory:
+		return
+	_disconnect_tracked_inventory()
+	_tracked_inventory = inventory_data
+	if not _tracked_inventory.inventory_updated.is_connected(_on_inventory_updated):
+		_tracked_inventory.inventory_updated.connect(_on_inventory_updated)
+
+
+func _disconnect_tracked_inventory() -> void:
+	if _tracked_inventory and _tracked_inventory.inventory_updated.is_connected(_on_inventory_updated):
+		_tracked_inventory.inventory_updated.disconnect(_on_inventory_updated)
+	_tracked_inventory = null
 
 func _on_inventory_updated(_inventory_data: CogitoInventory) -> void:
 	_refresh_ammo_counter()
@@ -156,10 +165,7 @@ func _on_equipment_changed(changed_id: StringName) -> void:
 
 
 func update_slot() -> void:
-	if equipment == null:
-		return
-
-	var slot_data = equipment.get_equipped(slot_id)
+	var slot_data: InventorySlotPD = equipment.get_equipped(slot_id) if equipment else null
 	if slot_data:
 		# Use parent class set_slot_data with dummy index/size
 		set_slot_data(slot_data, -1, false, 1)
@@ -177,7 +183,10 @@ func update_slot() -> void:
 
 	_track_item_charge_changed()
 	_refresh_ammo_counter()
-	_connect_inventory_updated()
+	if equipment:
+		_connect_inventory_updated()
+	else:
+		_disconnect_tracked_inventory()
 
 
 ## SlotPanel only connects charge_changed when its own ammo_slot flag is

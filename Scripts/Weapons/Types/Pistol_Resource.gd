@@ -41,7 +41,7 @@ func play_post_fire_visual(weapon: Node) -> void:
 			and firearm._mechanics != null and firearm._mechanics.bolt_locked_open
 	# Hammer cock-and-return tween.
 	if firearm._hammer_part != null:
-		firearm._run_pistol_parts_tween()
+		run_pistol_parts_tween(firearm)
 
 
 func on_anim_finished(weapon: Node, anim_name: StringName) -> void:
@@ -55,3 +55,19 @@ func on_reset(weapon: Node) -> void:
 	var firearm := weapon as CogitoFirearm
 	if firearm._hammer_part != null:
 		firearm._hammer_part.rotation = hammer_rest_rotation
+
+
+## Hammer cock-and-return tween. Relocated from cogito_weapon.gd so the shared
+## orchestrator no longer downcasts to Pistol_Resource — same delegation style
+## as the other virtuals here.
+func run_pistol_parts_tween(firearm: CogitoFirearm) -> void:
+	if firearm._hammer_part == null:
+		return
+	if firearm._hammer_tween:
+		firearm._hammer_tween.kill()
+	firearm._hammer_tween = firearm.create_tween().set_trans(Tween.TRANS_SINE)
+	firearm._hammer_tween.tween_property(firearm._hammer_part, "rotation",
+		hammer_cocked_rotation, hammer_cock_duration)
+	firearm._hammer_tween.tween_property(firearm._hammer_part, "rotation",
+		hammer_rest_rotation, hammer_return_duration)
+	firearm._hammer_tween.finished.connect(func(): firearm._hammer_tween = null)

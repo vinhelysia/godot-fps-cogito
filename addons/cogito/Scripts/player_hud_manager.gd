@@ -84,9 +84,28 @@ func _ready():
 	wieldable_hud.hide()
 	previous_crosshair_texture = default_crosshair
 	crosshair_texture.texture = default_crosshair
-	
+
+	_setup_detection_indicator()
 	_setup_player.call_deferred()
 	connect_to_external_inventories.call_deferred()
+
+
+# Spawns the stealth "eye" that warns the player when an NPC is spotting them
+# (reads the npc_perception group — see Scripts/UI/detection_indicator.gd).
+func _setup_detection_indicator() -> void:
+	var indicator: Control = preload("res://Scripts/UI/detection_indicator.gd").new()
+	indicator.name = "DetectionIndicator"
+	indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Centered horizontally, tucked just below the top edge.
+	indicator.anchor_left = 0.5
+	indicator.anchor_right = 0.5
+	indicator.anchor_top = 0.0
+	indicator.anchor_bottom = 0.0
+	indicator.offset_left = -24.0
+	indicator.offset_right = 24.0
+	indicator.offset_top = 64.0
+	indicator.offset_bottom = 112.0
+	add_child(indicator)
 
 
 func setup_player(new_player : Node):

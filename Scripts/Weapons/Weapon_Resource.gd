@@ -6,19 +6,22 @@ class_name Weapon_Resource
 @export_group("Recoil")
 @export var recoilVertical: float
 @export var recoilHorizontal: float
-@export var recoilRecovery: float
+@export var recoilRecovery: float = 5.0
 
 
 @export_flags("Hitscan", "Projectile") var Type
 @export var bulletProjectileToLoad: PackedScene
 @export var weaponVelocity: int
 
+@export_group("Audio")
+## How loud a shot is to NPC hearing (SoundEvents propagation radius scales with
+## this). Suppressed / small-caliber weapons should set this lower for stealth;
+## it does not affect the audible SFX volume, only AI perception range.
+@export var gunshot_loudness: float = 80.0
+
 @export_group("Firearm Mechanics")
 @export var magazine_capacity: int = 30
 @export var chamber_capacity: int = 1
-@export var supports_chamber_plus_one: bool = true
-@export var starts_chambered: bool = true
-@export var closed_bolt: bool = true
 @export var locks_open_on_empty: bool = false
 @export var auto_chambers_on_empty_reload: bool = true
 @export var manual_cycle_required: bool = false
@@ -27,21 +30,18 @@ func get_mechanics_config() -> Dictionary:
 	return {
 		"magazine_capacity": magazine_capacity,
 		"chamber_capacity": chamber_capacity,
-		"supports_chamber_plus_one": supports_chamber_plus_one,
 		"auto_chambers_on_empty_reload": auto_chambers_on_empty_reload,
 		"locks_open_on_empty": locks_open_on_empty,
 	}
 
-
 # ── Fire Type (matches @export_flags bit positions) ───────────────────────────
 enum FireType { HITSCAN = 1, PROJECTILE = 2 }
 
-# ── Fire Mode ──────────────────────────────────────────────────────────────────
-enum FireMode { SEMI, AUTO, BOLT_ACTION, PUMP, REVOLVER }
+# ── Fire Mode (live weapons: AR=AUTO, bolt=BOLT_ACTION, pistol=SEMI) ───────────
+enum FireMode { SEMI, AUTO, BOLT_ACTION }
 
 func get_fire_mode() -> FireMode:
 	return FireMode.SEMI
-
 
 # ── Virtual: Fire cooldown ─────────────────────────────────────────────────────
 ## Seconds between shots. Subclasses override for RPM-based or trigger-reset values.
@@ -59,31 +59,6 @@ func fire(ctx: Dictionary) -> void:
 		FireType.PROJECTILE: _projectile_fire(ctx)
 
 
-# ── Virtual: Post-fire actions (bolt cycle, pump, LMG heat) ───────────────────
-## Return true if a post-fire cycle was requested. Set keys in ctx as needed.
-func on_post_fire(_ctx: Dictionary) -> bool:
-	return false
-
-
-# ── Virtual: Can fire? (LMG heat, bolt not cycled, etc.) ──────────────────────
-## state keys: current_heat
-func can_fire(_state: Dictionary) -> bool:
-	return true
-
-
-# ── Virtual: Reload behavior ──────────────────────────────────────────────────
-## Return true if this resource handled reload specially (e.g. LMG vent).
-## ctx keys: current_heat, animation_player
-func on_reload(_ctx: Dictionary) -> bool:
-	return false
-
-
-# ── Virtual: Per-frame tick ───────────────────────────────────────────────────
-## Called every physics frame from the weapon. Used for heat decay, etc.
-func tick(_weapon: Node, _delta: float) -> void:
-	pass
-
-
 # ── Virtual: Post-fire visual ─────────────────────────────────────────────────
 ## Called after a confirmed shot. Run any type-specific visual side-effects
 ## (bolt root tween, hammer tween, slide-lock detection).
@@ -92,7 +67,7 @@ func play_post_fire_visual(_weapon: Node) -> void:
 
 
 # ── Virtual: Animation finished ───────────────────────────────────────────────
-## Called from the weapon's _on_anim_finished. Use to react to bolt/pump/vent
+## Called from the weapon's _on_anim_finished. Use to react to bolt-cycle
 ## animations completing without polluting the orchestrator with type checks.
 func on_anim_finished(_weapon: Node, _anim_name: StringName) -> void:
 	pass
@@ -127,7 +102,11 @@ func is_scope_weapon() -> bool:
 
 # ── Shared fire implementations ───────────────────────────────────────────────
 
-const COLLISION_MASK_DAMAGE: int = 0b0111
+## Layers 1|2 (Environment|Interactables) only — matches bt_shoot.gd's NPC
+## hitscan mask. Deliberately excludes layer 3 ("Corpse", CorpseContainer's
+## loot-anywhere-on-body volumes) so bullets pass through corpses instead of
+## being absorbed by their interact shapes.
+const COLLISION_MASK_DAMAGE: int = 0b0011
 const HITSCAN_OVERSHOOT: float = 2.0
 
 func _hitscan_fire(ctx: Dictionary) -> void:
@@ -166,7 +145,6 @@ func _projectile_fire(ctx: Dictionary) -> void:
 		proj.set_linear_velocity(direction * weaponVelocity)
 	if "Direction" in proj:
 		proj.Direction = direction
-
 
 static func _deal_damage(collider: Node, direction: Vector3, hit_position: Vector3, item_ref: WieldableItemPD) -> void:
 	if collider.has_signal("damage_received"):

@@ -88,10 +88,75 @@ func on_reset(weapon: Node) -> void:
 
 # ── Internal ─────────────────────────────────────────────────────────────────
 
+## Drives the bolt-cycle viewmodel motion. Relocated from cogito_weapon.gd so the
+## shared orchestrator stays weapon-type-agnostic (no `as BoltAction_Resource`).
+## Reaches into `firearm` internals — the same delegation style the other virtuals
+## (play_post_fire_visual/on_anim_finished) already use.
+func run_bolt_tween(firearm: CogitoFirearm) -> void:
+	if firearm._bolt_cycle_tween:
+		firearm._bolt_cycle_tween.kill()
+	if firearm._bolt_root_tween:
+		firearm._bolt_root_tween.kill()
+
+	# Capture rest transform now — works from any position (hip or ADS)
+	var base_pos := firearm.position
+	var base_rot := firearm.rotation
+
+	# Save the authoritative rest rotation before any tweening.
+	# Restored explicitly before _capture_rest_state() to prevent drift.
+	firearm._bolt_pre_cycle_rest_rot = firearm._rest_rotation_degrees
+
+	# Root viewmodel motion — eases to offset as bolt pulls back, returns as it closes
+	firearm._bolt_root_tween = firearm.create_tween().set_trans(Tween.TRANS_SINE)
+	firearm._bolt_root_tween.tween_property(firearm, "position",
+		base_pos + bolt_root_position_offset, bolt_root_out_duration)
+	firearm._bolt_root_tween.parallel().tween_property(firearm, "rotation",
+		base_rot + bolt_root_rotation_offset, bolt_root_out_duration)
+	firearm._bolt_root_tween.tween_property(firearm, "position", base_pos, bolt_root_return_duration)
+	firearm._bolt_root_tween.parallel().tween_property(firearm, "rotation", base_rot, bolt_root_return_duration)
+
+	# Shell ejection timed to bolt pull-back moment — always handled here for bolt tween.
+	var shell_timer := firearm.create_tween()
+	shell_timer.tween_interval(shell_eject_delay)
+	shell_timer.tween_callback(firearm._spawn_shell_casing)
+
+	# Bolt handle sequential tween
+	firearm._bolt_cycle_tween = firearm.create_tween().set_trans(Tween.TRANS_SINE)
+	# 1. Unlock: rotate handle up
+	firearm._bolt_cycle_tween.tween_property(firearm._bolt_part, "rotation",
+		bolt_unlocked_rotation, bolt_unlock_duration)
+	# 2. Pause before pulling
+	firearm._bolt_cycle_tween.tween_interval(0.067)
+	# 3. Pull bolt back
+	firearm._bolt_cycle_tween.tween_property(firearm._bolt_part, "position",
+		bolt_position_back, bolt_pull_duration)
+	# 4. Hold
+	firearm._bolt_cycle_tween.tween_interval(bolt_hold_duration)
+	# 5. Push bolt forward
+	firearm._bolt_cycle_tween.tween_property(firearm._bolt_part, "position",
+		bolt_position_forward, bolt_push_duration)
+	# 6. Pause before locking
+	firearm._bolt_cycle_tween.tween_interval(0.1)
+	# 7. Lock: rotate handle down
+	firearm._bolt_cycle_tween.tween_property(firearm._bolt_part, "rotation",
+		bolt_locked_rotation, bolt_lock_duration)
+	firearm._bolt_cycle_tween.finished.connect(func():
+		firearm._bolt_cycle_tween = null
+		if firearm._bolt_root_tween:
+			firearm._bolt_root_tween.kill()
+			firearm._bolt_root_tween = null
+		# Restore rotation to pre-cycle rest value before _capture_rest_state() reads it
+		firearm.rotation_degrees = firearm._bolt_pre_cycle_rest_rot
+		firearm.on_cycle_complete()
+		firearm._state = CogitoFirearm.WeaponState.IDLE
+		firearm._capture_rest_state()
+	)
+
+
 func _start_cycle(firearm: CogitoFirearm) -> void:
 	firearm._post_fire_cycle_tween = null
 	if firearm._bolt_part != null:
-		firearm._run_bolt_tween()
+		run_bolt_tween(firearm)
 		return
 	if firearm.shell_eject_timing == CogitoFirearm.ShellEjectTiming.ON_CYCLE:
 		firearm._spawn_shell_casing()
