@@ -712,6 +712,14 @@ fire_part_position_offset = Vector3(-0.471, 0, 0)
 fire_part_out_time = 0.05
 fire_part_return_time = 0.15
 hammer_part_node = NodePath("usp9 hammer")
+obstruction_reach = 1.3
+obstruction_pull_back = 0.22
+obstruction_yaw_deg = 90.0
+obstruction_roll_deg = 50.0
+obstruction_side = 0.2
+obstruction_pitch_deg = 0.0
+obstruction_smooth_speed = 16.0
+obstruction_ads_break_threshold = 0.85
 wieldable_mesh = NodePath(".")
 enable_sprint_motion = true
 sprint_position_offset = Vector3(0.08, -0.665, 0.05)
@@ -773,6 +781,10 @@ libraries/ = SubResource("AnimationLibrary_2ekfw")
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=384887079]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.99667525, 0.49982363, 0.003583908)
+
+[node name="Grip_Point" type="Marker3D" parent="." unique_id=1514208783]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.636086, -0.08860648, 0)
 
 [node name="shell_eject_point" type="Marker3D" parent="." unique_id=490805178]
 unique_name_in_owner = true

@@ -11,6 +11,8 @@ extends Node3D
 ## Minimum time (seconds) between sprint state transitions. Prevents jitter when spamming sprint.
 @export_range(0.0, 0.5, 0.01) var sprint_transition_cooldown: float = 0.15
 
+const _WeaponObstruction = preload("res://Scripts/Weapons/Helpers/weapon_obstruction.gd")
+
 var _sway_offset: Vector3 = Vector3.ZERO
 var _sprint_pose_position: Vector3 = Vector3.ZERO
 var _sprint_pose_rotation: Vector3 = Vector3.ZERO
@@ -21,6 +23,7 @@ var _sprint_active: bool = false
 var _sprint_transition_timer: float = 0.0
 var _tracked_wieldable: CogitoWieldable = null
 var _sprint_pose_tween: Tween = null
+var _obstruction: RefCounted = _WeaponObstruction.new()
 
 
 func _process(delta: float) -> void:
@@ -35,6 +38,7 @@ func _process(delta: float) -> void:
     _sway_offset.x = lerp(_sway_offset.x, 0.0, delta * sway_return_speed)
     _sway_offset.y = lerp(_sway_offset.y, 0.0, delta * sway_return_speed)
     _update_sprint_bob(delta, active_wieldable)
+    _update_obstruction(delta, active_wieldable)
     _apply_combined_motion()
 
 
@@ -65,6 +69,7 @@ func reset_motion() -> void:
     _sprint_pose_rotation = Vector3.ZERO
     _sprint_bob_position = Vector3.ZERO
     _sprint_bob_rotation = Vector3.ZERO
+    _obstruction.reset()
     position = Vector3.ZERO
     rotation_degrees = Vector3.ZERO
 
@@ -161,9 +166,56 @@ func _update_sprint_bob(delta: float, active_wieldable: CogitoWieldable) -> void
     )
 
 
+func _update_obstruction(delta: float, active_wieldable: CogitoWieldable) -> void:
+    if active_wieldable == null:
+        _obstruction.reset()
+        return
+    # Prefer .get() — "in" can miss script exports on some Node cases.
+    var enabled: Variant = active_wieldable.get("enable_obstruction")
+    if enabled != true:
+        _obstruction.reset()
+        return
+    var player := _get_player()
+    var camera := _get_camera(player)
+    if camera == null:
+        _obstruction.reset()
+        return
+    var break_ads: bool = bool(_obstruction.tick(delta, camera, active_wieldable, player))
+    if break_ads and active_wieldable.has_method("is_ads_active") and active_wieldable.is_ads_active():
+        if active_wieldable.has_method("cancel_ads_for_obstruction"):
+            active_wieldable.cancel_ads_for_obstruction()
+
+
 func _apply_combined_motion() -> void:
-    position = _sway_offset + _sprint_pose_position + _sprint_bob_position
-    rotation_degrees = _sprint_pose_rotation + _sprint_bob_rotation
+    # Sway/sprint base, then obstruction rotation PIVOTED around %Grip_Point:
+    #   O' = O + grip - R * grip
+    # so the handle stays put and the barrel swings (user intent).
+    var base_pos: Vector3 = _sway_offset + _sprint_pose_position + _sprint_bob_position + _obstruction.pos_offset
+    var base_rot: Vector3 = _sprint_pose_rotation + _sprint_bob_rotation
+    var obs_rot: Vector3 = _obstruction.rot_offset_deg
+    var grip: Vector3 = _obstruction.grip_local
+
+    if grip.length_squared() > 0.000001 and obs_rot.length_squared() > 0.0001:
+        var r: Basis = Basis.from_euler(Vector3(
+            deg_to_rad(obs_rot.x),
+            deg_to_rad(obs_rot.y),
+            deg_to_rad(obs_rot.z)
+        ))
+        # Keep grip fixed in Wieldables parent space while applying R.
+        base_pos = base_pos + grip - r * grip
+
+    position = base_pos
+    rotation_degrees = base_rot + obs_rot
+
+
+func _get_camera(player: CogitoPlayer) -> Camera3D:
+    if player == null:
+        return null
+    # Prefer the gameplay camera under Eyes; fall back to viewport.
+    var cam := player.get_node_or_null("Body/Neck/Head/Eyes/Camera") as Camera3D
+    if cam:
+        return cam
+    return player.get_viewport().get_camera_3d() if player.get_viewport() else null
 
 
 func _kill_sprint_tween() -> void:

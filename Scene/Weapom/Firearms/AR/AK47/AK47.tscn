@@ -964,6 +964,14 @@ sound_reload = ExtResource("5_wudpt")
 ads_fov = 45.0
 default_position = Vector3(0.722, -0.3, -0.973)
 ads_position = Vector3(0, -0.21, -0.8)
+obstruction_reach = 1.5
+obstruction_pull_back = 0.28
+obstruction_yaw_deg = 90.0
+obstruction_roll_deg = 55.0
+obstruction_side = 0.22
+obstruction_pitch_deg = 0.0
+obstruction_smooth_speed = 16.0
+obstruction_ads_break_threshold = 0.85
 aim_recoil_values = Vector3(0.04, 0.045, 0)
 hip_shot_position_offset = Vector3(0, 0.015, 0.128)
 hip_shot_rotation_deg = Vector3(0.4, 0, 0)
@@ -992,6 +1000,10 @@ transform = Transform3D(3.333333, 0, 0, 0, 3.333333, 0, 0, 0, 3.333333, 0.004511
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=1006062773]
 unique_name_in_owner = true
 transform = Transform3D(-4.3711374e-08, 0, 0.99999964, 0, 0.99999964, 0, -0.9999997, 0, -4.3711374e-08, -0.013999939, 0.18399996, -4.3802786)
+
+[node name="Grip_Point" type="Marker3D" parent="." unique_id=752730616]
+unique_name_in_owner = true
+transform = Transform3D(0.99999994, 0, 0, 0, 1, 0, 0, 0, 0.99999994, 0, -0.38958955, 1.4712851)
 
 [node name="7_62x39 ak47 mag 30rnd (steel)" type="MeshInstance3D" parent="." unique_id=137813977]
 transform = Transform3D(-4.37114e-08, 0, 1.0000005, 0, 1.0000006, 0, -1.0000002, 0, -4.371141e-08, -1.5648672e-08, -0.9569998, -0.35799992)

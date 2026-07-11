@@ -34,6 +34,8 @@ enum WeaponState { IDLE, CYCLING, RELOADING }
 @export_group("Muzzle")
 ## Marker3D where bullets/projectiles spawn. Set via unique name %Bullet_Point.
 @onready var bullet_point: Marker3D = get_node_or_null("%Bullet_Point") as Marker3D
+## Strong-hand grip / pistol-grip pivot for obstruction roll/yaw. Unique name %Grip_Point.
+@onready var grip_point: Marker3D = get_node_or_null("%Grip_Point") as Marker3D
 ## Muzzle flash scene to spawn on each shot (first-person view).
 ## Use any muzzle_flash_0N.tscn or short_flash_0N.tscn from Scene/VFX/MuzzleFlash.
 @export var muzzle_flash_scene: PackedScene
@@ -97,6 +99,33 @@ enum WeaponState { IDLE, CYCLING, RELOADING }
 @export var trigger_pull_rotation: float = -20.0
 ## Minimum time (seconds) the trigger stays pulled.
 @export var trigger_min_hold_time: float = 0.1
+
+@export_group("Obstruction")
+## When the camera ray hits a wall, rotate the gun around %Grip_Point (handle stays fixed).
+@export var enable_obstruction: bool = true
+## How far ahead the probe looks (must cover viewmodel length past the camera).
+@export_range(0.4, 2.5, 0.05) var obstruction_reach: float = 1.5
+## Pull toward body at full obstruction.
+@export_range(0.0, 0.8, 0.01) var obstruction_pull_back: float = 0.28
+## Yaw around grip at full obstruction (muzzle screen-LEFT). Up to 90°.
+@export_range(0.0, 90.0, 0.5) var obstruction_yaw_deg: float = 90.0
+## Roll around grip at full obstruction.
+@export_range(0.0, 90.0, 0.5) var obstruction_roll_deg: float = 55.0
+## Extra lateral slide (screen-left) at full obstruction.
+@export_range(0.0, 0.5, 0.01) var obstruction_side: float = 0.22
+## Optional pitch around grip (usually 0).
+@export_range(0.0, 90.0, 0.5) var obstruction_pitch_deg: float = 0.0
+## Exp smoothing speed.
+@export_range(1.0, 40.0, 0.5) var obstruction_smooth_speed: float = 16.0
+## Auto-exit ADS when jammed. Set ≥1.0 to disable.
+@export_range(0.0, 1.0, 0.01) var obstruction_ads_break_threshold: float = 0.85
+
+
+## Grip pivot in this firearm's local space (fallback: origin / approximate handle).
+func get_grip_local_position() -> Vector3:
+	if grip_point != null and is_instance_valid(grip_point):
+		return grip_point.position
+	return Vector3(0.0, -0.06, 0.05)
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
@@ -326,6 +355,15 @@ func reload() -> void:
 
 
 func cancel_ads_for_sprint() -> void:
+	_cancel_ads_with_duration(ads_to_sprint_time)
+
+
+## Same path as sprint ADS cancel — used when obstruction probe exceeds threshold.
+func cancel_ads_for_obstruction() -> void:
+	_cancel_ads_with_duration(ads_to_sprint_time)
+
+
+func _cancel_ads_with_duration(duration: float) -> void:
 	if _ads == null or weapon_data == null:
 		return
 	if _ads.is_aiming:
@@ -335,7 +373,7 @@ func cancel_ads_for_sprint() -> void:
 			rotation_degrees = _bolt_pre_cycle_rest_rot
 		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, false,
-				player_interaction_component, ads_to_sprint_time)
+				player_interaction_component, duration)
 
 
 func is_ads_active() -> bool:
@@ -426,9 +464,16 @@ func _try_fire() -> void:
 func _build_fire_context() -> Dictionary:
 	if not _setup_valid or bullet_point == null or player_interaction_component == null:
 		return {}
+	var aim_point := _resolve_aim_point()
+	var shot_range := 1000.0
+	if _item_ref and _item_ref.wieldable_range > 0.0:
+		shot_range = _item_ref.wieldable_range
 	return {
 		"bullet_point": bullet_point,
-		"camera_collision": player_interaction_component.Get_Camera_Collision(),
+		# Legacy key kept for any resource that still reads camera_collision.
+		"camera_collision": aim_point,
+		"aim_point": aim_point,
+		"shot_range": shot_range,
 		"is_aiming": _ads.is_aiming,
 		"item_ref": _item_ref,
 		"player_interaction_component": player_interaction_component,
@@ -436,6 +481,35 @@ func _build_fire_context() -> Dictionary:
 		"viewport": get_viewport(),
 		"scene_tree": get_tree(),
 	}
+
+
+## Crosshair aim point in world space (camera ray). The bullet still leaves the
+## barrel — fire code uses muzzle→aim_point so hip-fire has realistic offset.
+func _resolve_aim_point() -> Vector3:
+	var camera := get_viewport().get_camera_3d() if get_viewport() else null
+	var shot_range := 1000.0
+	if _item_ref and _item_ref.wieldable_range > 0.0:
+		shot_range = _item_ref.wieldable_range
+
+	if camera == null:
+		# Fallback to Cogito helper (no mask control).
+		return player_interaction_component.Get_Camera_Collision()
+
+	var viewport_size := get_viewport().get_visible_rect().size
+	var screen_center := viewport_size * 0.5
+	var ray_origin := camera.project_ray_origin(screen_center)
+	var ray_dir := camera.project_ray_normal(screen_center)
+	var ray_end := ray_origin + ray_dir * shot_range
+
+	var params := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	if player_interaction_component.player_rid:
+		params.exclude = [player_interaction_component.player_rid]
+	# Same mask as damage: Environment + Interactables (not corpse loot volumes).
+	params.collision_mask = Weapon_Resource.COLLISION_MASK_DAMAGE
+	var hit := get_world_3d().direct_space_state.intersect_ray(params)
+	if not hit.is_empty():
+		return hit["position"]
+	return ray_end
 
 
 # ── Shoot visual ─────────────────────────────────────────────────────────────

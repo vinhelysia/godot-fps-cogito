@@ -108,18 +108,46 @@ func is_scope_weapon() -> bool:
 ## being absorbed by their interact shapes.
 const COLLISION_MASK_DAMAGE: int = 0b0011
 const HITSCAN_OVERSHOOT: float = 2.0
+const MIN_SHOT_DIR_LEN_SQ: float = 0.0001
+
+## Semi-realistic: always spawn / cast from the muzzle (%Bullet_Point). Aim point
+## comes from the camera (crosshair) so hip-fire has natural bore-offset.
+## Returns { origin, direction, aim_point, range }.
+func _resolve_muzzle_shot(ctx: Dictionary) -> Dictionary:
+	var bullet_point: Marker3D = ctx["bullet_point"]
+	var origin: Vector3 = bullet_point.global_position
+	var aim_point: Vector3 = ctx.get("camera_collision", origin + Vector3.FORWARD)
+	if ctx.has("aim_point"):
+		aim_point = ctx["aim_point"]
+
+	var to_aim := aim_point - origin
+	var direction: Vector3
+	if to_aim.length_squared() > MIN_SHOT_DIR_LEN_SQ:
+		direction = to_aim.normalized()
+	else:
+		# Degenerate (aim on muzzle): fire along barrel forward (-Z of marker).
+		direction = -bullet_point.global_transform.basis.z.normalized()
+		if direction.length_squared() < MIN_SHOT_DIR_LEN_SQ:
+			direction = Vector3.FORWARD
+
+	var shot_range: float = float(ctx.get("shot_range", 1000.0))
+	return {
+		"origin": origin,
+		"direction": direction,
+		"aim_point": aim_point,
+		"range": maxf(shot_range, 1.0),
+	}
+
 
 func _hitscan_fire(ctx: Dictionary) -> void:
-	var bullet_point: Marker3D = ctx["bullet_point"]
-	var collision_point: Vector3 = ctx["camera_collision"]
 	var pic: PlayerInteractionComponent = ctx["player_interaction_component"]
 	var item_ref: WieldableItemPD = ctx["item_ref"]
-	var origin := bullet_point.global_position
-	var direction := (collision_point - origin).normalized()
-	var query := PhysicsRayQueryParameters3D.create(
-		origin, collision_point + direction * HITSCAN_OVERSHOOT
-	)
-	if pic.player_rid:
+	var shot := _resolve_muzzle_shot(ctx)
+	var origin: Vector3 = shot["origin"]
+	var direction: Vector3 = shot["direction"]
+	var end: Vector3 = origin + direction * (float(shot["range"]) + HITSCAN_OVERSHOOT)
+	var query := PhysicsRayQueryParameters3D.create(origin, end)
+	if pic and pic.player_rid:
 		query.exclude = [pic.player_rid]
 	query.collision_mask = COLLISION_MASK_DAMAGE
 	var world: World3D = ctx["world_3d"]
@@ -131,17 +159,27 @@ func _hitscan_fire(ctx: Dictionary) -> void:
 func _projectile_fire(ctx: Dictionary) -> void:
 	if bulletProjectileToLoad == null:
 		return
-	var bullet_point: Marker3D = ctx["bullet_point"]
-	var target_point: Vector3 = ctx["camera_collision"]
 	var item_ref: WieldableItemPD = ctx["item_ref"]
 	var scene_tree: SceneTree = ctx["scene_tree"]
-	var direction := (target_point - bullet_point.global_position).normalized()
+	var shot := _resolve_muzzle_shot(ctx)
+	var origin: Vector3 = shot["origin"]
+	var direction: Vector3 = shot["direction"]
+
 	var proj := bulletProjectileToLoad.instantiate()
 	scene_tree.current_scene.add_child(proj)
-	proj.global_position = bullet_point.global_position
+	# Spawn at muzzle; face flight direction so the mesh leaves the barrel.
+	if direction.length_squared() > MIN_SHOT_DIR_LEN_SQ:
+		var up := Vector3.UP
+		if absf(direction.dot(up)) > 0.99:
+			up = Vector3.RIGHT
+		proj.global_transform = Transform3D(Basis.looking_at(direction, up), origin)
+	else:
+		proj.global_position = origin
 	if "damage_amount" in proj:
 		proj.damage_amount = item_ref.wieldable_damage
-	if proj.has_method("set_linear_velocity"):
+	if proj is RigidBody3D:
+		(proj as RigidBody3D).linear_velocity = direction * float(weaponVelocity)
+	elif proj.has_method("set_linear_velocity"):
 		proj.set_linear_velocity(direction * weaponVelocity)
 	if "Direction" in proj:
 		proj.Direction = direction

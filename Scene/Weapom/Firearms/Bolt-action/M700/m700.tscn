@@ -456,6 +456,13 @@ shoot_kick_out_time = 0.2
 shoot_return_time = 0.1
 bolt_part_node = NodePath("Cylinder_001")
 trigger_pull_rotation = -18.0
+obstruction_reach = 1.6
+obstruction_pull_back = 0.3
+obstruction_yaw_deg = 90.0
+obstruction_roll_deg = 55.0
+obstruction_side = 0.25
+obstruction_smooth_speed = 16.0
+obstruction_ads_break_threshold = 0.85
 wieldable_mesh = NodePath(".")
 ads_time = 0.45
 enable_sprint_motion = true
@@ -468,6 +475,10 @@ sprint_bob_position_amplitude = Vector3(0.01, 0.01, 0.1)
 [node name="Bullet_Point" type="Marker3D" parent="." unique_id=145585913]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4246658, 0.058147967, -5.9604645e-08)
+
+[node name="Grip_Point" type="Marker3D" parent="." unique_id=1395001201]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.34090793, -0.027299196, -1.1920929e-07)
 
 [node name="Cube" type="MeshInstance3D" parent="." unique_id=1101655010]
 transform = Transform3D(0.2283194, 0, 0, 0, 0.2283194, 0, 0, 0, 0.19379191, 0, 0, 0)
