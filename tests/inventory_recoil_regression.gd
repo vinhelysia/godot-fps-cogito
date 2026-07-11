@@ -38,6 +38,15 @@ func _assert_source_contracts() -> void:
 	_assert_contains("res://addons/cogito/InventoryPD/UiScenes/InventoryUI.gd", "loaded_inventory_data.inventory_updated.disconnect(populate_item_grid)")
 	_assert_contains("res://Scripts/Weapons/cogito_weapon.gd", "rn.return_speed = weapon_data.recoilRecovery")
 	_assert_contains("res://Scripts/Weapons/weapon_recoil.gd", "return 1.0 - exp(-maxf(speed, 0.0) * maxf(delta, 0.0))")
+	# Lean-safe recoil: pitch on head.x, yaw on body world-Y — never local-UP while rolled.
+	_assert_contains("res://Scripts/Weapons/weapon_recoil.gd", "_head_node.rotation.x += delta_rot.x")
+	_assert_contains("res://Scripts/Weapons/weapon_recoil.gd", "_body_node.rotate_y(delta_rot.y)")
+	var recoil_src := FileAccess.get_file_as_string("res://Scripts/Weapons/weapon_recoil.gd")
+	# Call-site only (comments may mention the anti-pattern by name).
+	assert(not recoil_src.contains("rotate_object_local("),
+		"weapon_recoil must not call rotate_object_local (snaps toward lean side)")
+	assert(not recoil_src.contains("global_rotation.z"),
+		"weapon_recoil must not force global_rotation.z (fights lean/shake)")
 
 
 func _assert_contains(path: String, expected: String) -> void:

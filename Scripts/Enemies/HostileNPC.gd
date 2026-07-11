@@ -58,8 +58,28 @@ var pockets: CogitoInventory
 var _loadout_rng := RandomNumberGenerator.new()
 
 
+func _enter_tree() -> void:
+	# Parent enters before children. Disable Cogito NPC_State_Machine *before*
+	# its _enter_tree → setup() → deferred start_state (idle→patrol). LimboAI
+	# BTPlayer is the sole AI authority for HostileNPC / Scav.
+	_disable_legacy_state_machine()
+
+
+func _disable_legacy_state_machine() -> void:
+	var sm: Node = get_node_or_null("NPC_State_Machine")
+	if sm == null:
+		return
+	# ai_enabled gates setup start + goto/restart (see npc_state_machine.gd).
+	sm.set("ai_enabled", false)
+	sm.set("start_state", "")
+	sm.set("current", "")
+	sm.process_mode = Node.PROCESS_MODE_DISABLED
+
+
 func _ready() -> void:
 	super._ready()
+	# Belt-and-suspenders if SM was re-enabled by a tool/scene override after enter.
+	_disable_legacy_state_machine()
 	# Lets mannequin_ragdoll.tscn except live NPCs from its physical bones'
 	# collisions (both default to layer 1, same as Environment — see that
 	# scene's _except_dynamic_actors()) without a dedicated physics layer.
@@ -84,6 +104,33 @@ func _ready() -> void:
 	# what seeds the starting magazine.
 	if bt_player and bt_player.blackboard:
 		bt_player.blackboard.set_var(&"ammo", magazine_size())
+
+
+## Persist transform/patrol path only — never restore NPC_State_Machine onto a BT scav.
+func set_state() -> void:
+	find_cogito_properties()
+	load_patrol_points()
+	# Do not call npc_state_machine.goto(saved_enemy_state).
+	_disable_legacy_state_machine()
+
+
+func save() -> Dictionary:
+	if patrol_path:
+		patrol_path_nodepath = patrol_path.get_path()
+	# saved_enemy_state left empty: load must not revive legacy SM on this node.
+	saved_enemy_state = ""
+	return {
+		"filename": get_scene_file_path(),
+		"parent": get_parent().get_path(),
+		"pos_x": position.x,
+		"pos_y": position.y,
+		"pos_z": position.z,
+		"rot_x": rotation.x,
+		"rot_y": rotation.y,
+		"rot_z": rotation.z,
+		"patrol_path_nodepath": patrol_path_nodepath,
+		"saved_enemy_state": "",
+	}
 
 
 ## Rolls `loadout` and wires the result into equipped_wieldable/

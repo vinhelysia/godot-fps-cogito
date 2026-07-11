@@ -1,0 +1,158 @@
+extends Node
+## Tarkov-style hold-to-lean. Asymmetric: right lean peeks further with less body exposure.
+##
+## Transform ownership: only applies *deltas* of our own contribution on Head
+## (position.x / rotation.z). Recoil/trauma shake on the same Head node use the
+## same subtract-previous / add-current pattern — absolute writes would erase them.
+
+@export var enabled: bool = true
+@export_group("Motion")
+@export var lateral_amount: float = 0.38
+@export var roll_degrees: float = 12.0
+@export var smooth_speed: float = 12.0
+@export var crouch_lean_scale: float = 0.85
+
+@export_group("Asymmetry (right advantage)")
+## Multiplier on camera lateral when leaning right / left.
+@export var right_lateral_scale: float = 1.2
+@export var left_lateral_scale: float = 1.0
+## Collision lateral as fraction of *camera* lateral for that side.
+@export var right_collision_fraction: float = 0.38
+@export var left_collision_fraction: float = 0.55
+## Roll scale per side (right slightly less for cleaner ADS).
+@export var right_roll_scale: float = 0.85
+@export var left_roll_scale: float = 1.0
+
+## Smoothed lean amount in [-1, 1]. +1 = full right.
+var lean_amount: float = 0.0
+
+## Currently applied lean contribution on Head (so we can remove/replace without clobbering peers).
+var _applied_pos_x: float = 0.0
+var _applied_rot_z: float = 0.0
+var _applied_coll_x: float = 0.0
+
+var _player: CharacterBody3D
+var _head: Node3D
+var _stand_col: CollisionShape3D
+var _crouch_col: CollisionShape3D
+var _stand_base_x: float = 0.0
+var _crouch_base_x: float = 0.0
+
+
+func _ready() -> void:
+	_player = get_parent() as CharacterBody3D
+	if not _player:
+		push_warning("PlayerLean: parent is not CharacterBody3D")
+		set_physics_process(false)
+		return
+	_head = _player.get_node_or_null("Body/Neck/Head") as Node3D
+	_stand_col = _player.get_node_or_null("StandingCollisionShape") as CollisionShape3D
+	_crouch_col = _player.get_node_or_null("CrouchingCollisionShape") as CollisionShape3D
+	if not _head:
+		push_warning("PlayerLean: Head not found")
+		set_physics_process(false)
+		return
+	if _stand_col:
+		_stand_base_x = _stand_col.position.x
+	if _crouch_col:
+		_crouch_base_x = _crouch_col.position.x
+
+
+func _exit_tree() -> void:
+	# Remove our contribution if the node leaves mid-lean.
+	_clear_applied()
+
+
+func _physics_process(delta: float) -> void:
+	if not enabled or not _player or not _head:
+		return
+
+	var target := _compute_target()
+	var k := 1.0 - exp(-smooth_speed * delta)
+	lean_amount = lerpf(lean_amount, target, k)
+	_apply_pose(lean_amount)
+
+
+func _compute_target() -> float:
+	# Block when UI / dead / sitting / free-look / sprint / slide.
+	if _player.get("is_movement_paused") == true:
+		return 0.0
+	if _player.get("is_dead") == true:
+		return 0.0
+	if _player.get("is_sitting") == true:
+		return 0.0
+	if _player.get("is_free_looking") == true:
+		return 0.0
+	if _player.get("is_sprinting") == true:
+		return 0.0
+	var sliding: Timer = _player.get("sliding_timer") as Timer
+	if sliding and not sliding.is_stopped():
+		return 0.0
+
+	var left := Input.is_action_pressed("lean_left")
+	var right := Input.is_action_pressed("lean_right")
+	if left and right:
+		return 0.0
+	if left:
+		return -1.0
+	if right:
+		return 1.0
+	return 0.0
+
+
+func _desired_offsets(amount: float) -> Vector3:
+	## Returns Vector3(cam_x, rot_z_rad, coll_x).
+	if absf(amount) < 0.0001:
+		return Vector3.ZERO
+
+	var is_right := amount > 0.0
+	var lat_scale := right_lateral_scale if is_right else left_lateral_scale
+	var coll_frac := right_collision_fraction if is_right else left_collision_fraction
+	var roll_scale := right_roll_scale if is_right else left_roll_scale
+
+	var crouch_mul := 1.0
+	if _player.get("is_crouching") == true:
+		crouch_mul = crouch_lean_scale
+
+	var cam_x := amount * lateral_amount * lat_scale * crouch_mul
+	var roll := -amount * deg_to_rad(roll_degrees) * roll_scale * crouch_mul
+	var coll_x := amount * lateral_amount * lat_scale * coll_frac * crouch_mul
+	return Vector3(cam_x, roll, coll_x)
+
+
+func _apply_pose(amount: float) -> void:
+	var desired := _desired_offsets(amount)
+	var want_x := desired.x
+	var want_rz := desired.y
+	var want_coll := desired.z
+
+	# Additive: only move by the change in *our* contribution.
+	var dx := want_x - _applied_pos_x
+	var drz := want_rz - _applied_rot_z
+	if absf(dx) > 0.0000001:
+		_head.position.x += dx
+	if absf(drz) > 0.0000001:
+		_head.rotation.z += drz
+
+	_applied_pos_x = want_x
+	_applied_rot_z = want_rz
+	_applied_coll_x = want_coll
+	_set_collision_x(want_coll)
+
+
+func _clear_applied() -> void:
+	if is_instance_valid(_head):
+		_head.position.x -= _applied_pos_x
+		_head.rotation.z -= _applied_rot_z
+	_applied_pos_x = 0.0
+	_applied_rot_z = 0.0
+	_applied_coll_x = 0.0
+	_set_collision_x(0.0)
+
+
+func _set_collision_x(offset_x: float) -> void:
+	# Collision is owned solely by lean (recoil does not touch it) — absolute is fine.
+	if _stand_col:
+		_stand_col.position.x = _stand_base_x + offset_x
+	if _crouch_col:
+		_crouch_col.position.x = _crouch_base_x + offset_x

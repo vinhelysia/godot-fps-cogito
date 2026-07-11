@@ -107,16 +107,16 @@ enum WeaponState { IDLE, CYCLING, RELOADING }
 @export_range(0.4, 2.5, 0.05) var obstruction_reach: float = 1.5
 ## Pull toward body at full obstruction.
 @export_range(0.0, 0.8, 0.01) var obstruction_pull_back: float = 0.28
-## Yaw around grip at full obstruction (muzzle screen-LEFT). Up to 90°.
-@export_range(0.0, 90.0, 0.5) var obstruction_yaw_deg: float = 90.0
+## Yaw around grip at full obstruction. Side follows L/R probe (not always left).
+@export_range(0.0, 90.0, 0.5) var obstruction_yaw_deg: float = 55.0
 ## Roll around grip at full obstruction.
-@export_range(0.0, 90.0, 0.5) var obstruction_roll_deg: float = 55.0
-## Extra lateral slide (screen-left) at full obstruction.
-@export_range(0.0, 0.5, 0.01) var obstruction_side: float = 0.22
+@export_range(0.0, 90.0, 0.5) var obstruction_roll_deg: float = 35.0
+## Extra lateral slide at full obstruction (sign follows open side).
+@export_range(0.0, 0.5, 0.01) var obstruction_side: float = 0.18
 ## Optional pitch around grip (usually 0).
 @export_range(0.0, 90.0, 0.5) var obstruction_pitch_deg: float = 0.0
-## Exp smoothing speed.
-@export_range(1.0, 40.0, 0.5) var obstruction_smooth_speed: float = 16.0
+## Exp smoothing speed (slower = less spray/lean flicker snap).
+@export_range(1.0, 40.0, 0.5) var obstruction_smooth_speed: float = 12.0
 ## Auto-exit ADS when jammed. Set ≥1.0 to disable.
 @export_range(0.0, 1.0, 0.01) var obstruction_ads_break_threshold: float = 0.85
 
@@ -518,6 +518,10 @@ func _play_shoot_visual() -> bool:
 	if _uses_animation_shoot_motion():
 		animation_player.play(_get_shoot_animation_name())
 		return true
+	# Full-auto: restarting the kick tween every round cancels mid-return and
+	# snaps the viewmodel. Keep one kick alive until it finishes.
+	if _shoot_motion != null and _shoot_motion.is_active:
+		return false
 	var rest_pos := _ads.get_rest_position(weapon_data, ads_position, default_position)
 	_shoot_motion.play(rest_pos, _rest_rotation_degrees, _ads.is_aiming)
 	return false

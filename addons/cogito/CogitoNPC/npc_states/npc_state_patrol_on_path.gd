@@ -26,11 +26,11 @@ func _enter_tree() -> void:
 
 func _state_enter():
 	CogitoGlobals.debug_log(true, "npc_state_patrol_on_path.gd", name + " state entered")
-	if Host.patrol_path:
+	if Host.patrol_path and not Host.patrol_path.patrol_points.is_empty():
 		Host.navigation_agent_3d.target_position = set_next_patrol_point_destination()
 		current_travel_status = TravelStatus.RUNNING
 	else:
-		CogitoGlobals.debug_log(true, "npc_state_patrol_on_path.gd", "No patrol path assigned to NPC")
+		CogitoGlobals.debug_log(true, "npc_state_patrol_on_path.gd", "No patrol path or empty patrol_points on NPC")
 
 
 func _state_exit():
@@ -64,11 +64,15 @@ func _physics_process(_delta):
 
 
 func set_next_patrol_point_destination():
-	if Host.patrol_path:
-		var new_destination = Host.patrol_path.patrol_points[patrol_point_index].global_position
-		return new_destination
-	else:
-		return null
+	if not Host.patrol_path or Host.patrol_path.patrol_points.is_empty():
+			return Host.global_position
+	# Clamp in case index is stale after path swap / empty path.
+	if patrol_point_index < 0 or patrol_point_index >= Host.patrol_path.patrol_points.size():
+		patrol_point_index = 0
+	var point: Node3D = Host.patrol_path.patrol_points[patrol_point_index]
+	if not point:
+		return Host.global_position
+	return point.global_position
 
 
 func _running(delta: float):
@@ -97,12 +101,13 @@ func resume_patrolling() -> void:
 
 
 func iterate_patrol_point_index():
+	if not Host.patrol_path or Host.patrol_path.patrol_points.is_empty():
+		patrol_point_index = 0
+		return
 	# Checking to see if we've reached the end of the patrol point list.
-	if patrol_point_index == Host.patrol_path.patrol_points.size() - 1:
-		# If yes, we're starting over:
+	if patrol_point_index >= Host.patrol_path.patrol_points.size() - 1:
 		patrol_point_index = 0
 	else:
-		# If no, we're going to the next point:
 		patrol_point_index += 1
 
 

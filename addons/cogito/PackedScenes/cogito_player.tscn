@@ -31,6 +31,7 @@
 [ext_resource type="PackedScene" uid="uid://bnlt0es031dsf" path="res://addons/cogito/Components/AutoConsumes/HealthAutoConsume.tscn" id="32_s725a"]
 [ext_resource type="PackedScene" uid="uid://txkg0abvpsj7" path="res://addons/cogito/Components/AutoConsumes/StaminaAutoConsume.tscn" id="35_wx2rv"]
 [ext_resource type="Script" uid="uid://dw0bupxm1mn0q" path="res://Scripts/Weapons/weapon_recoil.gd" id="36_recoil"]
+[ext_resource type="Script" path="res://Scripts/Player/player_lean.gd" id="37_lean"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_8vem4"]
 size = Vector3(0.6, 1.7, 0.6)
@@ -164,6 +165,9 @@ landing_material_library = ExtResource("19_pc36t")
 [node name="JumpCooldownTimer" type="Timer" parent="." unique_id=1491962766]
 wait_time = 0.5
 one_shot = true
+
+[node name="PlayerLean" type="Node" parent="."]
+script = ExtResource("37_lean")
 
 [node name="PlayerInteractionComponent" parent="." unique_id=1376914453 node_paths=PackedStringArray("interaction_raycast", "carryable_position", "stamina_attribute", "wieldable_container") instance=ExtResource("20_4f25o")]
 interaction_raycast = NodePath("../Body/Neck/Head/Eyes/Camera/InteractionRaycast")

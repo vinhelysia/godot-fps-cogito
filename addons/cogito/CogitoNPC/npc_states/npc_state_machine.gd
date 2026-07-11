@@ -8,6 +8,9 @@ var allowed: Dictionary = {}
 @export var current := ""
 @export var start_state : String = ""
 @export var fallback_state : String = "idle"
+## When false, states are registered but never started/entered.
+## HostileNPC (LimboAI) clears this in parent _enter_tree before this node's setup runs.
+@export var ai_enabled: bool = true
 
 var previous_state = null
 var previous_args = null
@@ -58,6 +61,8 @@ func now(state: String) -> bool:
 
 ##	Restarts the current state. This only calls "_state_enter" again, it does not reset any variables
 func restart(arg = null):
+	if not ai_enabled:
+		return
 	await self.caller("_state_enter", arg)
 
 
@@ -80,6 +85,10 @@ func setup() -> void:
 
 		if child.name != current:
 			self.remove_child(child)
+
+	if not ai_enabled:
+		current = ""
+		return
 
 	self.restart()
 	
@@ -108,6 +117,8 @@ func load_previous_state(_fallback_state: String = ""):
 
 ## 	Changes to another state. If a state is loaded it will first call "_state_exit". The loaded state will enter with "_state_enter".
 func goto(state: String, args = null) -> void:
+	if not ai_enabled:
+		return
 	if not state in states:
 		push_error("Could not find state <%s> in state list" % state)
 		return
