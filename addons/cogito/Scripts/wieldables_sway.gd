@@ -176,11 +176,13 @@ func _update_obstruction(delta: float, active_wieldable: CogitoWieldable) -> voi
         _obstruction.reset()
         return
     var player := _get_player()
-    var camera := _get_camera(player)
-    if camera == null:
+    var cast := _get_obstruction_cast(player)
+    if cast == null:
         _obstruction.reset()
         return
-    var break_ads: bool = bool(_obstruction.tick(delta, camera, active_wieldable, player))
+    # `self` IS the Wieldables node — the probe measures the gun relative to it, so the
+    # offsets _apply_combined_motion() writes below cannot feed back into the probe.
+    var break_ads: bool = bool(_obstruction.tick(delta, cast, self, active_wieldable, player))
     if break_ads and active_wieldable.has_method("is_ads_active") and active_wieldable.is_ads_active():
         if active_wieldable.has_method("cancel_ads_for_obstruction"):
             active_wieldable.cancel_ads_for_obstruction()
@@ -208,14 +210,13 @@ func _apply_combined_motion() -> void:
     rotation_degrees = base_rot + obs_rot
 
 
-func _get_camera(player: CogitoPlayer) -> Camera3D:
+# Sibling of this node under Head, NOT a child of it: Head is what lean/pitch/recoil move,
+# so the cast tracks the gun; parenting it here would make _apply_combined_motion() shove the
+# probe out of the wall it just detected.
+func _get_obstruction_cast(player: CogitoPlayer) -> ShapeCast3D:
     if player == null:
         return null
-    # Prefer the gameplay camera under Eyes; fall back to viewport.
-    var cam := player.get_node_or_null("Body/Neck/Head/Eyes/Camera") as Camera3D
-    if cam:
-        return cam
-    return player.get_viewport().get_camera_3d() if player.get_viewport() else null
+    return player.get_node_or_null("Body/Neck/Head/WeaponObstructionCast") as ShapeCast3D
 
 
 func _kill_sprint_tween() -> void:

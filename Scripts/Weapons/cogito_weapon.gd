@@ -101,10 +101,12 @@ enum WeaponState { IDLE, CYCLING, RELOADING }
 @export var trigger_min_hold_time: float = 0.1
 
 @export_group("Obstruction")
-## When the camera ray hits a wall, rotate the gun around %Grip_Point (handle stays fixed).
+## When the gun's collision box hits a wall, rotate it around %Grip_Point (handle stays fixed).
 @export var enable_obstruction: bool = true
-## How far ahead the probe looks (must cover viewmodel length past the camera).
-@export_range(0.4, 2.5, 0.05) var obstruction_reach: float = 1.5
+## Cross-section of the gun's obstruction box: x = width, y = height. Length is not set here —
+## it is measured every frame from %Grip_Point to %Bullet_Point, so it always matches the model.
+## Height is kept small on purpose: a tall box false-triggers on floors when aiming down.
+@export var obstruction_box_size: Vector2 = Vector2(0.14, 0.10)
 ## Pull toward body at full obstruction.
 @export_range(0.0, 0.8, 0.01) var obstruction_pull_back: float = 0.28
 ## Yaw around grip at full obstruction. Side follows L/R probe (not always left).

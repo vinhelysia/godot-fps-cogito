@@ -12,6 +12,12 @@ extends Node
 @export var smooth_speed: float = 12.0
 @export var crouch_lean_scale: float = 0.85
 
+@export_group("Wall Clearance")
+## Probe radius for the lean wall check. Must stay comfortably above the camera's near plane
+## (0.05) — the probe is what stops the lean, so anything smaller lets the near plane into the
+## wall before the lean is cut.
+@export var wall_probe_radius: float = 0.25
+
 @export_group("Asymmetry (right advantage)")
 ## Multiplier on camera lateral when leaning right / left.
 @export var right_lateral_scale: float = 1.2
@@ -37,6 +43,8 @@ var _stand_col: CollisionShape3D
 var _crouch_col: CollisionShape3D
 var _stand_base_x: float = 0.0
 var _crouch_base_x: float = 0.0
+## Built once — cast_motion() is called every physics frame.
+var _probe: PhysicsShapeQueryParameters3D
 
 
 func _ready() -> void:
@@ -57,6 +65,13 @@ func _ready() -> void:
 	if _crouch_col:
 		_crouch_base_x = _crouch_col.position.x
 
+	var sphere := SphereShape3D.new()
+	sphere.radius = wall_probe_radius
+	_probe = PhysicsShapeQueryParameters3D.new()
+	_probe.shape = sphere
+	_probe.collision_mask = 3  # Environment + Interactables (doors count as walls here).
+	_probe.collide_with_areas = false
+
 
 func _exit_tree() -> void:
 	# Remove our contribution if the node leaves mid-lean.
@@ -68,9 +83,42 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var target := _compute_target()
+	# Cut the lean short of geometry BEFORE smoothing, so the existing filter ramps the block
+	# in and out. Clamping the applied pose instead would pop the moment the wall cleared.
+	if not is_zero_approx(target):
+		target *= _wall_clearance(_desired_offsets(target).x)
 	var k := 1.0 - exp(-smooth_speed * delta)
 	lean_amount = lerpf(lean_amount, target, k)
 	_apply_pose(lean_amount)
+
+
+## Fraction of a full lean that is actually free of geometry.
+##
+## The collision box CANNOT be what keeps the camera out of walls: the box only follows a
+## fraction of the lean (that IS the peek advantage). At full right lean the camera sits
+## 0.456 m out while the box moves 0.173 m — against a 0.3 m half-width that leaves 17 mm of
+## margin, less than the camera's 0.05 m near plane. So the camera clipped straight through.
+## Sweep the real geometry instead, always from the UNLEANED head, so the result never depends
+## on the lean it is clamping.
+func _wall_clearance(want_x: float) -> float:
+	if _probe == null or is_zero_approx(want_x):
+		return 1.0
+	var neck := _head.get_parent() as Node3D
+	var world := _player.get_world_3d()
+	if neck == null or world == null or world.direct_space_state == null:
+		return 1.0
+
+	var neutral := _head.position
+	neutral.x -= _applied_pos_x
+	_probe.transform = Transform3D(Basis(), neck.global_transform * neutral)
+	_probe.motion = neck.global_basis.x.normalized() * want_x
+	_probe.exclude = [_player.get_rid()]
+
+	# cast_motion -> [safe_fraction, unsafe_fraction]; [1, 1] when nothing is hit.
+	var hit := world.direct_space_state.cast_motion(_probe)
+	if hit.size() != 2:
+		return 1.0
+	return clampf(hit[0], 0.0, 1.0)
 
 
 func _compute_target() -> float:

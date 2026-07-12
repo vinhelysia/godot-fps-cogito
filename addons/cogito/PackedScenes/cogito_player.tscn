@@ -42,6 +42,9 @@ size = Vector3(0.6, 0.7, 0.6)
 [sub_resource type="BoxShape3D" id="BoxShape3D_bpb0d"]
 size = Vector3(0.1, 0.1, 0.1)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_obstr"]
+size = Vector3(0.14, 0.1, 0.02)
+
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_af0lu"]
 streams_count = 5
 stream_0/stream = ExtResource("12_ug3wt")
@@ -141,6 +144,13 @@ script = ExtResource("14_bpb0d")
 
 [node name="CameraRecoil" type="Node3D" parent="Body/Neck/Head" unique_id=1388000001]
 script = ExtResource("36_recoil")
+
+[node name="WeaponObstructionCast" type="ShapeCast3D" parent="Body/Neck/Head"]
+shape = SubResource("BoxShape3D_obstr")
+target_position = Vector3(0, 0, -1)
+enabled = false
+collision_mask = 1
+debug_shape_custom_color = Color(1, 0.6, 0.1, 1)
 
 [node name="Wieldables" type="Node3D" parent="Body/Neck/Head" unique_id=1387632942]
 unique_name_in_owner = true
