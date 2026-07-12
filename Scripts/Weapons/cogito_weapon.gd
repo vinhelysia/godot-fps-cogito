@@ -159,6 +159,13 @@ var _audio_reload: AudioStreamPlayer3D
 var _reload_mechanics_snapshot: Dictionary = {}
 var _setup_valid: bool = false
 
+# Effective ADS values = exports modified by the item's attachments (per-instance).
+# Recomputed on equip; attachments only change while holstered.
+@onready var _eff_ads_fov: float = ads_fov
+@onready var _eff_ads_time: float = ads_time
+@onready var _eff_ads_position: Vector3 = ads_position
+var _flash_suppressed: bool = false
+
 
 # ── Lifecycle ────────────────────────────────────────────────────────────────
 
@@ -214,6 +221,8 @@ func equip(_player_interaction_component: PlayerInteractionComponent) -> void:
 	if not _setup_valid:
 		_trigger_held = false
 		return
+	_apply_attachment_visuals()
+	_compute_effective_ads()
 	_reset_state()
 	_shoot_motion.cancel(false)
 	
@@ -263,11 +272,11 @@ func unequip() -> void:
 	_state = WeaponState.IDLE
 	_sprint_blocked_press = false
 	if _ads.is_aiming:
-		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
+		_ads.exit(weapon_data, _eff_ads_fov, _eff_ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, true,
 				player_interaction_component)
 	else:
-		_ads.cancel_tweens_and_snap(weapon_data, ads_fov, default_position, ads_position)
+		_ads.cancel_tweens_and_snap(weapon_data, _eff_ads_fov, default_position, _eff_ads_position)
 	if animation_player:
 		animation_player.play(anim_unequip)
 
@@ -318,7 +327,7 @@ func action_secondary(_is_released: bool) -> void:
 			_bolt_root_tween.kill()
 			_bolt_root_tween = null
 			rotation_degrees = _bolt_pre_cycle_rest_rot
-		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
+		_ads.exit(weapon_data, _eff_ads_fov, _eff_ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, false,
 				player_interaction_component)
 	else:
@@ -328,7 +337,7 @@ func action_secondary(_is_released: bool) -> void:
 			_bolt_root_tween.kill()
 			_bolt_root_tween = null
 			rotation_degrees = _bolt_pre_cycle_rest_rot
-		_ads.enter(weapon_data, ads_fov, ads_time, ads_position, default_position,
+		_ads.enter(weapon_data, _eff_ads_fov, _eff_ads_time, _eff_ads_position, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active,
 				animation_player, player_interaction_component)
 
@@ -371,7 +380,7 @@ func _cancel_ads_with_duration(duration: float) -> void:
 			_bolt_root_tween.kill()
 			_bolt_root_tween = null
 			rotation_degrees = _bolt_pre_cycle_rest_rot
-		_ads.exit(weapon_data, ads_fov, ads_time, default_position,
+		_ads.exit(weapon_data, _eff_ads_fov, _eff_ads_time, default_position,
 				block_ads_during_shot_tween, _shoot_motion.is_active, false,
 				player_interaction_component, duration)
 
@@ -437,7 +446,9 @@ func _try_fire() -> void:
 		var emitter: Node = null
 		if player_interaction_component:
 			emitter = player_interaction_component.get_parent()
-		sound_events.sound_emitted.emit(bullet_point.global_position, weapon_data.gunshot_loudness, &"gunshot", emitter)
+		var loudness: float = weapon_data.gunshot_loudness \
+				* (_item_ref.attachment_multiplier(&"loudness_multiplier") if _item_ref else 1.0)
+		sound_events.sound_emitted.emit(bullet_point.global_position, loudness, &"gunshot", emitter)
 
 	# Muzzle flash (first-person view)
 	_spawn_muzzle_flash_fpv()
@@ -467,7 +478,7 @@ func _build_fire_context() -> Dictionary:
 	var aim_point := _resolve_aim_point()
 	var shot_range := 1000.0
 	if _item_ref and _item_ref.wieldable_range > 0.0:
-		shot_range = _item_ref.wieldable_range
+		shot_range = _item_ref.get_effective_range()
 	return {
 		"bullet_point": bullet_point,
 		# Legacy key kept for any resource that still reads camera_collision.
@@ -489,7 +500,7 @@ func _resolve_aim_point() -> Vector3:
 	var camera := get_viewport().get_camera_3d() if get_viewport() else null
 	var shot_range := 1000.0
 	if _item_ref and _item_ref.wieldable_range > 0.0:
-		shot_range = _item_ref.wieldable_range
+		shot_range = _item_ref.get_effective_range()
 
 	if camera == null:
 		# Fallback to Cogito helper (no mask control).
@@ -522,7 +533,7 @@ func _play_shoot_visual() -> bool:
 	# snaps the viewmodel. Keep one kick alive until it finishes.
 	if _shoot_motion != null and _shoot_motion.is_active:
 		return false
-	var rest_pos := _ads.get_rest_position(weapon_data, ads_position, default_position)
+	var rest_pos := _ads.get_rest_position(weapon_data, _eff_ads_position, default_position)
 	_shoot_motion.play(rest_pos, _rest_rotation_degrees, _ads.is_aiming)
 	return false
 
@@ -706,11 +717,74 @@ func _validate_required_setup() -> bool:
 func _configure_recoil() -> void:
 	var rn := _get_recoil_node()
 	if rn and weapon_data:
-		var hip := Vector3(weapon_data.recoilVertical, weapon_data.recoilHorizontal, 0.0)
+		var recoil_mult: float = _item_ref.attachment_multiplier(&"recoil_multiplier") if _item_ref else 1.0
+		var hip: Vector3 = Vector3(weapon_data.recoilVertical, weapon_data.recoilHorizontal, 0.0) * recoil_mult
 		rn.set_recoil(hip)
-		var aim := aim_recoil_values if aim_recoil_values.length() > RECOIL_THRESHOLD else hip * ADS_RECOIL_SCALE
+		var aim: Vector3 = aim_recoil_values * recoil_mult if aim_recoil_values.length() > RECOIL_THRESHOLD else hip * ADS_RECOIL_SCALE
 		rn.set_aim_recoil(aim)
 		rn.return_speed = weapon_data.recoilRecovery
+
+
+# ── Attachments ──────────────────────────────────────────────────────────────
+
+## Spawns mount_scene visuals for the item's attachments and caches derived
+## flags. Called on equip — attachments only change while holstered, so no
+## live-refresh path is needed. Optics are added as DIRECT children of the
+## weapon root so ADSController's ScopeController child discovery finds them.
+func _apply_attachment_visuals() -> void:
+	_clear_attachment_visuals()
+	_flash_suppressed = false
+	if _item_ref == null:
+		return
+	var optic_mount := get_node_or_null("%Optic_Mount") as Node3D
+	for item in _item_ref.get_attached_items():
+		if item.suppresses_muzzle_flash:
+			_flash_suppressed = true
+		if item.mount_scene == null:
+			continue
+		var node := item.mount_scene.instantiate() as Node3D
+		if node == null:
+			continue
+		node.add_to_group("attachment_visual")
+		match item.attachment_slot:
+			AttachmentItemPD.AttachmentSlot.OPTIC:
+				if optic_mount == null:
+					push_warning("cogito_weapon: %s has optic '%s' but no %%Optic_Mount marker." % [name, item.name])
+					node.free()
+					continue
+				add_child(node)
+				node.global_transform = optic_mount.global_transform
+			AttachmentItemPD.AttachmentSlot.MUZZLE:
+				if bullet_point == null:
+					node.free()
+					continue
+				bullet_point.add_child(node)
+				node.transform = Transform3D.IDENTITY
+			_:
+				# Data-only slots (grip/stock v1) shouldn't carry a scene.
+				node.free()
+
+
+func _clear_attachment_visuals() -> void:
+	for node in find_children("*", "", true, false):
+		if node.is_in_group("attachment_visual"):
+			node.get_parent().remove_child(node)
+			node.queue_free()
+
+
+## Effective ADS values = weapon exports modified by the equipped optic.
+func _compute_effective_ads() -> void:
+	_eff_ads_fov = ads_fov
+	_eff_ads_time = ads_time
+	_eff_ads_position = ads_position
+	if _item_ref == null:
+		return
+	_eff_ads_time = ads_time * _item_ref.attachment_multiplier(&"ads_time_multiplier")
+	var optic: AttachmentItemPD = _item_ref.get_attachment_item(AttachmentItemPD.AttachmentSlot.OPTIC)
+	if optic:
+		if optic.ads_fov_override > 0.0:
+			_eff_ads_fov = optic.ads_fov_override
+		_eff_ads_position = ads_position + optic.ads_position_offset
 
 
 func _apply_recoil() -> void:
@@ -806,7 +880,7 @@ func _capture_rest_state() -> void:
 
 
 func _apply_rest_pose() -> void:
-	position = _ads.get_rest_position(weapon_data, ads_position, default_position)
+	position = _ads.get_rest_position(weapon_data, _eff_ads_position, default_position)
 	rotation_degrees = _rest_rotation_degrees
 	if _shoot_motion.fire_part and not _shoot_motion.fire_part_locked:
 		_shoot_motion.fire_part.position = _shoot_motion.fire_part_rest_position
@@ -841,7 +915,7 @@ func _play_reload_sound() -> void:
 
 
 func _spawn_muzzle_flash_fpv() -> void:
-	if muzzle_flash_scene == null or bullet_point == null:
+	if _flash_suppressed or muzzle_flash_scene == null or bullet_point == null:
 		return
 	var flash := muzzle_flash_scene.instantiate() as Node3D
 	if flash == null:

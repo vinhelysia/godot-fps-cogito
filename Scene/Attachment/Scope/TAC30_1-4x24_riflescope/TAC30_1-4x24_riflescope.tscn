@@ -103,6 +103,7 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_nmi6g")
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_8b3am"]
+resource_local_to_scene = true
 viewport_path = NodePath("Scope")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8b3am"]
@@ -150,7 +151,7 @@ size = Vector2(0.115, 0.115)
 [node name="Tac3014x24Riflescope" type="Node3D" unique_id=367804236]
 script = ExtResource("1_8b3am")
 magnification = 6.0
-base_fov_at_1x = 75.0
+base_fov_at_1x = 60.0
 
 [node name="scope" type="MeshInstance3D" parent="." unique_id=2011235629]
 transform = Transform3D(0, 0.099204384, 0, -0.18941411, 0, 0, 0, 0, 0.18941411, 0, 0, 0)

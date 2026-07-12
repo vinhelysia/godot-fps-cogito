@@ -178,6 +178,8 @@ func load_player_state(player, passed_slot:String) -> void:
 							_restore_wieldable_saved_state(wieldable_item,
 									data.get("firearm_mechanical_state", {}),
 									data.get("charge_current", null))
+							if data.has("attachments"):
+								wieldable_item.set_attachments(data["attachments"])
 						
 		player.inventory_data.force_inventory_update()
 		
@@ -378,7 +380,7 @@ func load_scene_state(_scene_name_to_load:String, slot:String) -> void:
 					new_object.angular_velocity = Vector3(node_data["angular_velocity_x"], node_data["angular_velocity_y"], node_data["angular_velocity_z"])
 			# Set the remaining variables.
 			for data in node_data.keys():
-				if data == "filename" or data == "parent" or data == "pos_x" or data == "pos_y" or data == "pos_z" or data == "rot_x" or data == "rot_y" or data == "rot_z" or data == "item_charge" or data == "pickup_slot_data" or data == "pickup_item_charge" or data == "pickup_firearm_mechanical_state":
+				if data == "filename" or data == "parent" or data == "pos_x" or data == "pos_y" or data == "pos_z" or data == "rot_x" or data == "rot_y" or data == "rot_z" or data == "item_charge" or data == "pickup_slot_data" or data == "pickup_item_charge" or data == "pickup_firearm_mechanical_state" or data == "pickup_attachments":
 					continue
 				new_object.set(data, node_data[data])
 			
@@ -443,6 +445,7 @@ func _duplicate_slot_data_for_scene_restore(slot_data: InventorySlotPD, node_dat
 			elif node_data.has("item_charge"):
 				fallback_charge = node_data["item_charge"]
 			_restore_wieldable_saved_state(item_copy, state_data, fallback_charge)
+			item_copy.set_attachments(node_data.get("pickup_attachments", wieldable_item.get_attachments()))
 			item_copy.player_interaction_component = null
 			item_copy.is_being_wielded = false
 			item_copy.wielded_item = null

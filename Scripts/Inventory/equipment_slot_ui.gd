@@ -235,6 +235,9 @@ func _on_gui_input(event: InputEvent):
 	elif event.is_action_pressed("inventory_drop_item"):
 		equipment_slot_clicked.emit(equipment, slot_id, "inventory_drop_item")
 		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory_detach_item"):
+		equipment_slot_clicked.emit(equipment, slot_id, "inventory_detach_item")
+		get_viewport().set_input_as_handled()
 
 
 func _on_focus_entered() -> void:

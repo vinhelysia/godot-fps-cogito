@@ -176,7 +176,7 @@ func _projectile_fire(ctx: Dictionary) -> void:
 	else:
 		proj.global_position = origin
 	if "damage_amount" in proj:
-		proj.damage_amount = item_ref.wieldable_damage
+		proj.damage_amount = item_ref.get_effective_damage()
 	if proj is RigidBody3D:
 		(proj as RigidBody3D).linear_velocity = direction * float(weaponVelocity)
 	elif proj.has_method("set_linear_velocity"):
@@ -186,4 +186,4 @@ func _projectile_fire(ctx: Dictionary) -> void:
 
 static func _deal_damage(collider: Node, direction: Vector3, hit_position: Vector3, item_ref: WieldableItemPD) -> void:
 	if collider.has_signal("damage_received"):
-		collider.damage_received.emit(item_ref.wieldable_damage, direction, hit_position)
+		collider.damage_received.emit(item_ref.get_effective_damage(), direction, hit_position)

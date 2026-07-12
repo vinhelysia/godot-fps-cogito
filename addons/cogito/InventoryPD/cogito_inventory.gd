@@ -141,7 +141,12 @@ func remove_item_from_stack(slot_data: InventorySlotPD):
 
 func drop_slot_data(grabbed_slot_data: InventorySlotPD, index: int) -> InventorySlotPD:
 	var slot_data = inventory_slots[index]
-	
+
+	# Dropping an attachment onto a weapon attaches it (Tarkov-style modding).
+	if slot_data and grabbed_slot_data.inventory_item is AttachmentItemPD \
+			and slot_data.inventory_item is WieldableItemPD:
+		return _attach_to_weapon(grabbed_slot_data, slot_data.inventory_item)
+
 	var return_slot_data : InventorySlotPD
 	if slot_data and slot_data.can_fully_merge_with(grabbed_slot_data):
 		slot_data.fully_merge_with(grabbed_slot_data)
@@ -165,6 +170,30 @@ func drop_slot_data(grabbed_slot_data: InventorySlotPD, index: int) -> Inventory
 		
 	inventory_updated.emit(self)
 	return return_slot_data
+
+
+## Attaches the grabbed AttachmentItemPD onto weapon_item. Returns what stays
+## on the cursor: null on success, the previous occupant of the slot (swap),
+## or the grabbed slot unchanged when the attach is rejected.
+func _attach_to_weapon(grabbed_slot_data: InventorySlotPD, weapon_item: WieldableItemPD) -> InventorySlotPD:
+	var attachment := grabbed_slot_data.inventory_item as AttachmentItemPD
+	if grabbed_slot_data.quantity != 1 or weapon_item.is_being_wielded or not attachment.fits(weapon_item):
+		_send_player_hint("Can't attach " + attachment.name + " to " + weapon_item.name + ".")
+		return grabbed_slot_data
+	var previous := weapon_item.try_attach(attachment)
+	_send_player_hint("Attached: " + attachment.name)
+	inventory_updated.emit(self)
+	if previous != null:
+		var prev_slot := InventorySlotPD.new()
+		prev_slot.inventory_item = previous
+		prev_slot.quantity = 1
+		return prev_slot
+	return null
+
+
+func _send_player_hint(hint: String) -> void:
+	if CogitoSceneManager._current_player_node and CogitoSceneManager._current_player_node.player_interaction_component:
+		CogitoSceneManager._current_player_node.player_interaction_component.send_hint(null, hint)
 
 
 func drop_single_slot_data(grabbed_slot_data: InventorySlotPD, index: int) -> InventorySlotPD:
@@ -295,6 +324,9 @@ func _duplicate_wieldable_item_for_inventory(source_item: WieldableItemPD) -> Wi
 	if item_copy == null:
 		return source_item
 	item_copy.set_firearm_mechanical_state(source_item.get_firearm_mechanical_state())
+	# duplicate(false) shares nested Dictionaries by reference — deep-copy so
+	# each weapon instance owns its attachment set.
+	item_copy.set_attachments(source_item.get_attachments())
 	item_copy.player_interaction_component = null
 	item_copy.is_being_wielded = false
 	item_copy.wielded_item = null

@@ -29,6 +29,8 @@ enum WeaponSlot { PRIMARY, HOLSTER, MELEE }
 ## Used for weapons
 @export var wieldable_damage : float
 @export var firearm_mechanical_state : Dictionary = {}
+## Per-instance weapon attachments: int(AttachmentItemPD.AttachmentSlot) -> item resource path (String).
+@export var attachments : Dictionary = {}
 
 var wieldable_data_text : String
 
@@ -131,6 +133,73 @@ func clear_firearm_mechanical_state() -> void:
 	firearm_mechanical_state = {}
 
 
+# Functions for ATTACHMENTS (mirror of the mechanical-state accessors above)
+func get_attachments() -> Dictionary:
+	return attachments.duplicate(true)
+
+
+func set_attachments(new_attachments: Dictionary) -> void:
+	attachments = new_attachments.duplicate(true)
+
+
+func get_attachment_item(slot: int) -> AttachmentItemPD:
+	var path: String = str(attachments.get(slot, ""))
+	if path.is_empty():
+		return null
+	return load(path) as AttachmentItemPD
+
+
+func get_attached_items() -> Array[AttachmentItemPD]:
+	var items: Array[AttachmentItemPD] = []
+	for slot in attachments.keys():
+		var item := get_attachment_item(int(slot))
+		if item != null:
+			items.append(item)
+	return items
+
+
+## Product of the given multiplier property across all attached items.
+func attachment_multiplier(prop: StringName) -> float:
+	var result := 1.0
+	for item in get_attached_items():
+		result *= float(item.get(prop))
+	return result
+
+
+func get_effective_damage() -> float:
+	return wieldable_damage * attachment_multiplier(&"damage_multiplier")
+
+
+func get_effective_range() -> float:
+	return wieldable_range * attachment_multiplier(&"range_multiplier")
+
+
+## Attaches the item if compatible and not wielded. Returns the previous
+## occupant of that slot (AttachmentItemPD) or null. Returns the passed item
+## itself if the attach was rejected — caller keeps it.
+func try_attach(attachment: AttachmentItemPD) -> AttachmentItemPD:
+	if attachment == null or is_being_wielded or not attachment.fits(self):
+		return attachment
+	var slot := int(attachment.attachment_slot)
+	var previous := get_attachment_item(slot)
+	attachments[slot] = attachment.resource_path
+	return previous
+
+
+## Removes and returns the first attached item in AttachmentSlot enum order.
+func detach_next() -> AttachmentItemPD:
+	if is_being_wielded:
+		return null
+	var slots := attachments.keys()
+	slots.sort()
+	for slot in slots:
+		var item := get_attachment_item(int(slot))
+		attachments.erase(slot)
+		if item != null:
+			return item
+	return null
+
+
 # Function to get the AmmoItemPD
 func get_ammo_item(item_name_to_check_for: String) -> InventoryItemPD:
 	var ammo_item : InventoryItemPD
@@ -160,6 +229,7 @@ func save():
 		"resource" : self,
 		"charge_current" : charge_current,
 		"firearm_mechanical_state" : get_firearm_mechanical_state(),
+		"attachments" : get_attachments(),
 	}
 	return saved_item_data
 

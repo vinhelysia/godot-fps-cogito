@@ -154,6 +154,9 @@ func _on_gui_input(event: InputEvent):
 	if event.is_action_pressed("inventory_rotate_item"):
 		slot_pressed.emit(get_index(), "inventory_rotate_item")
 		get_viewport().set_input_as_handled()
+	if event.is_action_pressed("inventory_detach_item"):
+		slot_pressed.emit(get_index(), "inventory_detach_item")
+		get_viewport().set_input_as_handled()
 
 	if event.is_action_pressed("interact") or event.is_action_pressed("interact2"):
 		get_viewport().set_input_as_handled()

@@ -8,7 +8,10 @@
 [ext_resource type="Resource" uid="uid://hv4kejkdqbr7" path="res://Scene/Items/Bullets/76239/7.62x39mm_Item.tres" id="6_ammo"]
 [ext_resource type="Resource" path="res://Scene/Items/Gear/body_armor_placeholder.tres" id="7_bodyarmor"]
 [ext_resource type="Resource" path="res://Scene/Items/Gear/helmet_placeholder.tres" id="8_helmet"]
+[ext_resource type="Script" uid="uid://dxs1pbahn4jgk" path="res://Scripts/Inventory/AttachmentItemPD.gd" id="9_5q0vt"]
 [ext_resource type="Resource" path="res://Scene/Items/Gear/eyewear_placeholder.tres" id="9_eyewear"]
+[ext_resource type="Resource" path="res://Scene/Items/Attachments/suppressor_item.tres" id="12_suppressor"]
+[ext_resource type="Resource" path="res://Scene/Items/Attachments/foregrip_item.tres" id="13_foregrip"]
 [ext_resource type="Resource" uid="uid://curftyaxcxdcf" path="res://Scene/Enemies/LootTables/scav_loot_table.tres" id="10_pocketloot"]
 
 [sub_resource type="Resource" id="Resource_bodyarmoropt"]
@@ -30,6 +33,8 @@ script = ExtResource("2_weaponopt")
 wieldable = ExtResource("4_wieldable")
 weapon_data = ExtResource("5_weapondata")
 ammo_item = ExtResource("6_ammo")
+attachment_options = Array[ExtResource("9_5q0vt")]([ExtResource("12_suppressor"), ExtResource("13_foregrip")])
+attachment_chance = 0.25
 
 [resource]
 script = ExtResource("1_loadout")

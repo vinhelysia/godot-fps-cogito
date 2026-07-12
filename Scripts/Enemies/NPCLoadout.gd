@@ -32,11 +32,22 @@ class_name NPCLoadout
 ## {
 ##   "weapon_option": NPCWeaponOption or null,
 ##   "gear_items": Array[GearItemPD],
+##   "attachments": Array[AttachmentItemPD],
 ##   "spare_magazines": int,
 ##   "pocket_loot_rolls": int,
 ## }
 func roll(rng: RandomNumberGenerator) -> Dictionary:
 	var weapon_option := _roll_weighted_weapon(rng)
+
+	var attachments: Array[AttachmentItemPD] = []
+	if weapon_option:
+		var filled_attachment_slots: Dictionary = {}
+		for attachment in weapon_option.attachment_options:
+			if attachment == null or filled_attachment_slots.has(attachment.attachment_slot):
+				continue
+			if rng.randf() <= weapon_option.attachment_chance:
+				attachments.append(attachment)
+				filled_attachment_slots[attachment.attachment_slot] = true
 
 	var gear_items: Array[GearItemPD] = []
 	var filled_slots: Dictionary = {}
@@ -64,6 +75,7 @@ func roll(rng: RandomNumberGenerator) -> Dictionary:
 	return {
 		"weapon_option": weapon_option,
 		"gear_items": gear_items,
+		"attachments": attachments,
 		"spare_magazines": spare_magazines,
 		"pocket_loot_rolls": pocket_loot_rolls,
 	}

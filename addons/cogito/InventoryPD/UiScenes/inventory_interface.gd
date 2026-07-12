@@ -69,6 +69,14 @@ func _ready():
 		ev.physical_keycode = KEY_R
 		InputMap.action_add_event("inventory_rotate_item", ev)
 
+	# Register inventory_detach_item if missing from project.godot (X key) —
+	# same self-registration pattern as inventory_rotate_item above.
+	if not InputMap.has_action("inventory_detach_item"):
+		InputMap.add_action("inventory_detach_item")
+		var ev_detach := InputEventKey.new()
+		ev_detach.physical_keycode = KEY_X
+		InputMap.action_add_event("inventory_detach_item", ev_detach)
+
 	# External equipment panel (corpses) — wired once here since the panel is
 	# a static, always-present (hidden by default) node; set_external_inventory()
 	# just rebinds WHICH CogitoEquipment its slots point to per owner.
@@ -419,6 +427,9 @@ func on_inventory_button_press(inventory_data: CogitoInventory, index: int, acti
 			CogitoGlobals.debug_log(true, "inventory_interface.gd", "Can't drop while moving an item.")
 		[_, "inventory_rotate_item"]:
 			rotate_item()
+		[null, "inventory_detach_item"]:
+			_detach_from_weapon_slot(inventory_data.get_slot_data(index))
+			inventory_data.inventory_updated.emit(inventory_data)
 
 	# When connecting to the signal, we have bind the inventory_ui so we can use that to set focus.
 	local_inventory_ui.slot_array[index].grab_focus()
@@ -458,7 +469,14 @@ func _on_equipment_slot_pressed(equipment_instance: CogitoEquipment, slot_id: St
 			else:
 				Audio.play_sound(sound_error)
 		[_, "inventory_move_item"]:
-			if equipment_instance.can_equip(slot_id, grabbed_slot_data):
+			# Dropping an attachment onto an equipped weapon attaches it
+			# (player equipment only — corpse equipment is move-only, but the
+			# attach is a safe convenience there too).
+			var equipped := equipment_instance.get_equipped(slot_id)
+			if grabbed_slot_data.inventory_item is AttachmentItemPD \
+					and equipped and equipped.inventory_item is WieldableItemPD:
+				grabbed_slot_data = player.inventory_data._attach_to_weapon(grabbed_slot_data, equipped.inventory_item)
+			elif equipment_instance.can_equip(slot_id, grabbed_slot_data):
 				var newly_equipped := grabbed_slot_data
 				grabbed_slot_data = equipment_instance.equip(slot_id, grabbed_slot_data)
 				# Player-only auto-quickslot-bind, mirroring PocketInventory
@@ -495,8 +513,36 @@ func _on_equipment_slot_pressed(equipment_instance: CogitoEquipment, slot_id: St
 						player.player_interaction_component.send_hint(null, "Not enough space to drop item.")
 		[_, "inventory_drop_item"]:
 			Audio.play_sound(sound_error)
+		[null, "inventory_detach_item"]:
+			_detach_from_weapon_slot(equipment_instance.get_equipped(slot_id))
 
 	update_grabbed_slot()
+
+
+## Detaches the next attachment (enum order) from the weapon in slot_data and
+## puts it into the player's pockets. One attachment per press.
+func _detach_from_weapon_slot(slot_data: InventorySlotPD) -> void:
+	var player = get_parent().player
+	if slot_data == null or player == null:
+		return
+	var weapon_item := slot_data.inventory_item as WieldableItemPD
+	if weapon_item == null or weapon_item.is_being_wielded or weapon_item.attachments.is_empty():
+		Audio.play_sound(sound_error)
+		return
+	var attachment: AttachmentItemPD = weapon_item.detach_next()
+	if attachment == null:
+		Audio.play_sound(sound_error)
+		return
+	var attachment_slot_data := InventorySlotPD.new()
+	attachment_slot_data.inventory_item = attachment
+	attachment_slot_data.quantity = 1
+	if player.inventory_data.pick_up_slot_data(attachment_slot_data):
+		player.player_interaction_component.send_hint(null, "Detached: " + attachment.name)
+	else:
+		# No pocket space — put it back on the weapon instead of losing it.
+		weapon_item.try_attach(attachment)
+		Audio.play_sound(sound_error)
+		player.player_interaction_component.send_hint(null, "Not enough space to detach " + attachment.name + ".")
 
 
 ## Mirrors PocketInventory.pick_up_slot_data()'s auto-quickslot-bind signal

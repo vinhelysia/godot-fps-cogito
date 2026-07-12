@@ -13,3 +13,7 @@ class_name NPCWeaponOption
 ## Relative pick weight when NPCLoadout.roll() picks a weapon. Weights are
 ## relative to each other, not required to sum to 1.
 @export var weight: float = 1.0
+## Attachments that may roll onto this weapon at spawn (each rolled
+## independently at attachment_chance; first winner per slot type).
+@export var attachment_options: Array[AttachmentItemPD] = []
+@export_range(0.0, 1.0, 0.05) var attachment_chance: float = 0.25

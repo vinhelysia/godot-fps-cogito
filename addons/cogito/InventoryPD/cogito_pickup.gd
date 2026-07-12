@@ -64,4 +64,5 @@ func save():
 		var wieldable_item := slot_data.inventory_item as WieldableItemPD
 		node_data["pickup_item_charge"] = wieldable_item.charge_current
 		node_data["pickup_firearm_mechanical_state"] = wieldable_item.get_firearm_mechanical_state()
+		node_data["pickup_attachments"] = wieldable_item.get_attachments()
 	return node_data

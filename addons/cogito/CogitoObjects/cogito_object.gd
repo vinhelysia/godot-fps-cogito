@@ -114,6 +114,7 @@ func save():
 			var wieldable_item := pickup_slot_data.inventory_item as WieldableItemPD
 			node_data["pickup_item_charge"] = wieldable_item.charge_current
 			node_data["pickup_firearm_mechanical_state"] = wieldable_item.get_firearm_mechanical_state()
+			node_data["pickup_attachments"] = wieldable_item.get_attachments()
 
 	# If the node is a RigidBody3D, then save the physics properties of it
 	var rigid_body = find_rigid_body()
@@ -155,6 +156,7 @@ func _duplicate_slot_data_for_pickup_state(slot_data: InventorySlotPD) -> Invent
 		var item_copy := wieldable_item.duplicate(false) as WieldableItemPD
 		if item_copy != null:
 			item_copy.set_firearm_mechanical_state(wieldable_item.get_firearm_mechanical_state())
+			item_copy.set_attachments(wieldable_item.get_attachments())
 			slot_copy.inventory_item = item_copy
 	return slot_copy
 
