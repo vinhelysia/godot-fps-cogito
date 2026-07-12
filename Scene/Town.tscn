@@ -19,6 +19,7 @@
 [ext_resource type="Script" uid="uid://cabgyitb3d8cj" path="res://addons/cogito/CogitoNPC/cogito_patrol_path.gd" id="21_patrol"]
 [ext_resource type="Texture2D" uid="uid://c1blj5u0t6uq4" path="res://Scene/Weapons/Firearms/AR/AK47/ak47_qucik.png" id="22_f8qge"]
 [ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="23_mr256"]
+[ext_resource type="PackedScene" uid="uid://c0tq0ui8f5mi6" path="res://Scene/Object/Deco/Locker/GunLocker.tscn" id="24_q8i1e"]
 [ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapons/Firearms/AR/AK47/AK47.tscn" id="24_xhvj0"]
 [ext_resource type="PackedScene" uid="uid://bc8jxhqittw87" path="res://Scene/Weapons/ProjectilesAndShells/7.62x39/7.62x39 projectile.tscn" id="25_pchd4"]
 [ext_resource type="Script" uid="uid://n2v7dh3aksy2" path="res://Scripts/Weapons/Types/AssaultRifle_Resource.gd" id="26_v74d6"]
@@ -471,7 +472,7 @@ accuracy = 0.06
 script = ExtResource("19_3085e")
 accuracy = 0.05
 
-[sub_resource type="Resource" id="Resource_hafyx"]
+[sub_resource type="Resource" id="Resource_xp5ie"]
 resource_local_to_scene = true
 script = ExtResource("23_mr256")
 wieldable_scene = ExtResource("24_xhvj0")
@@ -490,7 +491,7 @@ item_size = Vector2(4, 2)
 can_auto_slot = true
 metadata/_custom_type_script = "uid://bkxgkf3pj8kb8"
 
-[sub_resource type="Resource" id="Resource_ksshf"]
+[sub_resource type="Resource" id="Resource_ndu78"]
 resource_local_to_scene = true
 script = ExtResource("26_v74d6")
 fireRate = 600.0
@@ -1226,7 +1227,7 @@ shape = SubResource("BoxShape3D_eyrtc")
 [node name="Loot" type="Node3D" parent="." unique_id=2109338526]
 
 [node name="Pickup_M700" parent="Loot" unique_id=1490139408 instance=ExtResource("12_yhbxf")]
-transform = Transform3D(-0.6601828, -3.2594902e-09, 0.7511051, -0.751105, 6.248289e-08, -0.66018283, -4.4779352e-08, -0.99999994, -4.3698346e-08, -18.058805, 0.69382626, 20.503414)
+transform = Transform3D(-0.6601828, -3.2594902e-09, 0.7511051, -0.751105, 6.248289e-08, -0.66018283, -4.4779352e-08, -0.99999994, -4.3698346e-08, -18.1212, 0.7053379, 20.575464)
 freeze = true
 
 [node name="Pickup_usp" parent="Loot" unique_id=841589278 instance=ExtResource("15_n5gl2")]
@@ -1285,8 +1286,8 @@ patrol_path = NodePath("../PatrolPath_Warehouse")
 
 [node name="Scav_OuterShed" parent="." unique_id=1491182662 node_paths=PackedStringArray("patrol_path") instance=ExtResource("20_scav")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.05, -30)
-equipped_wieldable = SubResource("Resource_hafyx")
-equipped_weapon_data = SubResource("Resource_ksshf")
+equipped_wieldable = SubResource("Resource_xp5ie")
+equipped_weapon_data = SubResource("Resource_ndu78")
 patrol_path = NodePath("../PatrolPath_OuterShed")
 
 [node name="PatrolPath_OuterShed" type="Node3D" parent="." unique_id=1826566152 node_paths=PackedStringArray("patrol_points")]
@@ -1304,3 +1305,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0, -36)
 
 [node name="P3" type="Node3D" parent="PatrolPath_OuterShed" unique_id=21755486]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, -34)
+
+[node name="GunLocker" parent="." unique_id=1350070861 instance=ExtResource("24_q8i1e")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.696249, 0, 20.66896)
