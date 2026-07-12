@@ -9,19 +9,18 @@
 [ext_resource type="Texture2D" uid="uid://dh6gd1mh35b0o" path="res://addons/kenney_prototype_textures/light/texture_08.png" id="5_mr256"]
 [ext_resource type="Texture2D" uid="uid://bc536g8kahgmu" path="res://addons/kenney_prototype_textures/light/texture_04.png" id="6_xhvj0"]
 [ext_resource type="Texture2D" uid="uid://cbfwxuq4cq435" path="res://Assets/crate_Texture_BaseColor_v02.png" id="8_0iypy"]
-[ext_resource type="PackedScene" uid="uid://bebw6gvua3ljl" path="res://Scene/Weapom/Firearms/Bolt-action/M700/pickup_m700.tscn" id="12_yhbxf"]
-[ext_resource type="PackedScene" uid="uid://ckukvw522vy6q" path="res://Scene/Weapom/Firearms/Pistol/USP/pickup_usp.tscn" id="15_n5gl2"]
-[ext_resource type="PackedScene" uid="uid://3spc3k7pmlkd" path="res://Assets/Blender/rubble_pile_a.glb" id="18_gi6o6"]
+[ext_resource type="PackedScene" uid="uid://bebw6gvua3ljl" path="res://Scene/Weapons/Firearms/Bolt-action/M700/pickup_m700.tscn" id="12_yhbxf"]
+[ext_resource type="PackedScene" uid="uid://ckukvw522vy6q" path="res://Scene/Weapons/Firearms/Pistol/USP/pickup_usp.tscn" id="15_n5gl2"]
 [ext_resource type="Script" uid="uid://b58a5jxts5377" path="res://Scripts/Enemies/AIProfile.gd" id="19_3085e"]
-[ext_resource type="Resource" uid="uid://cao1lbgvo6tvi" path="res://Scene/Weapom/Firearms/Pistol/USP/usp_w.tres" id="20_kdlys"]
+[ext_resource type="Resource" uid="uid://cao1lbgvo6tvi" path="res://Scene/Weapons/Firearms/Pistol/USP/usp_w.tres" id="20_kdlys"]
 [ext_resource type="PackedScene" uid="uid://c5b73hl6rjw60" path="res://Scene/Enemies/Scav.tscn" id="20_scav"]
-[ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.png" id="21_5wssn"]
-[ext_resource type="Resource" uid="uid://c0a1piy7rpc46" path="res://Scene/Weapom/Firearms/Pistol/USP/usp.tres" id="21_8vr6j"]
+[ext_resource type="Texture2D" uid="uid://dxujwswxgkals" path="res://Scene/Weapons/Firearms/AR/AK47/AK47.png" id="21_5wssn"]
+[ext_resource type="Resource" uid="uid://c0a1piy7rpc46" path="res://Scene/Weapons/Firearms/Pistol/USP/usp.tres" id="21_8vr6j"]
 [ext_resource type="Script" uid="uid://cabgyitb3d8cj" path="res://addons/cogito/CogitoNPC/cogito_patrol_path.gd" id="21_patrol"]
-[ext_resource type="Texture2D" uid="uid://c1blj5u0t6uq4" path="res://Scene/Weapom/Firearms/AR/AK47/ak47_qucik.png" id="22_f8qge"]
+[ext_resource type="Texture2D" uid="uid://c1blj5u0t6uq4" path="res://Scene/Weapons/Firearms/AR/AK47/ak47_qucik.png" id="22_f8qge"]
 [ext_resource type="Script" uid="uid://bkxgkf3pj8kb8" path="res://addons/cogito/InventoryPD/CustomResources/WieldableItemPD.gd" id="23_mr256"]
-[ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapom/Firearms/AR/AK47/AK47.tscn" id="24_xhvj0"]
-[ext_resource type="PackedScene" uid="uid://bc8jxhqittw87" path="res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn" id="25_pchd4"]
+[ext_resource type="PackedScene" uid="uid://daoa0ue5mkbbs" path="res://Scene/Weapons/Firearms/AR/AK47/AK47.tscn" id="24_xhvj0"]
+[ext_resource type="PackedScene" uid="uid://bc8jxhqittw87" path="res://Scene/Weapons/ProjectilesAndShells/7.62x39/7.62x39 projectile.tscn" id="25_pchd4"]
 [ext_resource type="Script" uid="uid://n2v7dh3aksy2" path="res://Scripts/Weapons/Types/AssaultRifle_Resource.gd" id="26_v74d6"]
 [ext_resource type="Script" uid="uid://cmt86kjfbkdge" path="res://Scripts/Inventory/pocket_inventory.gd" id="pocket_inventory_script"]
 
@@ -1283,9 +1282,6 @@ ai_profile = SubResource("Resource_hjtuw")
 equipped_wieldable = ExtResource("20_kdlys")
 equipped_weapon_data = ExtResource("21_8vr6j")
 patrol_path = NodePath("../PatrolPath_Warehouse")
-
-[node name="rubble_pile_a2" parent="." unique_id=1611767294 instance=ExtResource("18_gi6o6")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.530865, 0.17849873, 28.165241)
 
 [node name="Scav_OuterShed" parent="." unique_id=1491182662 node_paths=PackedStringArray("patrol_path") instance=ExtResource("20_scav")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.05, -30)

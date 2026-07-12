@@ -65,7 +65,7 @@
 [ext_resource type="PackedScene" uid="uid://ks0xcampuu3h" path="res://addons/cogito/PackedScenes/stamina_drain_attribute_zone.tscn" id="66_go053"]
 [ext_resource type="PackedScene" uid="uid://d2lnk6ecthmvd" path="res://addons/cogito/PackedScenes/Pickups/pickup_strength_potion.tscn" id="67_17g06"]
 [ext_resource type="Script" uid="uid://d2jjqadlnhp6x" path="res://addons/cogito/QuestSystem/Components/cogito_quest_updater.gd" id="67_ovhpt"]
-[ext_resource type="PackedScene" uid="uid://cpoyxgguqsn3m" path="res://Scene/Weapom/Firearms/AR/AK47/pickup_ak47.tscn" id="68_a6jus"]
+[ext_resource type="PackedScene" uid="uid://cpoyxgguqsn3m" path="res://Scene/Weapons/Firearms/AR/AK47/pickup_ak47.tscn" id="68_a6jus"]
 [ext_resource type="PackedScene" uid="uid://byb1y44thne6i" path="res://addons/cogito/PackedScenes/gravity_zone.tscn" id="68_kt1ow"]
 [ext_resource type="Resource" uid="uid://c2goscdbbyawd" path="res://addons/cogito/QuestSystem/Quests/DemoSceneQuests/Demo_TargetPractice.tres" id="68_r8380"]
 [ext_resource type="PackedScene" uid="uid://b2cccsfb5tikx" path="res://addons/cogito/CogitoNPC/cogito_npc.tscn" id="68_wxy0x"]

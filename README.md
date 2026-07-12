@@ -78,7 +78,7 @@ The structure of this template always tries to adhere to the following principle
 # FPS Project — Custom Systems
 
 This project extends COGITO with a fully custom weapon system and additional first-person
-shooter mechanics. Everything below lives in `Scripts/Weapons/` and `Scene/Weapom/` and
+shooter mechanics. Everything below lives in `Scripts/Weapons/` and `Scene/Weapons/` and
 is designed to never modify `addons/cogito` directly.
 
 ---
@@ -182,14 +182,14 @@ The Godot project root is `godot-fps-cogito-master/`. All `res://` paths resolve
 ### Folder Conventions
 | Folder | Contents |
 |--------|---------|
-| `res://Scene/Weapom/Firearms/` | Weapon scenes, wieldable resources, weapon data resources |
-| `res://Scene/Weapom/BulletProjectil&shelle/` | Projectile and shell casing scenes |
+| `res://Scene/Weapons/Firearms/` | Weapon scenes, wieldable resources, weapon data resources |
+| `res://Scene/Weapons/ProjectilesAndShells/` | Projectile and shell casing scenes |
 | `res://Scene/Attachment/Scope/` | Optic attachment scenes |
 | `res://Scene/Items/Bullets/` | Ammo pickup scenes |
 | `res://Scripts/Weapons/` | All weapon GDScript (orchestrator, resources, helpers) |
 | `res://Assets/` | Imported meshes, textures, SFX |
 
-> **Note:** The folder is named `Weapom` (not `Weapon`) and `BulletProjectil&shelle`
+> **Note:** Project content is organized under `Scene/Weapons/ProjectilesAndShells`.
 > (not `BulletProjectileShell`). Do not rename — scene references will break.
 
 ### Main Scene

@@ -2,15 +2,15 @@ extends SceneTree
 
 const SCOPE_SCENE := preload("res://Scene/Attachment/Scope/TAC30_1-4x24_riflescope/TAC30_1-4x24_riflescope.tscn")
 const PROJECTILE_SCENES := [
-	"res://Scene/Weapom/BulletProjectil&shelle/7.62x39/7.62x39 projectile.tscn",
-	"res://Scene/Weapom/BulletProjectil&shelle/7.62x51/7.62x51 projectile.tscn",
-	"res://Scene/Weapom/BulletProjectil&shelle/45. ACP/45acp projectile.tscn",
+	"res://Scene/Weapons/ProjectilesAndShells/7.62x39/7.62x39 projectile.tscn",
+	"res://Scene/Weapons/ProjectilesAndShells/7.62x51/7.62x51 projectile.tscn",
+	"res://Scene/Weapons/ProjectilesAndShells/45. ACP/45acp projectile.tscn",
 ]
 const DEAD_SUBVIEWPORT_SCENES := [
-	"res://Scene/Weapom/Firearms/Bolt-action/M700/m700.tscn",
-	"res://Scene/Weapom/Firearms/AR/AK47/AK47.tscn",
-	"res://Scene/Weapom/Firearms/Pistol/USP/USP.tscn",
-	"res://Scene/Weapom/Firearms/Pistol/USP/USP_drop.tscn",
+	"res://Scene/Weapons/Firearms/Bolt-action/M700/m700.tscn",
+	"res://Scene/Weapons/Firearms/AR/AK47/AK47.tscn",
+	"res://Scene/Weapons/Firearms/Pistol/USP/USP.tscn",
+	"res://Scene/Weapons/Firearms/Pistol/USP/USP_drop.tscn",
 	"res://Scene/Items/Bullets/45. ACP/45.ACP_Item.tscn",
 ]
 

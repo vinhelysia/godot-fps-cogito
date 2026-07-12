@@ -9,3 +9,10 @@ docs/
 AGENTS.md
 CLAUDE.md
 
+
+# Godot re-creates these whenever it holds the LimboAI DLL open
+addons/limboai/bin/~*.TMP
+
+# Throwaway debug probes / pose tracing tools (kept on disk, never shipped)
+tests/_tmp_*
+Scripts/Weapons/Helpers/snap_trace_collector.gd*
