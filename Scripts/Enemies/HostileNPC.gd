@@ -96,6 +96,13 @@ func _ready() -> void:
 	if loadout:
 		_loadout_rng.randomize()
 		_apply_loadout()
+	else:
+		# Loud on purpose. `loadout` also comes back null when its .tres failed to
+		# PARSE (one dead ext_resource anywhere in the chain kills the whole
+		# resource), and skipping quietly leaves `equipment`/`pockets` null — the
+		# NPC fights fine but its corpse carries nothing, so looting silently does
+		# nothing. That reads as a loot bug, not a missing-asset bug.
+		push_error("HostileNPC (%s): no loadout resource — this NPC will have no equipment, no pockets and NOTHING TO LOOT. Check the output above for a failed .tres/.tscn load in the loadout's resource chain." % name)
 
 	# BTPlayer (a child) is ready before its parent, so its blackboard already
 	# exists here. The BlackboardPlan's baked-in "ammo" default won't reflect
@@ -167,6 +174,10 @@ func _apply_loadout() -> void:
 		var duped_wieldable: WieldableItemPD = pockets._duplicate_wieldable_item_for_inventory(weapon_option.wieldable)
 		equipped_wieldable = duped_wieldable
 		equipped_weapon_data = weapon_option.weapon_data
+
+		var rolled_attachments: Array = result.get("attachments", [])
+		for attachment: AttachmentItemPD in rolled_attachments:
+			duped_wieldable.try_attach(attachment)
 
 		var weapon_slot_data := InventorySlotPD.new()
 		weapon_slot_data.inventory_item = duped_wieldable

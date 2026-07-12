@@ -23,9 +23,11 @@ class_name CorpseContainer extends CogitoContainer
 		pockets = value
 		inventory_data = value
 
-## Group tag set on mannequin_ragdoll.tscn's root — see _find_ragdoll_skeleton().
+## Group tag set on mannequin_ragdoll.tscn's root — see _find_ragdoll_bones().
 const RAGDOLL_GROUP := "corpse_ragdoll"
-const BONE_HEAD := "DEF-head"
+## Topmost PhysicalBone3D in the rig: there is no "DEF-head" physical bone (the
+## skeleton has that bone, the simulator does not), so the head volume rides the neck.
+const BONE_HEAD := "DEF-neck"
 const BONE_TORSO := "DEF-spine.002"
 const BONE_PELVIS := "DEF-hips"
 ## Bone tracking (Task 2) only runs within this range of the player — matches
@@ -38,10 +40,9 @@ const TRACK_RADIUS := 5.0
 @onready var pelvis_shape: CollisionShape3D = $PelvisShape
 
 var _player: Node3D
-var _skeleton: Skeleton3D
-var _bone_head: int = -1
-var _bone_torso: int = -1
-var _bone_pelvis: int = -1
+var _bone_head: PhysicalBone3D
+var _bone_torso: PhysicalBone3D
+var _bone_pelvis: PhysicalBone3D
 
 
 func _ready() -> void:
@@ -62,7 +63,7 @@ func _set_up_references() -> void:
 		return
 	if not toggle_inventory.is_connected(player_hud.toggle_inventory_interface):
 		toggle_inventory.connect(player_hud.toggle_inventory_interface)
-	_find_ragdoll_skeleton()
+	_find_ragdoll_bones()
 
 
 ## CogitoHealthAttribute.on_death() (addons/cogito, not whitelisted for this
@@ -72,7 +73,7 @@ func _set_up_references() -> void:
 ## touching that spawner is the only way to find it without editing an
 ## out-of-whitelist file. "claimed" metadata guards the rare case of two
 ## NPCs dying close together in the same frame.
-func _find_ragdoll_skeleton() -> void:
+func _find_ragdoll_bones() -> void:
 	var best: Node3D = null
 	var best_dist := INF
 	for ragdoll in get_tree().get_nodes_in_group(RAGDOLL_GROUP):
@@ -87,14 +88,34 @@ func _find_ragdoll_skeleton() -> void:
 		return
 
 	best.set_meta("claimed", true)
-	_skeleton = best.get_node_or_null("Rig/SkeletonRagdoll") as Skeleton3D
-	if _skeleton == null:
-		push_warning("CorpseContainer (%s): matched ragdoll has no Rig/SkeletonRagdoll — loot volumes will not track bone positions." % name)
+	# Track the PhysicalBone3D nodes, NOT Skeleton3D.get_bone_global_pose(): a
+	# PhysicalBoneSimulator3D drives the skin, but the skeleton's bone poses keep
+	# reporting the *animated* (standing) pose. Tracking those left the three loot
+	# volumes standing in an invisible column at the death spot while the body lay
+	# on the floor a metre away — the only place an interaction ray still crossed
+	# that column was the bottom sphere, so a corpse could only be looted by aiming
+	# at its feet. The physical bones ARE the simulation, so they cannot drift.
+	var simulator := best.get_node_or_null(
+		"Rig/SkeletonRagdoll/PhysicalBoneSimulator3D") as PhysicalBoneSimulator3D
+	if simulator == null:
+		push_warning("CorpseContainer (%s): matched ragdoll has no PhysicalBoneSimulator3D — loot volumes will not follow the corpse." % name)
 		return
 
-	_bone_head = _skeleton.find_bone(BONE_HEAD)
-	_bone_torso = _skeleton.find_bone(BONE_TORSO)
-	_bone_pelvis = _skeleton.find_bone(BONE_PELVIS)
+	for child in simulator.get_children():
+		var bone := child as PhysicalBone3D
+		if bone == null:
+			continue
+		match bone.bone_name:
+			BONE_HEAD:
+				_bone_head = bone
+			BONE_TORSO:
+				_bone_torso = bone
+			BONE_PELVIS:
+				_bone_pelvis = bone
+
+	if _bone_head == null or _bone_torso == null or _bone_pelvis == null:
+		push_warning("CorpseContainer (%s): ragdoll is missing one of the tracked physical bones (%s / %s / %s) — that loot volume will not follow the corpse." % [
+			name, BONE_HEAD, BONE_TORSO, BONE_PELVIS])
 
 	# Deliberately NOT reparenting onto the ragdoll here (scene-tree-wise this
 	# stays a child of current_scene, same as before): CorpseContainer.save()
@@ -108,7 +129,7 @@ func _find_ragdoll_skeleton() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if _skeleton == null or _player == null or not is_instance_valid(_player):
+	if _player == null or not is_instance_valid(_player):
 		return
 	if global_position.distance_to(_player.global_position) > TRACK_RADIUS:
 		return
@@ -117,10 +138,12 @@ func _physics_process(_delta: float) -> void:
 	_track_bone(pelvis_shape, _bone_pelvis)
 
 
-func _track_bone(shape: CollisionShape3D, bone_idx: int) -> void:
-	if bone_idx < 0:
+## Sphere volumes — position is all that matters, so don't drag the bone's rotation
+## (or its scale) onto the shape.
+func _track_bone(shape: CollisionShape3D, bone: PhysicalBone3D) -> void:
+	if bone == null or not is_instance_valid(bone):
 		return
-	shape.global_transform = _skeleton.global_transform * _skeleton.get_bone_global_pose(bone_idx)
+	shape.global_position = bone.global_position
 
 
 ## CogitoContainer.save() (read-only base) has no idea `equipment` exists —
