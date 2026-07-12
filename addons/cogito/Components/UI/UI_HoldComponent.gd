@@ -89,12 +89,15 @@ func _on_hold_complete():
 func start_holding(_hold_interaction: HoldInteraction) -> void:
 	if !is_holding and _is_live_node(_hold_interaction):
 		
-		# Aligns the progress wheel with the prompt, for feedback on which prompt is being interacted with
+		# Aligns the progress wheel with the prompt, for feedback on which prompt is being
+		# interacted with. Offsets are relative to prompt_area, not to us: the prompt row
+		# now sits below the crosshair rather than at our own origin, so ignoring
+		# prompt_area's position would park the wheel on top of the crosshair.
 		var pixel_y_offset: float = 0
 		for node in prompt_area.get_children(false):
 			if node is UiPromptComponent and (node as UiPromptComponent).interaction_text.text == _hold_interaction.interaction_text:
-				var x_offset: float = progress_wheel.radius * -2.0
-				var y_offset: float = (node.size.y * 0.5) + pixel_y_offset
+				var x_offset: float = prompt_area.position.x + progress_wheel.radius * -2.0
+				var y_offset: float = prompt_area.position.y + (node.size.y * 0.5) + pixel_y_offset
 				position = Vector2(x_offset, y_offset)
 				break
 			else:

@@ -242,13 +242,9 @@ func set_interaction_prompts(passed_interaction_nodes : Array[Node]):
 		previous_crosshair_texture = crosshair_texture.get_texture()
 		crosshair_texture.texture = interaction_crosshair
 	
-	var interactive_object = passed_interaction_nodes[0].get_parent()
-	var display_name : String = interactive_object.display_name
-	if display_name:
-		var instanced_object_name : UiObjectNameComponent = object_name_component.instantiate()
-		prompt_area.add_child(instanced_object_name)
-		instanced_object_name.set_object_name(display_name)
-	
+	# No object-name row on purpose: the prompt now sits right under the crosshair and
+	# the interaction_text ("Loot" / "Open" / "Take") already says what you'd be doing.
+	# object_name_component is left wired up in the inspector for anyone who wants it back.
 	for node: InteractionComponent in passed_interaction_nodes:
 		if node.set_disabled(player): # Call first
 			continue
