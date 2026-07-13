@@ -2,13 +2,21 @@
 .godot/
 /android/
 
-# Ignore the entire docs folder so it won't be uploaded to GitHub
-docs/
+# Local project/AI knowledge base
+docs/project/
 
-# Agent configuration files
-AGENTS.md
+# Local AI agent configuration and onboarding
+.agent/
+.agents/
+.claude/
+.codex/
+.grok/
 CLAUDE.md
-
+AGENTS.md
+GROK.md
+AI_CONTEXT.md
+addons/godot_mcp/
+tools/gen_codebase_map.sh
 
 # Godot re-creates these whenever it holds the LimboAI DLL open
 addons/limboai/bin/~*

@@ -30,9 +30,6 @@ CogitoGlobals="*uid://d0q71mnw6am11"
 CogitoQuestManager="*uid://c33l80dv3c6c5"
 CogitoSceneManager="*uid://dwd61hyssfy55"
 MenuTemplateManager="*uid://dru131jwwih1y"
-MCPScreenshot="*res://addons/godot_mcp/mcp_screenshot_service.gd"
-MCPInputService="*res://addons/godot_mcp/mcp_input_service.gd"
-MCPGameInspector="*res://addons/godot_mcp/mcp_game_inspector_service.gd"
 SoundEvents="*res://Scripts/Enemies/sound_events.gd"
 
 [display]
@@ -51,7 +48,7 @@ export/convert_text_resources_to_binary=false
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/cogito/plugin.cfg", "res://addons/godot_mcp/plugin.cfg", "res://addons/input_helper/plugin.cfg", "res://addons/quick_audio/plugin.cfg")
+enabled=PackedStringArray("res://addons/cogito/plugin.cfg", "res://addons/input_helper/plugin.cfg", "res://addons/quick_audio/plugin.cfg")
 
 [file_customization]
 
